@@ -97,7 +97,7 @@ const ForumPostDetail = () => {
       <Paper elevation={0} sx={{ p: 2, borderLeft: '3px solid', borderColor: comment.accepted ? 'success.main' : 'divider', bgcolor: 'grey.50' }}>
         <Box sx={{ display: 'flex', gap: 2 }}>
           <Avatar 
-            src={comment.authorAvatarKey ? `http://localhost:3000/api/files/download/${comment.authorAvatarKey}` : null}
+            src={comment.authorAvatarKey ? `/api/files/download/${comment.authorAvatarKey}` : null}
             sx={{ width: 32, height: 32 }}
           >
             {comment.authorName?.charAt(0)}
@@ -171,7 +171,7 @@ const ForumPostDetail = () => {
               <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 2, mt: 2 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                   <Avatar 
-                    src={post.authorAvatarKey ? `http://localhost:3000/api/files/download/${post.authorAvatarKey}` : null}
+                    src={post.authorAvatarKey ? `/api/files/download/${post.authorAvatarKey}` : null}
                     sx={{ width: 40, height: 40, border: '2px solid', borderColor: 'primary.light' }}
                   >
                     {post.authorName?.charAt(0)}

@@ -147,7 +147,7 @@ const GroupFeed = ({ groupId, currentUserRole, groupCourses = [], groupAssignmen
     }
   }
 
-  const getAvatarUrl = (key) => key ? `http://localhost:3000/api/files/download/${key}` : null
+  const getAvatarUrl = (key) => key ? `/api/files/download/${key}` : null
 
   const formatDate = (dateInput) => {
     if (!dateInput) return 'Vừa xong'
@@ -416,7 +416,7 @@ const PostItem = ({ post, currentUser, currentUserRole, onDelete, onTogglePin, o
     }
   }
 
-  const getAvatarUrl = (key) => key ? `http://localhost:3000/api/files/download/${key}` : null
+  const getAvatarUrl = (key) => key ? `/api/files/download/${key}` : null
   
   const getRoleColor = (role) => {
     switch (role?.toUpperCase()) {

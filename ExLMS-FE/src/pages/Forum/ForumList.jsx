@@ -163,7 +163,7 @@ const ForumList = () => {
                   >
                     <ListItemAvatar>
                       <Avatar 
-                        src={post.authorAvatarKey ? `http://localhost:3000/api/files/download/${post.authorAvatarKey}` : null}
+                        src={post.authorAvatarKey ? `/api/files/download/${post.authorAvatarKey}` : null}
                         sx={{ bgcolor: 'secondary.main' }}
                       >
                         {post.authorName?.charAt(0)}
