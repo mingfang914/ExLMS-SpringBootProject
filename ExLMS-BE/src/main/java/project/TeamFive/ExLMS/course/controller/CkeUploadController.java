@@ -25,16 +25,14 @@ public class CkeUploadController {
             String objectKey = fileService.uploadResource(file);
             // Construct the URL that pointing back to our proxy endpoint
             String url = "/api/cke/resources/" + objectKey;
-            
+
             return ResponseEntity.ok(Map.of(
-                "url", url,
-                "uploaded", true
-            ));
+                    "url", url,
+                    "uploaded", true));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of(
-                "uploaded", false,
-                "error", Map.of("message", e.getMessage())
-            ));
+                    "uploaded", false,
+                    "error", Map.of("message", e.getMessage())));
         }
     }
 
@@ -43,9 +41,10 @@ public class CkeUploadController {
         try {
             GetObjectResponse response = fileService.getResource(objectKey);
             String contentType = response.headers().get("Content-Type");
-            
+
             return ResponseEntity.ok()
-                    .contentType(MediaType.parseMediaType(contentType != null ? contentType : "application/octet-stream"))
+                    .contentType(
+                            MediaType.parseMediaType(contentType != null ? contentType : "application/octet-stream"))
                     .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + objectKey + "\"")
                     .body(new InputStreamResource(response));
         } catch (Exception e) {
