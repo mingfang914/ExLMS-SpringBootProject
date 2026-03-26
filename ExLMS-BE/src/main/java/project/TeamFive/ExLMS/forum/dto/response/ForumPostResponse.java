@@ -49,7 +49,7 @@ public class ForumPostResponse {
                 .authorId(post.getAuthor().getId())
                 .authorAvatarKey(post.getAuthor().getAvatarKey())
                 .title(post.getTitle())
-                .content(post.getContent())
+                .content(project.TeamFive.ExLMS.util.UrlUtils.normalizeCkeUrls(post.getContent()))
                 .status(post.getStatus())
                 .viewCount(post.getViewCount())
                 .upvoteCount(post.getUpvoteCount())

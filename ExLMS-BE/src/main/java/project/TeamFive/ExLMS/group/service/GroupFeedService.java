@@ -299,7 +299,7 @@ public class GroupFeedService {
                 .authorName(comment.getAuthor().getFullName())
                 .authorAvatarKey(comment.getAuthor().getAvatarKey())
                 .authorGroupRole(role)
-                .content(comment.getContent())
+                .content(project.TeamFive.ExLMS.util.UrlUtils.normalizeCkeUrls(comment.getContent()))
                 .createdAt(comment.getCreatedAt())
                 .build();
     }

@@ -103,7 +103,7 @@ public class ChapterService {
         return ChapterResponse.builder()
                 .id(chapter.getId())
                 .title(chapter.getTitle())
-                .description(chapter.getDescription())
+                .description(project.TeamFive.ExLMS.util.UrlUtils.normalizeCkeUrls(chapter.getDescription()))
                 .orderIndex(chapter.getOrderIndex())
                 .locked(chapter.isLocked())
                 .build();

@@ -34,7 +34,7 @@ public class GradingService {
     private final AssignmentSubmissionRepository submissionRepository;
     private final AssignmentRepository assignmentRepository;
     private final GroupMemberRepository groupMemberRepository;
-    private final FileService fileService;
+    // private final FileService fileService; // Removed due to lint: not used anymore
 
     private void requireInstructorRole(Assignment assignment, User user) {
         GroupMember member = groupMemberRepository.findByGroup_IdAndUser_Id(assignment.getGroup().getId(), user.getId())

@@ -33,7 +33,7 @@ public class AssignmentResponseDTO {
         return AssignmentResponseDTO.builder()
                 .id(assignment.getId())
                 .title(assignment.getTitle())
-                .description(assignment.getDescription())
+                .description(project.TeamFive.ExLMS.util.UrlUtils.normalizeCkeUrls(assignment.getDescription()))
                 .groupId(assignment.getGroup().getId())
                 .courseId(assignment.getCourse() != null ? assignment.getCourse().getId() : null)
                 .maxScore(assignment.getMaxScore())

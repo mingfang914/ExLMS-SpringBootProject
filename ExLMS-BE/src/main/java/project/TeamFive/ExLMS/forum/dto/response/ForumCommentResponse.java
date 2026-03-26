@@ -33,7 +33,7 @@ public class ForumCommentResponse {
                 .authorName(comment.getAuthor().getFullName())
                 .authorId(comment.getAuthor().getId())
                 .authorAvatarKey(comment.getAuthor().getAvatarKey())
-                .content(comment.getContent())
+                .content(project.TeamFive.ExLMS.util.UrlUtils.normalizeCkeUrls(comment.getContent()))
                 .upvoteCount(comment.getUpvoteCount())
                 .accepted(comment.isAccepted())
                 .createdAt(comment.getCreatedAt())
