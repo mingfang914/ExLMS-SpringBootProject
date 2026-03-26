@@ -29,11 +29,21 @@ public class FileController {
     }
 
     @GetMapping("/download/{fileKey}")
-    public ResponseEntity<org.springframework.core.io.Resource> downloadFile(@PathVariable String fileKey) {
+    public ResponseEntity<org.springframework.core.io.Resource> downloadFile(
+            @PathVariable String fileKey,
+            @RequestParam(required = false) String fileName) {
         try {
             io.minio.GetObjectResponse response = fileService.downloadFile(fileKey);
+            
+            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+            headers.add(org.springframework.http.HttpHeaders.CONTENT_TYPE, response.headers().get("Content-Type"));
+            
+            if (fileName != null && !fileName.isEmpty()) {
+                headers.add(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"");
+            }
+            
             return ResponseEntity.ok()
-                    .header(org.springframework.http.HttpHeaders.CONTENT_TYPE, response.headers().get("Content-Type"))
+                    .headers(headers)
                     .body(new org.springframework.core.io.InputStreamResource(response));
         } catch (Exception e) {
             return ResponseEntity.notFound().build();

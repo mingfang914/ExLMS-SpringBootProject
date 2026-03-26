@@ -76,7 +76,7 @@ public class GradingService {
         dto.setGradeStatus(grade.getStatus().name());
 
         if (submission.getFileKey() != null) {
-            dto.setFileUrl(fileService.getPresignedUrl(submission.getFileKey(), submission.getFileName()));
+            dto.setFileUrl("/api/files/download/" + submission.getFileKey() + (submission.getFileName() != null ? "?fileName=" + submission.getFileName() : ""));
         }
         return dto;
     }
@@ -105,7 +105,7 @@ public class GradingService {
                         dto.setGradeStatus(g.getStatus().name());
                     });
                     if (sub.getFileKey() != null) {
-                        dto.setFileUrl(fileService.getPresignedUrl(sub.getFileKey(), sub.getFileName()));
+                        dto.setFileUrl("/api/files/download/" + sub.getFileKey() + (sub.getFileName() != null ? "?fileName=" + sub.getFileName() : ""));
                     }
                     return dto;
                 })

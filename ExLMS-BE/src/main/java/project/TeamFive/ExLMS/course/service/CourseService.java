@@ -139,10 +139,7 @@ public class CourseService {
     private CourseResponse mapToResponse(Course course) {
         String thumbUrl = null;
         if (course.getThumbnailKey() != null && !course.getThumbnailKey().trim().isEmpty()) {
-            try {
-                thumbUrl = fileService.getPresignedUrl(course.getThumbnailKey());
-            } catch (Exception e) {
-            }
+            thumbUrl = "/api/files/download/" + course.getThumbnailKey();
         }
 
         return CourseResponse.builder()

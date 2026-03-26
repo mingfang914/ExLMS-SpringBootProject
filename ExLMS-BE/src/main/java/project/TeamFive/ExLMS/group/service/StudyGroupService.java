@@ -192,11 +192,7 @@ public class StudyGroupService {
     private GroupResponse mapToGroupResponse(StudyGroup group, User currentUser) {
         String coverUrl = null;
         if (group.getCoverKey() != null && !group.getCoverKey().trim().isEmpty()) {
-            try {
-                coverUrl = fileService.getPresignedUrl(group.getCoverKey());
-            } catch (Exception e) {
-                System.out.println("Failed to get presigned url for coverKey: " + group.getCoverKey());
-            }
+            coverUrl = "/api/files/download/" + group.getCoverKey();
         }
 
         String currentUserRole = null;

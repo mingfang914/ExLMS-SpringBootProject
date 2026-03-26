@@ -33,9 +33,7 @@ public class UserController {
         
         String avatarUrl = null;
         if (currentUser.getAvatarKey() != null && !currentUser.getAvatarKey().trim().isEmpty()) {
-            try {
-                avatarUrl = fileService.getPresignedUrl(currentUser.getAvatarKey());
-            } catch (Exception e) {}
+            avatarUrl = "/api/files/download/" + currentUser.getAvatarKey();
         }
         response.put("avatarKey", currentUser.getAvatarKey());
         response.put("avatarUrl", avatarUrl);

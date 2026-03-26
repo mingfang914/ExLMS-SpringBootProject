@@ -195,7 +195,7 @@ public class SubmissionService {
         
         // Populate file URL
         if (sub.getFileKey() != null) {
-            dto.setFileUrl(fileService.getPresignedUrl(sub.getFileKey(), sub.getFileName()));
+            dto.setFileUrl("/api/files/download/" + sub.getFileKey() + (sub.getFileName() != null ? "?fileName=" + sub.getFileName() : ""));
         }
 
         // Populate grade info
