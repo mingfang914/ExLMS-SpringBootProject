@@ -46,18 +46,63 @@ const Register = () => {
   }
 
   return (
-    <Container component="main" maxWidth="xs">
-      <Box
-        sx={{
-          marginTop: 8,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
+    <Box
+      sx={{
+        minHeight: '100vh',
+        width: '100vw',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Background Video (Auto loops) */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          zIndex: 0,
         }}
       >
-        <Paper elevation={3} sx={{ p: 4, width: '100%' }}>
-          <Typography component="h1" variant="h5" align="center" gutterBottom>
-            Join ExLMS
+        <source src="/api/files/download/login_gif.mp4" type="video/mp4" />
+      </video>
+
+      {/* Dark Overlay to make the form pop out */}
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundColor: 'rgba(0, 0, 0, 0.4)',
+          zIndex: 0,
+        }}
+      />
+
+      <Container component="main" maxWidth="xs" sx={{ position: 'relative', zIndex: 1 }}>
+        <Paper 
+          elevation={8} 
+          sx={{ 
+            p: 4, 
+            width: '100%',
+            borderRadius: 3,
+            backgroundColor: 'rgba(255, 255, 255, 0.85)',
+            backdropFilter: 'blur(12px)',
+          }}
+        >
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <Typography component="h1" variant="h5" align="center" gutterBottom sx={{ fontWeight: 'bold' }}>
+            Đăng ký
           </Typography>
           
           {error && (
@@ -72,7 +117,7 @@ const Register = () => {
               required
               fullWidth
               id="fullName"
-              label="Full Name"
+              label="Họ và tên"
               name="fullName"
               autoComplete="name"
               autoFocus
@@ -84,7 +129,7 @@ const Register = () => {
               required
               fullWidth
               id="email"
-              label="Email Address"
+              label="Địa chỉ Email"
               name="email"
               autoComplete="email"
               value={email}
@@ -95,7 +140,7 @@ const Register = () => {
               required
               fullWidth
               name="password"
-              label="Password"
+              label="Mật khẩu"
               type="password"
               id="password"
               autoComplete="new-password"
@@ -107,7 +152,7 @@ const Register = () => {
               required
               fullWidth
               name="confirmPassword"
-              label="Confirm Password"
+              label="Xác nhận mật khẩu"
               type="password"
               id="confirmPassword"
               autoComplete="new-password"
@@ -120,7 +165,7 @@ const Register = () => {
               fullWidth
               select
               name="desiredRole"
-              label="I want to register as"
+              label="Tôi muốn đăng ký với vai trò"
               id="desiredRole"
               value={desiredRole}
               onChange={(e) => setDesiredRole(e.target.value)}
@@ -128,8 +173,8 @@ const Register = () => {
                 native: true,
               }}
             >
-              <option value="STUDENT">Student</option>
-              <option value="INSTRUCTOR">Instructor</option>
+              <option value="STUDENT">Học viên</option>
+              <option value="INSTRUCTOR">Giảng viên</option>
             </TextField>
             <Button
               type="submit"
@@ -138,17 +183,18 @@ const Register = () => {
               sx={{ mt: 3, mb: 2 }}
               disabled={loading}
             >
-              {loading ? <CircularProgress size={24} color="inherit" /> : 'Register'}
+              {loading ? <CircularProgress size={24} color="inherit" /> : 'Đăng ký'}
             </Button>
             <Box sx={{ textAlign: 'center' }}>
               <Link component={RouterLink} to="/login" variant="body2">
-                {"Already have an account? Sign In"}
+                {"Đã có tài khoản? Đăng nhập"}
               </Link>
             </Box>
           </Box>
+          </Box>
         </Paper>
-      </Box>
-    </Container>
+      </Container>
+    </Box>
   )
 }
 

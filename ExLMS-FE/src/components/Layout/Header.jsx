@@ -52,6 +52,7 @@ const Header = () => {
     handleCloseUserMenu()
     authService.logout()
     dispatch(logout())
+    navigate('/')
   }
 
   const handleNotificationClick = (id) => {

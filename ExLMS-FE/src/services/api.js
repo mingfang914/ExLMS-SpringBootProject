@@ -68,7 +68,7 @@ api.interceptors.response.use(
         } catch (refreshErr) {
           console.error('Refresh token failed:', refreshErr);
           store.dispatch(logout())
-          window.location.href = '/login'
+          window.location.href = '/'
           return Promise.reject(refreshErr)
         }
       }
