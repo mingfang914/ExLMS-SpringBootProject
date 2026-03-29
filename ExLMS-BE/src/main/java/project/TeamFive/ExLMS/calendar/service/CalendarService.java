@@ -47,15 +47,38 @@ public class CalendarService {
     }
 
     @Transactional
-    public void syncAllExistingAssignments() {
-        log.info("Starting sync of all existing assignments to calendar...");
+    public int syncAllExistingAssignments() {
+        log.info("CALENDAR_SYNC: Starting sync of all existing assignments to calendar...");
         List<Assignment> allAssignments = assignmentRepository.findAll();
+        log.info("CALENDAR_SYNC: Found {} total assignments in database", allAssignments.size());
         int createdCount = 0;
+        int skipNoDueDate = 0;
+        int skipNoGroup = 0;
+        int skipNoMembers = 0;
         
         for (Assignment assignment : allAssignments) {
-            if (assignment.getDueAt() == null) continue;
+            String assignmentLabel = "[" + assignment.getId() + ": " + assignment.getTitle() + "]";
+            
+            if (assignment.getDueAt() == null) {
+                log.info("CALENDAR_SYNC: Skipping {} - No due date", assignmentLabel);
+                skipNoDueDate++;
+                continue;
+            }
+
+            if (assignment.getGroup() == null) {
+                log.warn("CALENDAR_SYNC: Skipping {} - Assignment not linked to any group", assignmentLabel);
+                skipNoGroup++;
+                continue;
+            }
 
             List<GroupMember> members = groupMemberRepository.findByGroup_Id(assignment.getGroup().getId());
+            if (members.isEmpty()) {
+                log.info("CALENDAR_SYNC: Skipping {} - Group {} has no members", assignmentLabel, assignment.getGroup().getName());
+                skipNoMembers++;
+                continue;
+            }
+            
+            log.info("CALENDAR_SYNC: Processing {} - Found {} group members", assignmentLabel, members.size());
             
             for (GroupMember member : members) {
                 // Check if already exists to avoid duplicates
@@ -84,17 +107,44 @@ public class CalendarService {
                 }
             }
         }
-        log.info("Sync completed. Created {} new calendar events for assignments.", createdCount);
+        log.info("CALENDAR_SYNC: Sync completed. Created: {}, Skipped (No Due Date: {}, No Group: {}, No Members: {})", 
+                createdCount, skipNoDueDate, skipNoGroup, skipNoMembers);
+        return createdCount;
     }
 
     @Transactional(readOnly = true)
-    public Map<String, Object> getDiagnostics() {
+    public Map<String, Object> getDiagnostics(UUID userId) {
         Map<String, Object> stats = new HashMap<>();
-        stats.put("total_calendar_events", calendarEventRepository.count());
-        stats.put("total_assignments", assignmentRepository.count());
-        stats.put("assignments_by_type", calendarEventRepository.findAll().stream()
+        long totalEvents = calendarEventRepository.count();
+        long totalAssignments = assignmentRepository.count();
+        
+        List<CalendarEvent> allEvents = calendarEventRepository.findAll();
+        
+        long syncedAssignments = allEvents.stream()
                 .filter(ce -> ce.getSourceEntityType() == CalendarEvent.SourceEntityType.ASSIGNMENT)
-                .count());
+                .map(CalendarEvent::getSourceEntityId)
+                .distinct()
+                .count();
+                
+        stats.put("total_calendar_events", totalEvents);
+        stats.put("total_assignments", totalAssignments);
+        stats.put("synced_distinct_assignments", syncedAssignments);
+        stats.put("unsynced_assignments", Math.max(0, totalAssignments - syncedAssignments));
+        
+        if (userId != null) {
+            long userEvents = allEvents.stream()
+                    .filter(ce -> ce.getUser().getId().equals(userId))
+                    .count();
+            long userAssignments = allEvents.stream()
+                    .filter(ce -> ce.getUser().getId().equals(userId) && ce.getSourceEntityType() == CalendarEvent.SourceEntityType.ASSIGNMENT)
+                    .count();
+            stats.put("user_total_events", userEvents);
+            stats.put("user_assignment_events", userAssignments);
+            
+            List<GroupMember> userMemberships = groupMemberRepository.findAllByUserId(userId.toString());
+            stats.put("user_group_count", userMemberships.size());
+        }
+        
         return stats;
     }
 
