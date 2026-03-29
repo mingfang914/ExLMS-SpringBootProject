@@ -24,6 +24,8 @@ import {
 import { Link, useLocation } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 
+import Logo from '../Common/Logo'
+
 const drawerWidth = 240
 
 const Sidebar = () => {
@@ -61,12 +63,7 @@ const Sidebar = () => {
       }}
     >
       <Toolbar sx={{ justifyContent: 'center', py: 2 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <Avatar sx={{ bgcolor: 'primary.main', width: 36, height: 36, fontWeight: 'bold' }}>E</Avatar>
-          <Typography variant="h6" noWrap component="div" sx={{ fontWeight: 700, letterSpacing: '-0.5px', color: 'text.primary' }}>
-            ExLMS<span style={{color: '#4f46e5'}}>.</span>
-          </Typography>
-        </Box>
+        <Logo variant="colored" />
       </Toolbar>
       <Box sx={{ overflow: 'auto', mt: 2, px: 2 }}>
         <List sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
