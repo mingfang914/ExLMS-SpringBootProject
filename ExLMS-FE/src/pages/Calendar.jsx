@@ -40,6 +40,7 @@ import {
   SportsScoreOutlined as EndIcon,
   PersonOutline as PersonalIcon,
   SettingsOutlined as SystemIcon,
+  Sync as SyncIcon,
 } from '@mui/icons-material'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -60,7 +61,8 @@ const EVENT_COLORS = {
   COURSE_END: '#94a3b8',
   COURSE_SESSION: '#10b981',
   PERSONAL: '#00d4ff',
-  SYSTEM: '#a855f7'
+  SYSTEM: '#a855f7',
+  GROUP_EVENT: '#f43f5e'
 };
 
 const LEGEND_LABELS = {
@@ -71,7 +73,8 @@ const LEGEND_LABELS = {
   COURSE_END: 'Kết thúc khóa học',
   COURSE_SESSION: 'Buổi học',
   PERSONAL: 'Cá nhân',
-  SYSTEM: 'Hệ thống'
+  SYSTEM: 'Hệ thống',
+  GROUP_EVENT: 'Sự kiện nhóm'
 };
 
 const EVENT_ICONS = {
@@ -83,6 +86,7 @@ const EVENT_ICONS = {
   COURSE_SESSION: CourseIcon,
   PERSONAL: PersonalIcon,
   SYSTEM: SystemIcon,
+  GROUP_EVENT: MeetingIcon,
   DEFAULT: AssignmentIcon
 };
 
@@ -94,6 +98,8 @@ const Calendar = () => {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [currentView, setCurrentView] = useState('dayGridMonth')
   const [calendarTitle, setCalendarTitle] = useState('')
+  const [syncing, setSyncing] = useState(false)
+  const [syncMessage, setSyncMessage] = useState(null)
 
   const calendarRef = useRef(null)
   const navigate = useNavigate()
@@ -105,6 +111,7 @@ const Calendar = () => {
       setLoading(true)
       try {
         const data = await calendarService.getEvents()
+        console.log('CALENDAR_DEBUG: Raw events from service:', data);
         const formattedEvents = data.map(event => ({
           ...event,
           extendedProps: {
@@ -112,6 +119,7 @@ const Calendar = () => {
             type: event.extendedProps?.type || 'DEFAULT'
           }
         }))
+        console.log('CALENDAR_DEBUG: Formatted events:', formattedEvents);
         setEvents(formattedEvents)
       } catch (err) {
         setError('Failed to load calendar events.')
@@ -121,6 +129,25 @@ const Calendar = () => {
     }
     fetchEvents()
   }, [])
+
+  const handleSync = async () => {
+    setSyncing(true)
+    setSyncMessage(null)
+    try {
+      console.log('CALENDAR_DEBUG: Triggering sync...');
+      await calendarService.syncCalendar()
+      setSyncMessage({ type: 'success', text: 'Đồng bộ lịch thành công!' })
+      // Re-fetch events
+      const data = await calendarService.getEvents()
+      setEvents(data)
+    } catch (err) {
+      console.error('CALENDAR_DEBUG: Sync failed:', err);
+      setSyncMessage({ type: 'error', text: 'Đồng bộ thất bại. Vui lòng thử lại.' })
+    } finally {
+      setSyncing(false)
+      setTimeout(() => setSyncMessage(null), 5000)
+    }
+  }
 
   const handleEventClick = (clickInfo) => {
     setSelectedEvent(clickInfo.event)
@@ -134,20 +161,54 @@ const Calendar = () => {
 
   const handleNavigate = () => {
     if (!selectedEvent) return
-    const { type, groupId, assignmentId, meetingId, courseId } = selectedEvent.extendedProps
+    const eventId = selectedEvent.id;
+    const { 
+      type, 
+      groupId: propGroupId, 
+      assignmentId, 
+      meetingId, 
+      courseId: propCourseId, 
+      quizId,
+      sourceEntityId
+    } = selectedEvent.extendedProps
+    
+    // Fallback logic for IDs
+    const groupId = propGroupId
+    const aid = assignmentId || sourceEntityId || eventId
+    const mid = meetingId || sourceEntityId || eventId
+    const cid = propCourseId || sourceEntityId || eventId
+    const qid = quizId || sourceEntityId || eventId
+
     handleDialogClose()
+
+    if (!groupId && type !== 'PERSONAL' && type !== 'SYSTEM') {
+      console.warn('Missing groupId for event navigation')
+    }
 
     switch (type) {
       case 'ASSIGNMENT_DUE':
-        navigate(`/groups/${groupId}/assignments/${assignmentId}`)
+        navigate(`/groups/${groupId}/assignments/${aid}`)
         break
       case 'MEETING':
-        navigate(`/groups/${groupId}/meetings/${meetingId}`)
+        navigate(`/groups/${groupId}/meetings/${mid}`)
         break
       case 'COURSE_START':
-        navigate(`/groups/${groupId}/courses/${courseId}`)
+      case 'COURSE_SESSION':
+        navigate(`/groups/${groupId}/courses/${cid}/view`)
+        break
+      case 'QUIZ':
+        navigate(`/groups/${groupId}/courses/${cid}/quiz/${qid}/take`)
+        break
+      case 'GROUP_EVENT':
+        // For now, if we don't have groupId, we navigate to the groups list or a specific group if available
+        if (groupId) {
+           navigate(`/groups/${groupId}`)
+        } else {
+           navigate(`/groups`)
+        }
         break
       default:
+        console.warn(`No navigation defined for event type: ${type}`)
         break
     }
   }
@@ -250,6 +311,17 @@ const Calendar = () => {
         <Alert severity="error" variant="outlined" sx={{ m: 3, borderRadius: 2 }}>{error}</Alert>
       ) : (
         <CalendarContainer elevation={0}>
+          {syncMessage && (
+            <Fade in={!!syncMessage}>
+              <Alert 
+                severity={syncMessage.type} 
+                sx={{ m: 2, borderRadius: 2 }}
+                onClose={() => setSyncMessage(null)}
+              >
+                {syncMessage.text}
+              </Alert>
+            </Fade>
+          )}
           <CustomToolbar>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <Typography variant="h5" sx={{ fontWeight: 700, minWidth: isMobile ? 'auto' : '250px' }}>
@@ -270,6 +342,19 @@ const Calendar = () => {
                   </IconButton>
                 </Tooltip>
               </ButtonGroup>
+              
+              <Tooltip title="Đồng bộ tất cả bài tập vào lịch">
+                <Button 
+                  onClick={handleSync} 
+                  disabled={syncing}
+                  variant="outlined" 
+                  size="small"
+                  startIcon={syncing ? <CircularProgress size={16} /> : <SyncIcon />}
+                  sx={{ borderRadius: 2, ml: 2, fontWeight: 600 }}
+                >
+                  {syncing ? 'Đang đồng bộ...' : 'Đồng bộ'}
+                </Button>
+              </Tooltip>
             </Box>
 
             <ButtonGroup

@@ -2,49 +2,47 @@ import api from './api'
 
 const calendarService = {
   getEvents: async (start, end) => {
-    // In a real app, you would fetch events from the backend within a date range
-    // For now, we return mock data
-    const mockEvents = [
-      {
-        id: 'event1',
-        title: 'Assignment Due: Project Proposal',
-        start: '2026-03-25T23:59:00',
-        allDay: false,
-        backgroundColor: '#f44336', // Red for assignments
-        borderColor: '#f44336',
-        extendedProps: {
-          type: 'ASSIGNMENT_DUE',
-          groupId: 'group1',
-          assignmentId: 'assign1'
+
+    try {
+      const response = await api.get('/calendar', {
+        params: {
+          start: start,
+          end: end
         }
-      },
-      {
-        id: 'event2',
-        title: 'Meeting: Spring Boot Q&A',
-        start: '2026-03-26T15:00:00',
-        end: '2026-03-26T16:00:00',
-        backgroundColor: '#2196f3', // Blue for meetings
-        borderColor: '#2196f3',
+      });
+      
+      // Chuyển đổi dữ liệu backend sang format của FullCalendar
+      const events = response.data.map(event => ({
+        id: event.id,
+        title: event.title,
+        start: event.startAt,
+        end: event.endAt,
+        allDay: !event.endAt || (typeof event.startAt === 'string' && event.startAt.includes('00:00:00') && typeof event.endAt === 'string' && event.endAt.includes('23:59:59')),
+        backgroundColor: event.color || '#6c63ff',
+        borderColor: event.color || '#6c63ff',
         extendedProps: {
-          type: 'MEETING',
-          groupId: 'group1',
-          meetingId: 'meet1'
+          type: event.eventType,
+          sourceEntityId: event.sourceEntityId,
+          sourceEntityType: event.sourceEntityType,
+          description: event.description,
+          groupId: event.groupId,
         }
-      },
-      {
-        id: 'event3',
-        title: 'Course Start: Introduction to React',
-        start: '2026-03-20',
-        allDay: true,
-        backgroundColor: '#4caf50', // Green for courses
-        borderColor: '#4caf50',
-        extendedProps: {
-          type: 'COURSE_START',
-          courseId: 'course1'
-        }
-      }
-    ]
-    return Promise.resolve(mockEvents)
+      }));
+      
+      return events;
+    } catch (error) {
+      console.error('Error fetching calendar events:', error);
+      throw error;
+    }
+  },
+  syncCalendar: async () => {
+    try {
+      const response = await api.get('/calendar/sync-all');
+      return response.data;
+    } catch (error) {
+      console.error('Error syncing calendar:', error);
+      throw error;
+    }
   }
 }
 

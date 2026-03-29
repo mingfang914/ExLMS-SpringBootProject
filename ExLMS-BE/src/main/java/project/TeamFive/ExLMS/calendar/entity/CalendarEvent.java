@@ -53,14 +53,18 @@ public class CalendarEvent extends BaseEntity {
     @Builder.Default
     private boolean personal = false;
 
+    @Column(name = "group_id")
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.BINARY)
+    private UUID groupId;
+
     @Column(name = "reminder_at")
     private LocalDateTime reminderAt;
 
     public enum EventType {
-        MEETING, ASSIGNMENT_DUE, QUIZ, COURSE_START, COURSE_END, PERSONAL, SYSTEM
+        MEETING, ASSIGNMENT_DUE, QUIZ, COURSE_START, COURSE_END, PERSONAL, SYSTEM, GROUP_EVENT
     }
 
     public enum SourceEntityType {
-        MEETING, ASSIGNMENT, QUIZ, COURSE
+        MEETING, ASSIGNMENT, QUIZ, COURSE, GROUP_EVENT
     }
 }
