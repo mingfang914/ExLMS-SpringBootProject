@@ -135,8 +135,8 @@ const Calendar = () => {
     setSyncMessage(null)
     try {
       console.log('CALENDAR_DEBUG: Triggering sync...');
-      await calendarService.syncCalendar()
-      setSyncMessage({ type: 'success', text: 'Đồng bộ lịch thành công!' })
+      const responseMessage = await calendarService.syncCalendar()
+      setSyncMessage({ type: 'success', text: responseMessage || 'Đồng bộ lịch thành công!' })
       // Re-fetch events
       const data = await calendarService.getEvents()
       setEvents(data)

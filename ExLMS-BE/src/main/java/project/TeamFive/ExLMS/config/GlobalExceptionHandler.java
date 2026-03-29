@@ -26,9 +26,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Map<String, String>> handleRuntimeException(RuntimeException e) {
+        System.err.println("DEBUG: RuntimeException caught: " + e.getClass().getName() + " - " + e.getMessage());
+        e.printStackTrace();
         Map<String, String> error = new HashMap<>();
-        error.put("message", e.getMessage());
-        return ResponseEntity.badRequest().body(error);
+        error.put("message", "Đã xảy ra lỗi hệ thống: " + (e.getMessage() != null ? e.getMessage() : "Unknown Error"));
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 
     @ExceptionHandler(AuthenticationException.class)

@@ -34,23 +34,30 @@ public class CalendarController {
             @AuthenticationPrincipal User user,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
+        
+        if (user == null) {
+            log.warn("CALENDAR_DEBUG: Unauthenticated access attempt to /api/calendar");
+            return ResponseEntity.status(401).build();
+        }
+
         log.info("CALENDAR_DEBUG: Fetching events for user: {}", user.getId());
         List<CalendarEventResponse> events = calendarService.getUserEvents(user.getId(), start, end);
         return ResponseEntity.ok()
-                .header("X-Debug-Version", "3.1")
+                .header("X-Debug-Version", "3.2")
                 .body(events);
     }
 
     @GetMapping("/sync-all")
     public ResponseEntity<String> syncAll() {
         log.info("CALENDAR_DEBUG: Manual sync triggered via GET /api/calendar/sync-all");
-        calendarService.syncAllExistingAssignments();
-        return ResponseEntity.ok("Synchronization triggered successfully");
+        int count = calendarService.syncAllExistingAssignments();
+        return ResponseEntity.ok("Successfully synchronized " + count + " new assignment events.");
     }
 
     @GetMapping("/diagnostics")
-    public ResponseEntity<Map<String, Object>> getDiagnostics() {
+    public ResponseEntity<Map<String, Object>> getDiagnostics(@AuthenticationPrincipal User user) {
         log.info("CALENDAR_DEBUG: Diagnostics requested via GET /api/calendar/diagnostics");
-        return ResponseEntity.ok(calendarService.getDiagnostics());
+        UUID userId = user != null ? user.getId() : null;
+        return ResponseEntity.ok(calendarService.getDiagnostics(userId));
     }
 }
