@@ -27,6 +27,12 @@ public class FileService {
     @Value("${minio.resource-bucket:lms-resources}")
     private String resourceBucket;
 
+    @Value("${minio.url}")
+    private String minioUrl;
+
+    @Value("${minio.public-url:http://localhost:9000}")
+    private String minioPublicUrl;
+
     @jakarta.annotation.PostConstruct
     public void initBucket() {
         initSingleBucket(bucketName);
@@ -101,7 +107,11 @@ public class FileService {
                 builder.extraQueryParams(Map.of("response-content-disposition", "attachment; filename=\"" + filename + "\""));
             }
 
-            return minioClient.getPresignedObjectUrl(builder.build());
+            String url = minioClient.getPresignedObjectUrl(builder.build());
+            if (url != null && minioPublicUrl != null && !minioPublicUrl.isEmpty() && !minioUrl.equals(minioPublicUrl)) {
+                return url.replace(minioUrl, minioPublicUrl);
+            }
+            return url;
         } catch (Exception e) {
             throw new RuntimeException("Error generating presigned URL: " + e.getMessage());
         }

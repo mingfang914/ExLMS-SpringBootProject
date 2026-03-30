@@ -52,3 +52,4 @@ ReadDocx.java
 # Bỏ qua các tệp sao lưu/dump cơ sở dữ liệu (để tránh lộ dữ liệu nhạy cảm)
 lms_schema_mysql_v2.sql
 
+.skillsrc

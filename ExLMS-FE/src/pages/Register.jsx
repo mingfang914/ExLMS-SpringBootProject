@@ -201,6 +201,7 @@ const Register = () => {
           </motion.div>
 
           {/* Error */}
+
           {error && (
             <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
               <Alert
@@ -218,7 +219,6 @@ const Register = () => {
               </Alert>
             </motion.div>
           )}
-
           <Box component="form" onSubmit={handleSubmit} noValidate>
             {/* Role selector */}
             <motion.div custom={2} variants={fadeUp} initial="hidden" animate="visible">
@@ -383,6 +383,7 @@ const Register = () => {
                 Already have an account?
               </Typography>
             </Divider>
+
             <Button
               component={RouterLink}
               to="/login"
@@ -406,6 +407,7 @@ const Register = () => {
           </motion.div>
         </Box>
       </motion.div>
+
     </Box>
   )
 }

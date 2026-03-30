@@ -1,6 +1,7 @@
 package project.TeamFive.ExLMS.meeting.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -15,8 +16,9 @@ import project.TeamFive.ExLMS.meeting.repository.MeetingRepository;
 import project.TeamFive.ExLMS.group.repository.StudyGroupRepository;
 import project.TeamFive.ExLMS.group.entity.GroupMember;
 import project.TeamFive.ExLMS.group.repository.GroupMemberRepository;
-import project.TeamFive.ExLMS.calendar.entity.CalendarEvent;
-import project.TeamFive.ExLMS.calendar.repository.CalendarEventRepository;
+import project.TeamFive.ExLMS.meeting.event.MeetingCanceledEvent;
+import project.TeamFive.ExLMS.meeting.event.MeetingScheduledEvent;
+import project.TeamFive.ExLMS.meeting.event.MeetingUpdatedEvent;
 import project.TeamFive.ExLMS.meeting.dto.request.CreatePollRequest;
 import project.TeamFive.ExLMS.meeting.dto.request.QuestionRequest;
 import project.TeamFive.ExLMS.meeting.dto.response.*;
@@ -37,13 +39,13 @@ public class MeetingService {
     private final MeetingRepository meetingRepository;
     private final StudyGroupRepository studyGroupRepository;
     private final GroupMemberRepository groupMemberRepository;
-    private final CalendarEventRepository calendarEventRepository;
     private final MeetingAttendanceRepository attendanceRepository;
     private final MeetingQuestionRepository questionRepository;
     private final MeetingPollRepository pollRepository;
     private final MeetingPollOptionRepository pollOptionRepository;
     private final MeetingPollVoteRepository pollVoteRepository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final ApplicationEventPublisher eventPublisher;
 
     private void broadcast(UUID meetingId, String type, Object data) {
         String destination = "/topic/meeting/" + meetingId;
@@ -91,22 +93,8 @@ public class MeetingService {
 
         meeting = meetingRepository.save(meeting);
 
-        // Integrate with Calendar for all group members
-        List<GroupMember> members = groupMemberRepository.findByGroup_Id(groupId);
-        for (GroupMember m : members) {
-            CalendarEvent event = CalendarEvent.builder()
-                    .user(m.getUser())
-                    .title("Meeting: " + meeting.getTitle())
-                    .description(meeting.getDescription())
-                    .startAt(meeting.getStartAt())
-                    .endAt(meeting.getStartAt().plusMinutes(meeting.getDurationMinutes()))
-                    .eventType(CalendarEvent.EventType.MEETING)
-                    .sourceEntityId(meeting.getId())
-                    .sourceEntityType(CalendarEvent.SourceEntityType.MEETING)
-                    .color("#6366F1")
-                    .build();
-            calendarEventRepository.save(event);
-        }
+        // Notify through event for calendar sync
+        eventPublisher.publishEvent(new MeetingScheduledEvent(this, meeting));
 
         return MeetingResponseDTO.fromEntity(meeting);
     }
@@ -135,17 +123,12 @@ public class MeetingService {
         meeting.setStartAt(request.getStartAt());
         meeting.setDurationMinutes(request.getDurationMinutes());
 
-        // Update calendar events for all members
-        List<CalendarEvent> events = calendarEventRepository.findBySourceEntityIdAndSourceEntityType(id, CalendarEvent.SourceEntityType.MEETING);
-        for (CalendarEvent event : events) {
-            event.setTitle("Meeting: " + meeting.getTitle());
-            event.setDescription(meeting.getDescription());
-            event.setStartAt(meeting.getStartAt());
-            event.setEndAt(meeting.getStartAt().plusMinutes(meeting.getDurationMinutes()));
-            calendarEventRepository.save(event);
-        }
+        meeting = meetingRepository.save(meeting);
 
-        return MeetingResponseDTO.fromEntity(meetingRepository.save(meeting));
+        // Notify through event for calendar sync update
+        eventPublisher.publishEvent(new MeetingUpdatedEvent(this, meeting));
+
+        return MeetingResponseDTO.fromEntity(meeting);
     }
 
     @Transactional
@@ -159,9 +142,8 @@ public class MeetingService {
 
         requireInstructorRole(meeting.getGroup(), instructor);
 
-        // Delete associated calendar events
-        List<CalendarEvent> events = calendarEventRepository.findBySourceEntityIdAndSourceEntityType(id, CalendarEvent.SourceEntityType.MEETING);
-        calendarEventRepository.deleteAll(events);
+        // Notify through event for calendar sync delete
+        eventPublisher.publishEvent(new MeetingCanceledEvent(this, id));
 
         // Delete other associated data (attendance, questions, polls etc would be cascade or manual)
         // For simplicity, we assume cascading or we delete them here if needed

@@ -81,7 +81,7 @@ const Login = () => {
       } catch (_) {}
       navigate('/')
     } catch (err) {
-      const message = err.response?.data?.message || 'Invalid email or password.'
+      const message = err.response?.data?.message || 'Đăng nhập thất bại. Vui lòng kiểm tra thông tin'
       setError(message)
       dispatch(loginFailure(message))
     } finally {
@@ -186,6 +186,7 @@ const Login = () => {
           </motion.div>
 
           {/* Error */}
+
           {error && (
             <motion.div
               initial={{ opacity: 0, y: -8 }}
@@ -379,6 +380,7 @@ const Login = () => {
           </Typography>
         </motion.div>
       </motion.div>
+
     </Box>
   )
 }
