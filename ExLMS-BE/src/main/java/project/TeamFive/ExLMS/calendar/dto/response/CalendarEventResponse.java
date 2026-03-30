@@ -20,6 +20,7 @@ public class CalendarEventResponse {
     private String color;
     private UUID sourceEntityId;
     private SourceEntityType sourceEntityType;
+    private UUID groupId;
     private boolean personal;
     private LocalDateTime reminderAt;
     private LocalDateTime createdAt;

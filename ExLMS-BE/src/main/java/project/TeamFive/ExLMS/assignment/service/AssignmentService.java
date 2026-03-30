@@ -1,11 +1,15 @@
 package project.TeamFive.ExLMS.assignment.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import project.TeamFive.ExLMS.assignment.dto.request.CreateAssignmentRequest;
 import project.TeamFive.ExLMS.assignment.dto.response.AssignmentResponseDTO;
 import project.TeamFive.ExLMS.assignment.entity.Assignment;
+import project.TeamFive.ExLMS.assignment.event.AssignmentCreatedEvent;
+import project.TeamFive.ExLMS.assignment.event.AssignmentDeletedEvent;
+import project.TeamFive.ExLMS.assignment.event.AssignmentUpdatedEvent;
 import project.TeamFive.ExLMS.assignment.repository.AssignmentRepository;
 import project.TeamFive.ExLMS.course.entity.Course;
 import project.TeamFive.ExLMS.group.entity.StudyGroup;
@@ -28,6 +32,7 @@ public class AssignmentService {
     private final StudyGroupRepository studyGroupRepository;
     private final CourseRepository courseRepository;
     private final GroupMemberRepository groupMemberRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     private void requireInstructorRole(StudyGroup group, User user) {
         GroupMember member = groupMemberRepository.findByGroup_IdAndUser_Id(group.getId(), user.getId())
@@ -68,7 +73,9 @@ public class AssignmentService {
                 .status(Assignment.AssignmentStatus.PUBLISHED)
                 .build();
 
-        return AssignmentResponseDTO.fromEntity(assignmentRepository.save(assignment));
+        assignment = assignmentRepository.save(assignment);
+        eventPublisher.publishEvent(new AssignmentCreatedEvent(this, assignment));
+        return AssignmentResponseDTO.fromEntity(assignment);
     }
 
     @Transactional(readOnly = true)
@@ -117,7 +124,9 @@ public class AssignmentService {
         assignment.setAllowLate(request.isAllowLate());
         assignment.setLatePenaltyPercent(request.getLatePenaltyPercent());
 
-        return AssignmentResponseDTO.fromEntity(assignmentRepository.save(assignment));
+        assignment = assignmentRepository.save(assignment);
+        eventPublisher.publishEvent(new AssignmentUpdatedEvent(this, assignment));
+        return AssignmentResponseDTO.fromEntity(assignment);
     }
 
     @Transactional
@@ -128,6 +137,7 @@ public class AssignmentService {
         requireInstructorRole(assignment.getGroup(), user);
 
         assignmentRepository.delete(assignment);
+        eventPublisher.publishEvent(new AssignmentDeletedEvent(this, id));
     }
 
     private boolean isInstructor(StudyGroup group, User user) {

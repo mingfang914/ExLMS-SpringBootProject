@@ -1,12 +1,16 @@
 package project.TeamFive.ExLMS.course.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import project.TeamFive.ExLMS.course.dto.request.CourseRequest;
 import project.TeamFive.ExLMS.course.dto.response.CourseResponse;
 import project.TeamFive.ExLMS.course.entity.Course;
+import project.TeamFive.ExLMS.course.event.CourseCreatedEvent;
+import project.TeamFive.ExLMS.course.event.CourseDeletedEvent;
+import project.TeamFive.ExLMS.course.event.CourseUpdatedEvent;
 import project.TeamFive.ExLMS.group.entity.GroupMember;
 import project.TeamFive.ExLMS.group.entity.StudyGroup;
 import project.TeamFive.ExLMS.user.entity.User;
@@ -27,6 +31,7 @@ public class CourseService {
     private final StudyGroupRepository studyGroupRepository;
     private final GroupMemberRepository groupMemberRepository;
     private final FileService fileService;
+    private final ApplicationEventPublisher eventPublisher;
 
     // --- HÀM DÙNG CHUNG: Kiểm tra quyền Giảng viên (Owner/Editor) ---
     private void requireInstructorRole(StudyGroup group, User user) {
@@ -66,7 +71,8 @@ public class CourseService {
                 .createdBy(currentUser)
                 .build();
 
-        courseRepository.save(newCourse);
+        newCourse = courseRepository.save(newCourse);
+        eventPublisher.publishEvent(new CourseCreatedEvent(this, newCourse));
         return mapToResponse(newCourse);
     }
 
@@ -118,7 +124,9 @@ public class CourseService {
         if (request.getEndDate() != null)
             course.setEndDate(request.getEndDate());
 
-        return mapToResponse(courseRepository.save(course));
+        course = courseRepository.save(course);
+        eventPublisher.publishEvent(new CourseUpdatedEvent(this, course));
+        return mapToResponse(course);
     }
 
     // ==================== DELETE ====================
@@ -132,6 +140,7 @@ public class CourseService {
 
         course.setStatus("DELETED"); // Soft delete
         courseRepository.save(course);
+        eventPublisher.publishEvent(new CourseDeletedEvent(this, courseId));
         return "Đã xóa khóa học thành công!";
     }
 

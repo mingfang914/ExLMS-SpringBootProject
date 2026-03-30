@@ -1,6 +1,7 @@
 package project.TeamFive.ExLMS.calendar.controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -11,13 +12,22 @@ import project.TeamFive.ExLMS.user.entity.User;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/calendar")
 @RequiredArgsConstructor
+@Slf4j
 public class CalendarController {
 
     private final CalendarService calendarService;
+
+    // Log to confirm controller is loaded
+    @jakarta.annotation.PostConstruct
+    public void init() {
+        log.info("CALENDAR_DEBUG: CalendarController initialized at /api/calendar");
+    }
 
     @GetMapping
     public ResponseEntity<List<CalendarEventResponse>> getMyEvents(
@@ -25,7 +35,29 @@ public class CalendarController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
         
+        if (user == null) {
+            log.warn("CALENDAR_DEBUG: Unauthenticated access attempt to /api/calendar");
+            return ResponseEntity.status(401).build();
+        }
+
+        log.info("CALENDAR_DEBUG: Fetching events for user: {}", user.getId());
         List<CalendarEventResponse> events = calendarService.getUserEvents(user.getId(), start, end);
-        return ResponseEntity.ok(events);
+        return ResponseEntity.ok()
+                .header("X-Debug-Version", "3.2")
+                .body(events);
+    }
+
+    @GetMapping("/sync-all")
+    public ResponseEntity<String> syncAll() {
+        log.info("CALENDAR_DEBUG: Manual sync triggered via GET /api/calendar/sync-all");
+        int count = calendarService.syncAllExistingAssignments();
+        return ResponseEntity.ok("Successfully synchronized " + count + " new assignment events.");
+    }
+
+    @GetMapping("/diagnostics")
+    public ResponseEntity<Map<String, Object>> getDiagnostics(@AuthenticationPrincipal User user) {
+        log.info("CALENDAR_DEBUG: Diagnostics requested via GET /api/calendar/diagnostics");
+        UUID userId = user != null ? user.getId() : null;
+        return ResponseEntity.ok(calendarService.getDiagnostics(userId));
     }
 }

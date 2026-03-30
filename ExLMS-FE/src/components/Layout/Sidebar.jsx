@@ -76,6 +76,7 @@ const icons = {
 
 const drawerWidth = 256
 
+
 const menuItems = [
   { text: 'Dashboard',    icon: icons.dashboard,     path: '/',              section: 'main' },
   { text: 'Study Groups', icon: icons.groups,         path: '/groups',        section: 'main', badge: null },

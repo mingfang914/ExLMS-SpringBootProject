@@ -80,6 +80,7 @@ const Header = () => {
     setAnchorElUser(null)
     authService.logout()
     dispatch(logout())
+    navigate('/')
   }
 
   const handleNotifClick = (id) => dispatch(markAsRead(id))
