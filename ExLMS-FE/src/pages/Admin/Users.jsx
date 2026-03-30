@@ -1,34 +1,134 @@
 import React, { useState, useEffect } from 'react'
 import {
-  Container, Paper, Typography, Box, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, TablePagination, Button, TextField, Select, MenuItem,
-  Chip, IconButton, Tooltip, Dialog, DialogActions, DialogContent, DialogTitle
+  Box,
+  Typography,
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination,
+  Button,
+  Select, MenuItem,
+  Chip,
+  IconButton,
+  Tooltip,
+  Dialog, DialogActions, DialogContent, DialogTitle,
+  Avatar,
+  Skeleton,
+  CircularProgress,
+  Snackbar,
+  Alert,
 } from '@mui/material'
-import BlockIcon from '@mui/icons-material/Block'
-import CheckCircleIcon from '@mui/icons-material/CheckCircle'
-import ManageAccountsIcon from '@mui/icons-material/ManageAccounts'
-import DownloadIcon from '@mui/icons-material/Download'
-import SearchIcon from '@mui/icons-material/Search'
 import adminService from '../../services/adminService'
 import { useSelector } from 'react-redux'
+import { motion } from 'framer-motion'
+import { alpha } from '@mui/material/styles'
+
+// ── SVG Icons ─────────────────────────────────────────────────────
+const SearchIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+  </svg>
+)
+const BlockIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10"/>
+    <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+  </svg>
+)
+const CheckCircleIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+    <polyline points="22 4 12 14.01 9 11.01"/>
+  </svg>
+)
+const ManageIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+  </svg>
+)
+const DownloadIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+    <polyline points="7 10 12 15 17 10"/>
+    <line x1="12" y1="15" x2="12" y2="3"/>
+  </svg>
+)
+const UsersIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+    <circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+  </svg>
+)
+
+const roleConfig = {
+  ADMIN:      { color: '#FCA5A5', bg: 'rgba(239,68,68,0.12)',  border: 'rgba(239,68,68,0.25)',  label: 'Admin' },
+  INSTRUCTOR: { color: '#818CF8', bg: 'rgba(99,102,241,0.12)', border: 'rgba(99,102,241,0.25)', label: 'Instructor' },
+  STUDENT:    { color: '#8B949E', bg: 'rgba(139,148,158,0.12)',border: 'rgba(139,148,158,0.2)', label: 'Student' },
+}
+const statusConfig = {
+  ACTIVE:    { color: '#86EFAC', bg: 'rgba(34,197,94,0.12)',  border: 'rgba(34,197,94,0.25)' },
+  PENDING:   { color: '#FDE68A', bg: 'rgba(245,158,11,0.12)', border: 'rgba(245,158,11,0.25)' },
+  SUSPENDED: { color: '#FCA5A5', bg: 'rgba(239,68,68,0.12)',  border: 'rgba(239,68,68,0.25)' },
+}
+
+const StatusBadge = ({ status }) => {
+  const cfg = statusConfig[status] ?? statusConfig.PENDING
+  return (
+    <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: '5px', px: '9px', py: '2px', borderRadius: '99px', bgcolor: cfg.bg, border: `1px solid ${cfg.border}` }}>
+      <Box sx={{ width: 5, height: 5, borderRadius: '50%', bgcolor: cfg.color, flexShrink: 0 }} />
+      <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, color: cfg.color, letterSpacing: '0.04em' }}>
+        {status}
+      </Typography>
+    </Box>
+  )
+}
+
+const RoleBadge = ({ role }) => {
+  const cfg = roleConfig[role] ?? roleConfig.STUDENT
+  return (
+    <Box sx={{ display: 'inline-flex', px: '9px', py: '2px', borderRadius: '99px', bgcolor: cfg.bg, border: `1px solid ${cfg.border}` }}>
+      <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, color: cfg.color, letterSpacing: '0.04em' }}>
+        {cfg.label}
+      </Typography>
+    </Box>
+  )
+}
+
+const headerSx = {
+  fontSize: '0.6875rem',
+  fontWeight: 700,
+  letterSpacing: '0.08em',
+  textTransform: 'uppercase',
+  color: 'var(--color-text-muted)',
+  borderBottom: '1px solid var(--color-border)',
+  py: 1.5,
+  bgcolor: 'var(--color-surface)',
+}
+
+const cellSx = {
+  borderBottom: '1px solid rgba(48,54,61,0.5)',
+  py: 1.5,
+  color: 'var(--color-text)',
+  fontSize: '0.875rem',
+}
 
 const Users = () => {
-  const [users, setUsers] = useState([])
-  const [page, setPage] = useState(0)
-  const [rowsPerPage, setRowsPerPage] = useState(10)
+  const [users,         setUsers]         = useState([])
+  const [page,          setPage]          = useState(0)
+  const [rowsPerPage,   setRowsPerPage]   = useState(10)
   const [totalElements, setTotalElements] = useState(0)
-  const [keyword, setKeyword] = useState('')
-  const [searchInput, setSearchInput] = useState('')
-  const [loading, setLoading] = useState(false)
-  
-  const [roleDialogOpen, setRoleDialogOpen] = useState(false)
-  const [selectedUser, setSelectedUser] = useState(null)
-  const [newRole, setNewRole] = useState('STUDENT')
+  const [keyword,       setKeyword]       = useState('')
+  const [searchInput,   setSearchInput]   = useState('')
+  const [loading,       setLoading]       = useState(false)
 
+  const [roleDialogOpen,   setRoleDialogOpen]   = useState(false)
   const [statusDialogOpen, setStatusDialogOpen] = useState(false)
-  const [statusToChange, setStatusToChange] = useState(null)
+  const [selectedUser,     setSelectedUser]     = useState(null)
+  const [newRole,          setNewRole]          = useState('STUDENT')
+  const [statusToChange,   setStatusToChange]   = useState(null)
+  const [actionLoading,    setActionLoading]    = useState(false)
 
-  const { user: currentUser } = useSelector(state => state.auth)
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' })
+
+  const { user: currentUser } = useSelector(s => s.auth)
 
   const fetchUsers = async () => {
     setLoading(true)
@@ -37,16 +137,13 @@ const Users = () => {
       setUsers(data.content)
       setTotalElements(data.totalElements)
     } catch (err) {
-      console.error('Failed to fetch users', err)
-      alert(err.response?.data?.message || 'Failed to load users')
+      setSnackbar({ open: true, message: err.response?.data?.message || 'Failed to load users', severity: 'error' })
     } finally {
       setLoading(false)
     }
   }
 
-  useEffect(() => {
-    fetchUsers()
-  }, [page, rowsPerPage, keyword])
+  useEffect(() => { fetchUsers() }, [page, rowsPerPage, keyword])
 
   const handleSearch = (e) => {
     e.preventDefault()
@@ -54,158 +151,245 @@ const Users = () => {
     setPage(0)
   }
 
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage)
-  }
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10))
-    setPage(0)
-  }
-
-  const openStatusDialog = (user, newStatus) => {
-    setSelectedUser(user)
-    setStatusToChange(newStatus)
-    setStatusDialogOpen(true)
-  }
-
   const handleStatusChange = async () => {
+    setActionLoading(true)
     try {
       await adminService.changeUserStatus(selectedUser.id, statusToChange)
       setStatusDialogOpen(false)
       fetchUsers()
-      alert('Status updated successfully!')
+      setSnackbar({ open: true, message: 'Status updated successfully!', severity: 'success' })
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to update status')
+      setSnackbar({ open: true, message: err.response?.data?.message || 'Failed to update status', severity: 'error' })
+    } finally {
+      setActionLoading(false)
     }
   }
 
-  const openRoleDialog = (user) => {
-    setSelectedUser(user)
-    setNewRole(user.role)
-    setRoleDialogOpen(true)
-  }
-
   const handleRoleChange = async () => {
+    setActionLoading(true)
     try {
       await adminService.changeUserRole(selectedUser.id, newRole)
       setRoleDialogOpen(false)
       fetchUsers()
-      alert('Role updated successfully!')
+      setSnackbar({ open: true, message: 'Role updated successfully!', severity: 'success' })
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to update role')
+      setSnackbar({ open: true, message: err.response?.data?.message || 'Failed to update role', severity: 'error' })
+    } finally {
+      setActionLoading(false)
     }
   }
 
   const handleExportExcel = () => {
     const token = localStorage.getItem('token')
-    fetch(adminService.exportUsersCsvUrl(), {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    .then(res => res.blob())
-    .then(blob => {
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.style.display = 'none'
-      a.href = url
-      a.download = 'users_export.xlsx'
-      document.body.appendChild(a)
-      a.click()
-      window.URL.revokeObjectURL(url)
-    })
-    .catch(err => alert('Failed to export Excel'))
+    fetch(adminService.exportUsersCsvUrl(), { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.blob())
+      .then(blob => {
+        const url = window.URL.createObjectURL(blob)
+        const a   = Object.assign(document.createElement('a'), { href: url, download: 'users_export.xlsx', style: 'display:none' })
+        document.body.appendChild(a)
+        a.click()
+        window.URL.revokeObjectURL(url)
+      })
+      .catch(() => setSnackbar({ open: true, message: 'Failed to export', severity: 'error' }))
   }
 
-  return (
-    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-      <Paper sx={{ p: 3 }}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-          <Typography variant="h5" component="h2">
-            User Management
-          </Typography>
-          <Button 
-            variant="outlined" 
-            startIcon={<DownloadIcon />} 
-            onClick={handleExportExcel}
-          >
-            Export Excel
-          </Button>
-        </Box>
+  const initials = (name = '') => name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase() || '?'
 
-        <Box component="form" onSubmit={handleSearch} display="flex" gap={2} mb={3}>
-          <TextField
-            label="Search by Name or Email"
-            variant="outlined"
-            size="small"
+  return (
+    <Box
+      component={motion.div}
+      initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      sx={{ pb: 6 }}
+    >
+      {/* ── Header ───────────────────────────────────────────────── */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', mb: 4, flexWrap: 'wrap', gap: 2 }}>
+        <Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.5 }}>
+            <Box sx={{ color: 'var(--color-primary-lt)' }}><UsersIcon /></Box>
+            <Typography sx={{
+              fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: { xs: '1.75rem', sm: '2rem' },
+              color: 'var(--color-text)', letterSpacing: '-0.03em',
+            }}>
+              User Management
+            </Typography>
+          </Box>
+          <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
+            {totalElements} registered users
+          </Typography>
+        </Box>
+        <Button
+          variant="outlined"
+          startIcon={<DownloadIcon />}
+          onClick={handleExportExcel}
+          sx={{
+            height: 38, borderRadius: '9px', fontSize: '0.875rem',
+            borderColor: 'var(--color-border)', color: 'var(--color-text-sec)',
+            cursor: 'pointer',
+            '&:hover': { borderColor: 'var(--color-border-lt)', color: 'var(--color-text)', bgcolor: 'rgba(240,246,252,0.04)' },
+          }}
+        >
+          Export Excel
+        </Button>
+      </Box>
+
+      {/* ── Search ───────────────────────────────────────────────── */}
+      <Box
+        component="form"
+        onSubmit={handleSearch}
+        sx={{ display: 'flex', gap: 1.5, mb: 3 }}
+      >
+        <Box
+          sx={{
+            display: 'flex', alignItems: 'center', gap: 1, px: 1.5, height: 40, flex: '1 1 320px', maxWidth: 420,
+            borderRadius: '10px', border: '1px solid var(--color-border)', bgcolor: 'rgba(33,38,45,0.6)',
+            transition: 'all 0.2s',
+            '&:focus-within': { borderColor: 'var(--color-primary)', boxShadow: '0 0 0 3px rgba(99,102,241,0.12)' },
+          }}
+        >
+          <Box sx={{ color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+            <SearchIcon />
+          </Box>
+          <input
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            sx={{ flexGrow: 1, maxWidth: 400 }}
+            placeholder="Search by name or email…"
+            style={{
+              flex: 1, background: 'none', border: 'none', outline: 'none',
+              color: 'var(--color-text)', fontSize: '0.875rem', fontFamily: 'var(--font-body)',
+            }}
           />
-          <Button type="submit" variant="contained" startIcon={<SearchIcon />}>
-            Search
-          </Button>
         </Box>
+        <Button
+          type="submit"
+          variant="contained"
+          sx={{
+            height: 40, borderRadius: '10px', fontWeight: 600, px: 2.5, fontSize: '0.875rem', cursor: 'pointer',
+            background: 'linear-gradient(135deg, #6366F1, #4F46E5)',
+            '&:hover': { background: 'linear-gradient(135deg, #818CF8, #6366F1)' },
+          }}
+        >
+          Search
+        </Button>
+      </Box>
 
+      {/* ── Table ────────────────────────────────────────────────── */}
+      <Box
+        sx={{
+          bgcolor: 'var(--color-surface)',
+          border: '1px solid var(--color-border)',
+          borderRadius: '14px',
+          overflow: 'hidden',
+        }}
+      >
         <TableContainer>
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Name</TableCell>
-                <TableCell>Email</TableCell>
-                <TableCell>Role</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Joined Date</TableCell>
-                <TableCell>Actions</TableCell>
+                {['User', 'Email', 'Role', 'Status', 'Joined', 'Actions'].map(h => (
+                  <TableCell key={h} sx={headerSx}>{h}</TableCell>
+                ))}
               </TableRow>
             </TableHead>
             <TableBody>
               {loading ? (
-                <TableRow><TableCell colSpan={6} align="center">Loading...</TableCell></TableRow>
+                Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i}>
+                    {Array.from({ length: 6 }).map((_, j) => (
+                      <TableCell key={j} sx={cellSx}>
+                        <Skeleton height={20} sx={{ bgcolor: 'rgba(33,38,45,0.8)' }} />
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
               ) : users.length === 0 ? (
-                <TableRow><TableCell colSpan={6} align="center">No users found.</TableCell></TableRow>
+                <TableRow>
+                  <TableCell colSpan={6} sx={{ ...cellSx, textAlign: 'center', py: 6, color: 'var(--color-text-muted)' }}>
+                    No users found
+                  </TableCell>
+                </TableRow>
               ) : (
-                users.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell>{user.fullName}</TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>
-                      <Chip 
-                        label={user.role} 
-                        color={user.role === 'ADMIN' ? 'error' : user.role === 'INSTRUCTOR' ? 'primary' : 'default'}
-                        size="small"
-                      />
+                users.map((u) => (
+                  <TableRow
+                    key={u.id}
+                    sx={{
+                      '&:hover': { bgcolor: 'rgba(240,246,252,0.02)' },
+                      transition: 'background-color 0.15s',
+                    }}
+                  >
+                    {/* User name + avatar */}
+                    <TableCell sx={cellSx}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <Avatar
+                          src={u.avatarKey ? `/api/files/download/${u.avatarKey}` : null}
+                          sx={{
+                            width: 32, height: 32, fontSize: '0.75rem', fontWeight: 700,
+                            background: 'linear-gradient(135deg, #6366F1, #22D3EE)', color: 'white',
+                            borderRadius: '8px',
+                          }}
+                        >
+                          {initials(u.fullName)}
+                        </Avatar>
+                        <Typography sx={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text)' }}>
+                          {u.fullName}
+                        </Typography>
+                      </Box>
                     </TableCell>
-                    <TableCell>
-                      <Chip 
-                        label={user.status} 
-                        color={user.status === 'ACTIVE' ? 'success' : user.status === 'PENDING' ? 'warning' : 'error'}
-                        size="small"
-                      />
+
+                    <TableCell sx={{ ...cellSx, color: 'var(--color-text-muted)', fontSize: '0.8125rem' }}>
+                      {u.email}
                     </TableCell>
-                    <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
-                    <TableCell>
-                      {currentUser?.role === 'ADMIN' && user.email !== currentUser.email && (
-                        <Box display="flex" gap={1}>
-                          {user.status !== 'ACTIVE' && (
-                            <Tooltip title="Activate / Approve">
-                              <IconButton color="success" onClick={() => openStatusDialog(user, 'ACTIVE')} size="small">
+
+                    <TableCell sx={cellSx}>
+                      <RoleBadge role={u.role} />
+                    </TableCell>
+
+                    <TableCell sx={cellSx}>
+                      <StatusBadge status={u.status} />
+                    </TableCell>
+
+                    <TableCell sx={{ ...cellSx, color: 'var(--color-text-muted)', fontSize: '0.8125rem' }}>
+                      {new Date(u.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </TableCell>
+
+                    {/* Actions */}
+                    <TableCell sx={cellSx}>
+                      {currentUser?.role === 'ADMIN' && u.email !== currentUser.email ? (
+                        <Box sx={{ display: 'flex', gap: 0.5 }}>
+                          {u.status !== 'ACTIVE' && (
+                            <Tooltip title="Activate">
+                              <IconButton
+                                size="small"
+                                onClick={() => { setSelectedUser(u); setStatusToChange('ACTIVE'); setStatusDialogOpen(true) }}
+                                sx={{ color: '#22C55E', cursor: 'pointer', '&:hover': { bgcolor: 'rgba(34,197,94,0.1)' }, borderRadius: '7px' }}
+                              >
                                 <CheckCircleIcon />
                               </IconButton>
                             </Tooltip>
                           )}
-                          {user.status === 'ACTIVE' && (
-                            <Tooltip title="Suspend / Block">
-                              <IconButton color="error" onClick={() => openStatusDialog(user, 'SUSPENDED')} size="small">
+                          {u.status === 'ACTIVE' && (
+                            <Tooltip title="Suspend">
+                              <IconButton
+                                size="small"
+                                onClick={() => { setSelectedUser(u); setStatusToChange('SUSPENDED'); setStatusDialogOpen(true) }}
+                                sx={{ color: '#EF4444', cursor: 'pointer', '&:hover': { bgcolor: 'rgba(239,68,68,0.1)' }, borderRadius: '7px' }}
+                              >
                                 <BlockIcon />
                               </IconButton>
                             </Tooltip>
                           )}
                           <Tooltip title="Change Role">
-                            <IconButton color="primary" onClick={() => openRoleDialog(user)} size="small">
-                              <ManageAccountsIcon />
+                            <IconButton
+                              size="small"
+                              onClick={() => { setSelectedUser(u); setNewRole(u.role); setRoleDialogOpen(true) }}
+                              sx={{ color: '#818CF8', cursor: 'pointer', '&:hover': { bgcolor: 'rgba(99,102,241,0.1)' }, borderRadius: '7px' }}
+                            >
+                              <ManageIcon />
                             </IconButton>
                           </Tooltip>
                         </Box>
+                      ) : (
+                        <Typography sx={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>—</Typography>
                       )}
                     </TableCell>
                   </TableRow>
@@ -214,56 +398,120 @@ const Users = () => {
             </TableBody>
           </Table>
         </TableContainer>
-        <TablePagination
-          component="div"
-          count={totalElements}
-          page={page}
-          onPageChange={handleChangePage}
-          rowsPerPage={rowsPerPage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-          rowsPerPageOptions={[5, 10, 25, 50]}
-        />
-      </Paper>
 
-      {/* Role Change Dialog */}
-      <Dialog open={roleDialogOpen} onClose={() => setRoleDialogOpen(false)}>
-        <DialogTitle>Change User Role</DialogTitle>
-        <DialogContent sx={{ minWidth: 300, mt: 1 }}>
-          <Typography variant="body2" mb={2}>
-            Select a new role for {selectedUser?.fullName}
+        <Box sx={{ borderTop: '1px solid var(--color-border)' }}>
+          <TablePagination
+            component="div"
+            count={totalElements}
+            page={page}
+            onPageChange={(_, p) => setPage(p)}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={(e) => { setRowsPerPage(parseInt(e.target.value, 10)); setPage(0) }}
+            rowsPerPageOptions={[5, 10, 25, 50]}
+            sx={{
+              color: 'var(--color-text-muted)',
+              '& .MuiTablePagination-select': { color: 'var(--color-text)' },
+              '& .MuiTablePagination-displayedRows': { color: 'var(--color-text-muted)' },
+              '& .MuiIconButton-root': { color: 'var(--color-text-muted)', cursor: 'pointer', '&.Mui-disabled': { opacity: 0.3 }, '&:hover': { color: 'var(--color-text)', bgcolor: 'rgba(99,102,241,0.08)' } },
+            }}
+          />
+        </Box>
+      </Box>
+
+      {/* ── Role Dialog ──────────────────────────────────────────── */}
+      <Dialog
+        open={roleDialogOpen}
+        onClose={() => setRoleDialogOpen(false)}
+        PaperProps={{ sx: { bgcolor: 'var(--color-surface-2)', border: '1px solid var(--color-border)', borderRadius: '14px', boxShadow: '0 24px 60px rgba(0,0,0,0.6)', minWidth: 360 } }}
+      >
+        <DialogTitle sx={{ fontFamily: 'var(--font-heading)', fontWeight: 700, color: 'var(--color-text)', pb: 1 }}>
+          Change User Role
+        </DialogTitle>
+        <DialogContent>
+          <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', mb: 2 }}>
+            Select a new role for <strong style={{ color: 'var(--color-text)' }}>{selectedUser?.fullName}</strong>
           </Typography>
           <Select
             fullWidth
             value={newRole}
             onChange={(e) => setNewRole(e.target.value)}
+            sx={{
+              bgcolor: 'rgba(33,38,45,0.6)', borderRadius: '10px',
+              '& .MuiOutlinedInput-notchedOutline': { borderColor: 'var(--color-border)' },
+              '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'var(--color-border-lt)' },
+              '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'var(--color-primary)' },
+            }}
           >
-            <MenuItem value="STUDENT">Student</MenuItem>
-            <MenuItem value="INSTRUCTOR">Instructor</MenuItem>
-            <MenuItem value="ADMIN">Admin</MenuItem>
+            {['STUDENT', 'INSTRUCTOR', 'ADMIN'].map(r => (
+              <MenuItem key={r} value={r} sx={{ fontSize: '0.875rem' }}>{r}</MenuItem>
+            ))}
           </Select>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setRoleDialogOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleRoleChange}>Confirm</Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Status Change Confirmation Dialog */}
-      <Dialog open={statusDialogOpen} onClose={() => setStatusDialogOpen(false)}>
-        <DialogTitle>Confirm Status Change</DialogTitle>
-        <DialogContent sx={{ minWidth: 300, mt: 1 }}>
-          <Typography variant="body1">
-            Are you sure you want to change the status of <strong>{selectedUser?.fullName}</strong> to <strong>{statusToChange}</strong>?
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setStatusDialogOpen(false)}>Cancel</Button>
-          <Button variant="contained" color={statusToChange === 'ACTIVE' ? 'success' : 'error'} onClick={handleStatusChange}>
-            Confirm Change
+        <DialogActions sx={{ px: 3, pb: 2.5, gap: 1 }}>
+          <Button onClick={() => setRoleDialogOpen(false)} sx={{ borderRadius: '8px', color: 'var(--color-text-sec)', cursor: 'pointer', '&:hover': { bgcolor: 'rgba(240,246,252,0.04)' } }}>
+            Cancel
+          </Button>
+          <Button variant="contained" onClick={handleRoleChange} disabled={actionLoading} sx={{ borderRadius: '8px', fontWeight: 600, cursor: 'pointer', background: 'linear-gradient(135deg, #6366F1, #4F46E5)', '&:hover': { background: 'linear-gradient(135deg, #818CF8, #6366F1)' } }}>
+            {actionLoading ? <CircularProgress size={18} sx={{ color: 'rgba(255,255,255,0.7)' }} /> : 'Confirm'}
           </Button>
         </DialogActions>
       </Dialog>
-    </Container>
+
+      {/* ── Status Dialog ────────────────────────────────────────── */}
+      <Dialog
+        open={statusDialogOpen}
+        onClose={() => setStatusDialogOpen(false)}
+        PaperProps={{ sx: { bgcolor: 'var(--color-surface-2)', border: '1px solid var(--color-border)', borderRadius: '14px', boxShadow: '0 24px 60px rgba(0,0,0,0.6)', minWidth: 360 } }}
+      >
+        <DialogTitle sx={{ fontFamily: 'var(--font-heading)', fontWeight: 700, color: 'var(--color-text)', pb: 1 }}>
+          Confirm Status Change
+        </DialogTitle>
+        <DialogContent>
+          <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', lineHeight: 1.6 }}>
+            Are you sure you want to change the status of{' '}
+            <strong style={{ color: 'var(--color-text)' }}>{selectedUser?.fullName}</strong>{' '}
+            to{' '}
+            <strong style={{ color: statusToChange === 'ACTIVE' ? '#86EFAC' : '#FCA5A5' }}>
+              {statusToChange}
+            </strong>?
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2.5, gap: 1 }}>
+          <Button onClick={() => setStatusDialogOpen(false)} sx={{ borderRadius: '8px', color: 'var(--color-text-sec)', cursor: 'pointer', '&:hover': { bgcolor: 'rgba(240,246,252,0.04)' } }}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleStatusChange}
+            disabled={actionLoading}
+            sx={{
+              borderRadius: '8px', fontWeight: 600, cursor: 'pointer',
+              bgcolor: statusToChange === 'ACTIVE' ? '#16A34A' : '#DC2626',
+              '&:hover': { bgcolor: statusToChange === 'ACTIVE' ? '#15803D' : '#B91C1C' },
+              '&.Mui-disabled': { bgcolor: 'rgba(99,102,241,0.25)', color: 'rgba(255,255,255,0.3)' },
+            }}
+          >
+            {actionLoading ? <CircularProgress size={18} sx={{ color: 'rgba(255,255,255,0.7)' }} /> : 'Confirm'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* ── Snackbar ─────────────────────────────────────────────── */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={5000}
+        onClose={() => setSnackbar(s => ({ ...s, open: false }))}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          severity={snackbar.severity}
+          onClose={() => setSnackbar(s => ({ ...s, open: false }))}
+          sx={{ borderRadius: '10px', fontWeight: 500, boxShadow: '0 8px 24px rgba(0,0,0,0.5)' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+    </Box>
   )
 }
 
