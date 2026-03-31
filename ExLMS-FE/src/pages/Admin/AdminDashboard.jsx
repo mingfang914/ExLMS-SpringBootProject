@@ -3,6 +3,7 @@ import { Box, Typography, Grid } from '@mui/material'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import api from '../../services/api'
+import { useTranslation } from 'react-i18next'
 
 // ── Icons ──────────────────────────────────────────────────────────
 const UsersIcon = () => (
@@ -47,47 +48,51 @@ const item = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.42, ease: [0.22, 1, 0.36, 1] } },
 }
 
-const StatCard = ({ label, value, icon, colorClass, href }) => (
-  <motion.div variants={item} style={{ height: '100%' }}>
-    <Box
-      component={href ? Link : 'div'}
-      to={href}
-      className={`stat-card stat-card--${colorClass}`}
-      sx={{
-        display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
-        textDecoration: 'none !important',
-        cursor: href ? 'pointer' : 'default',
-        '&:hover': href ? { borderColor: 'var(--color-border-lt)', transform: 'translateY(-2px)' } : {},
-      }}
-    >
-      <Box>
-        <Typography sx={{
-          fontFamily: 'var(--font-heading)', fontWeight: 800,
-          fontSize: '2.25rem', lineHeight: 1, color: 'var(--color-text)', mb: 0.5,
+const StatCard = ({ label, value, icon, colorClass, href }) => {
+  const { t } = useTranslation();
+  return (
+    <motion.div variants={item} style={{ height: '100%' }}>
+      <Box
+        component={href ? Link : 'div'}
+        to={href}
+        className={`stat-card stat-card--${colorClass}`}
+        sx={{
+          display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
+          textDecoration: 'none !important',
+          cursor: href ? 'pointer' : 'default',
+          '&:hover': href ? { borderColor: 'var(--color-border-lt)', transform: 'translateY(-2px)' } : {},
+        }}
+      >
+        <Box>
+          <Typography sx={{
+            fontFamily: 'var(--font-heading)', fontWeight: 800,
+            fontSize: '2.25rem', lineHeight: 1, color: 'var(--color-text)', mb: 0.5,
+          }}>
+            {value}
+          </Typography>
+          <Typography sx={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>
+            {label}
+          </Typography>
+        </Box>
+        <Box className={`icon-badge icon-badge--${colorClass}`} sx={{ mt: 0.5 }}>
+          {icon}
+        </Box>
+      </Box>
+      {href && (
+        <Box sx={{
+          mt: 2, display: 'flex', alignItems: 'center', gap: 0.5,
+          fontSize: '0.75rem', color: 'var(--color-text-muted)',
         }}>
-          {value}
-        </Typography>
-        <Typography sx={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>
-          {label}
-        </Typography>
-      </Box>
-      <Box className={`icon-badge icon-badge--${colorClass}`} sx={{ mt: 0.5 }}>
-        {icon}
-      </Box>
-    </Box>
-    {href && (
-      <Box sx={{
-        mt: 2, display: 'flex', alignItems: 'center', gap: 0.5,
-        fontSize: '0.75rem', color: 'var(--color-text-muted)',
-      }}>
-        <Typography sx={{ fontSize: '0.75rem', color: 'var(--color-primary-lt)' }}>Manage</Typography>
-        <Box sx={{ color: 'var(--color-primary-lt)' }}><ArrowRightIcon /></Box>
-      </Box>
-    )}
-  </motion.div>
-)
+          <Typography sx={{ fontSize: '0.75rem', color: 'var(--color-primary-lt)' }}>{t('admin.manage')}</Typography>
+          <Box sx={{ color: 'var(--color-primary-lt)' }}><ArrowRightIcon /></Box>
+        </Box>
+      )}
+    </motion.div>
+  );
+}
 
 const AdminDashboard = () => {
+  const { t } = useTranslation()
   const [stats, setStats] = useState({
     totalUsers: 0, totalGroups: 0, totalCourses: 0, upcomingAssignmentsCount: 0,
   })
@@ -99,10 +104,10 @@ const AdminDashboard = () => {
   }, [])
 
   const cards = [
-    { label: 'Total Users',     value: stats.totalUsers,                icon: <UsersIcon  />, colorClass: 'indigo', href: '/admin/users' },
-    { label: 'Study Groups',    value: stats.totalGroups,               icon: <GroupsIcon />, colorClass: 'cyan',   href: null },
-    { label: 'Total Courses',   value: stats.totalCourses,              icon: <CoursesIcon/>, colorClass: 'amber',  href: null },
-    { label: 'Due Assignments', value: stats.upcomingAssignmentsCount,  icon: <AssignIcon />, colorClass: 'red',    href: null },
+    { label: t('admin.stats.total_users'),     value: stats.totalUsers,                icon: <UsersIcon  />, colorClass: 'indigo', href: '/admin/users' },
+    { label: t('admin.stats.total_groups'),    value: stats.totalGroups,               icon: <GroupsIcon />, colorClass: 'cyan',   href: null },
+    { label: t('admin.stats.total_courses'),   value: stats.totalCourses,              icon: <CoursesIcon/>, colorClass: 'amber',  href: null },
+    { label: t('admin.stats.total_assignments'), value: stats.upcomingAssignmentsCount,  icon: <AssignIcon />, colorClass: 'red',    href: null },
   ]
 
   return (
@@ -116,10 +121,10 @@ const AdminDashboard = () => {
             fontSize: { xs: '1.75rem', sm: '2rem' },
             color: 'var(--color-text)', letterSpacing: '-0.03em', mb: 0.5,
           }}>
-            Admin Dashboard
+            {t('admin.dashboard_title')}
           </Typography>
           <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
-            Platform overview and management tools
+            {t('admin.dashboard_subtitle')}
           </Typography>
         </Box>
       </motion.div>
@@ -144,11 +149,11 @@ const AdminDashboard = () => {
           }}
         >
           <Typography sx={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '1rem', color: 'var(--color-text)', mb: 2.5 }}>
-            Quick Actions
+            {t('admin.quick_actions')}
           </Typography>
           <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
             {[
-              { label: 'Manage Users', href: '/admin/users', color: '#818CF8' },
+              { label: t('admin.actions.manage_users'), href: '/admin/users', color: '#818CF8' },
             ].map(({ label, href, color }) => (
               <Box
                 key={label}

@@ -14,7 +14,8 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import forumService from '../../services/forumService'
 import { formatDistanceToNow } from 'date-fns'
-import { vi } from 'date-fns/locale'
+import { vi, enUS } from 'date-fns/locale'
+import { useTranslation } from 'react-i18next'
 
 // ── Helpers ───────────────────────────────────────────────────────
 const stripHtml = (html) => {
@@ -82,6 +83,7 @@ const item = {
 }
 
 const ForumList = () => {
+  const { t, i18n } = useTranslation()
   const [posts,       setPosts]       = useState([])
   const [tags,        setTags]        = useState([])
   const [loading,     setLoading]     = useState(true)
@@ -95,7 +97,7 @@ const ForumList = () => {
       const data = await forumService.getPosts({ search: searchTerm, tag: selectedTag?.slug })
       setPosts(data)
     } catch {
-      setError('Could not load posts.')
+      setError(t('forum.errors.load_failed'))
     } finally {
       setLoading(false)
     }
@@ -115,7 +117,8 @@ const ForumList = () => {
   const handleTagClick = (tag) => setSelectedTag(s => s?.id === tag.id ? null : tag)
 
   const timeSince = (date) => {
-    try { return formatDistanceToNow(new Date(date), { addSuffix: true, locale: vi }) }
+    const locale = i18n.language === 'vi' ? vi : enUS
+    try { return formatDistanceToNow(new Date(date), { addSuffix: true, locale }) }
     catch { return '' }
   }
 
@@ -131,10 +134,10 @@ const ForumList = () => {
               fontSize: { xs: '1.75rem', sm: '2rem' },
               color: 'var(--color-text)', letterSpacing: '-0.03em', mb: 0.5,
             }}>
-              Community Forum
+              {t('forum.title')}
             </Typography>
             <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
-              Ask questions, share ideas, help each other
+              {t('forum.subtitle')}
             </Typography>
           </Box>
           <Button
@@ -147,7 +150,7 @@ const ForumList = () => {
               '&:hover': { background: 'linear-gradient(135deg, #818CF8, #6366F1)', boxShadow: '0 4px 12px rgba(99,102,241,0.35)' },
             }}
           >
-            New Post
+            {t('forum.new_post')}
           </Button>
         </Box>
       </motion.div>
@@ -161,18 +164,18 @@ const ForumList = () => {
               sx={{
                 display: 'flex', alignItems: 'center', gap: 1, px: 1.5, height: 44, mb: 2.5,
                 borderRadius: '10px', border: '1px solid var(--color-border)',
-                bgcolor: 'rgba(33,38,45,0.6)',
+                bgcolor: 'var(--color-surface-2)',
                 '&:focus-within': { borderColor: 'var(--color-primary)', boxShadow: '0 0 0 3px rgba(99,102,241,0.12)' },
                 transition: 'all 0.2s',
               }}
             >
-              <Box sx={{ color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+              <Box sx={{ color: 'var(--color-text-sec)', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
                 <SearchIcon />
               </Box>
               <input
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search posts by title or content…"
+                placeholder={t('forum.placeholder_search')}
                 style={{
                   flex: 1, background: 'none', border: 'none', outline: 'none',
                   color: 'var(--color-text)', fontSize: '0.875rem', fontFamily: 'var(--font-body)',
@@ -198,7 +201,7 @@ const ForumList = () => {
             <motion.div variants={item}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                 <Typography sx={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)' }}>
-                  Filtered by:
+                  {t('forum.filtered_by')}:
                 </Typography>
                 <Chip
                   label={selectedTag.name}
@@ -219,7 +222,7 @@ const ForumList = () => {
           {loading ? (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               {[1, 2, 3, 4].map((i) => (
-                <Skeleton key={i} variant="rounded" height={140} sx={{ bgcolor: 'rgba(33,38,45,0.8)', borderRadius: '12px' }} />
+                <Skeleton key={i} variant="rounded" height={140} sx={{ bgcolor: 'var(--color-surface-2)', borderRadius: '12px', opacity: 0.5 }} />
               ))}
             </Box>
           ) : error ? (
@@ -232,10 +235,10 @@ const ForumList = () => {
                 <ForumEmptyIcon />
               </Box>
               <Typography sx={{ fontFamily: 'var(--font-heading)', fontWeight: 700, color: 'var(--color-text)', mb: 0.75 }}>
-                No posts found
+                {t('forum.no_posts_found')}
               </Typography>
               <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
-                Be the first to start a discussion!
+                {t('forum.no_posts_desc')}
               </Typography>
             </Box>
           ) : (
@@ -328,7 +331,7 @@ const ForumList = () => {
                           </Box>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--color-text-muted)' }}>
                             <EyeIcon />
-                            <Typography sx={{ fontSize: '0.75rem' }}>{post.viewCount ?? 0} views</Typography>
+                            <Typography sx={{ fontSize: '0.75rem' }}>{post.viewCount ?? 0} {t('forum.views')}</Typography>
                           </Box>
                         </Box>
                       </Box>
@@ -361,13 +364,13 @@ const ForumList = () => {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                 <Box sx={{ color: 'var(--color-primary-lt)' }}><TagIcon /></Box>
                 <Typography sx={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '0.9375rem', color: 'var(--color-text)' }}>
-                  Browse by Tag
+                  {t('forum.browse_tags')}
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
                 {tags.length === 0 ? (
                   [1, 2, 3, 4, 5].map(i => (
-                    <Skeleton key={i} variant="rounded" width={70 + i * 8} height={24} sx={{ bgcolor: 'rgba(33,38,45,0.8)', borderRadius: '99px' }} />
+                    <Skeleton key={i} variant="rounded" width={70 + i * 8} height={24} sx={{ bgcolor: 'var(--color-surface-2)', borderRadius: '99px', opacity: 0.5 }} />
                   ))
                 ) : (
                   tags.map(tag => {
@@ -415,17 +418,17 @@ const ForumList = () => {
                 }}
               >
                 <Typography sx={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '0.9375rem', color: 'var(--color-text)' }}>
-                  Community Guidelines
+                  {t('forum.guidelines_title')}
                 </Typography>
               </Box>
 
               {/* Rules */}
               <Box sx={{ bgcolor: 'var(--color-surface)', px: 2.5, py: 2, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                 {[
-                  'Respect and help each other',
-                  'No spam or unauthorized advertising',
-                  'Use accurate tags for easier discovery',
-                  'Keep discussions constructive and relevant',
+                  t('forum.guidelines.rule1'),
+                  t('forum.guidelines.rule2'),
+                  t('forum.guidelines.rule3'),
+                  t('forum.guidelines.rule4'),
                 ].map((rule, i) => (
                   <Box key={i} sx={{ display: 'flex', gap: 1.5 }}>
                     <Box

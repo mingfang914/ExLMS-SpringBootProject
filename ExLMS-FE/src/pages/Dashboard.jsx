@@ -12,10 +12,6 @@ import {
   Chip,
   Avatar,
   Divider,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemAvatar,
 } from '@mui/material'
 import { useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
@@ -24,6 +20,7 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer
 } from 'recharts'
 import { alpha } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 
 // ───────────────────────────────────────────────────────────────────
 // Data
@@ -44,53 +41,53 @@ const chartData = [
 const Icons = {
   groups: (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-      <circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
     </svg>
   ),
   courses: (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" /><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
     </svg>
   ),
   assignments: (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-      <polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/>
-      <line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" />
+      <line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" />
     </svg>
   ),
   meetings: (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-      <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
-      <line x1="3" y1="10" x2="21" y2="10"/>
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+      <line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" />
+      <line x1="3" y1="10" x2="21" y2="10" />
     </svg>
   ),
   arrowRight: (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+      <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
     </svg>
   ),
   trendUp: (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>
+      <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" /><polyline points="17 6 23 6 23 12" />
     </svg>
   ),
   play: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-      <polygon points="5 3 19 12 5 21 5 3"/>
+      <polygon points="5 3 19 12 5 21 5 3" />
     </svg>
   ),
   clock: (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+      <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
     </svg>
   ),
   notification: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-      <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
     </svg>
   ),
 }
@@ -99,11 +96,11 @@ const Icons = {
 // Animation Variants
 // ───────────────────────────────────────────────────────────────────
 const container = {
-  hidden:  { opacity: 0 },
+  hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.08 } },
 }
 const item = {
-  hidden:  { opacity: 0, y: 20 },
+  hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] } },
 }
 
@@ -184,8 +181,9 @@ const CustomTooltip = ({ active, payload, label }) => {
 // Main Component
 // ───────────────────────────────────────────────────────────────────
 const Dashboard = () => {
-  const { user }   = useSelector((state) => state.auth)
-  const [loading,   setLoading]   = useState(true)
+  const { t, i18n } = useTranslation()
+  const { user } = useSelector((state) => state.auth)
+  const [loading, setLoading] = useState(true)
   const [statsData, setStatsData] = useState(null)
 
   useEffect(() => {
@@ -204,25 +202,26 @@ const Dashboard = () => {
   }, [])
 
   const stats = [
-    { label: 'Joined Groups',       value: statsData?.joinedGroups      ?? 0, icon: Icons.groups,      colorClass: 'indigo', trend: '+2 this week' },
-    { label: 'Courses In Progress', value: statsData?.coursesInProgress  ?? 0, icon: Icons.courses,     colorClass: 'cyan',   trend: null },
-    { label: 'Pending Assignments', value: statsData?.pendingAssignments ?? 0, icon: Icons.assignments, colorClass: 'amber',  trend: null },
-    { label: 'Upcoming Meetings',   value: statsData?.upcomingMeetings   ?? 0, icon: Icons.meetings,    colorClass: 'red',    trend: null },
+    { label: t('dashboard.stats.groups'), value: statsData?.joinedGroups ?? 0, icon: Icons.groups, colorClass: 'indigo', trend: `+2 ${t('dashboard.this_week')}` },
+    { label: t('dashboard.stats.courses'), value: statsData?.coursesInProgress ?? 0, icon: Icons.courses, colorClass: 'cyan', trend: null },
+    { label: t('dashboard.stats.assignments'), value: statsData?.pendingAssignments ?? 0, icon: Icons.assignments, colorClass: 'amber', trend: null },
+    { label: t('dashboard.stats.meetings'), value: statsData?.upcomingMeetings ?? 0, icon: Icons.meetings, colorClass: 'red', trend: null },
   ]
 
   const upcomingMeetings = [
-    { id: 1, title: 'Java Programming Workshop',   time: 'Today · 2:00 PM',      group: 'CS 2024',      status: 'today' },
-    { id: 2, title: 'Weekly Team Sync',            time: 'Tomorrow · 10:00 AM',  group: 'Study Group A', status: 'soon' },
-    { id: 3, title: 'Database Design Review',       time: 'Thu · 3:00 PM',        group: 'DB Class',     status: 'upcoming' },
+    { id: 1, title: 'Java Programming Workshop', time: `${t('common.today')} · 2:00 PM`, group: 'CS 2024', status: 'today' },
+    { id: 2, title: 'Weekly Team Sync', time: `${t('common.tomorrow')} · 10:00 AM`, group: 'Study Group A', status: 'soon' },
+    { id: 3, title: 'Database Design Review', time: `Thu · 3:00 PM`, group: 'DB Class', status: 'upcoming' },
   ]
 
   const recentActivities = [
-    { id: 1, type: 'assignment', text: 'New assignment: Spring Boot REST API', time: '2h ago',  icon: Icons.assignments  },
-    { id: 2, type: 'course',     text: 'Course "Intro to React" was updated',  time: '5h ago',  icon: Icons.courses      },
-    { id: 3, type: 'notif',      text: 'Your post got 3 new replies',           time: '1d ago',  icon: Icons.notification },
+    { id: 1, type: 'assignment', text: t('dashboard.activities.new_assignment'), time: t('common.hrs_ago', { count: 2 }), icon: Icons.assignments },
+    { id: 2, type: 'course', text: t('dashboard.activities.course_updated'), time: t('common.hrs_ago', { count: 5 }), icon: Icons.courses },
+    { id: 3, type: 'notif', text: t('dashboard.activities.new_replies'), time: t('common.days_ago', { count: 1 }), icon: Icons.notification },
   ]
 
-  const username = user?.name || user?.fullName || user?.email?.split('@')[0] || 'Student'
+  const username = user?.name || user?.fullName || user?.email?.split('@')[0] || t('common.student')
+  const greetingKey = getGreeting()
 
   return (
     <Box
@@ -247,13 +246,13 @@ const Dashboard = () => {
                 mb: 0.75,
               }}
             >
-              Good {getGreeting()},{' '}
+              {t(`dashboard.greetings.${greetingKey}`)},{' '}
               <Box component="span" className="gradient-text">{username.split(' ')[0]}</Box>
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
               <span className="pulse-dot" />
               <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
-                Here's what's happening with your learning today
+                {t('dashboard.hero_desc')}
               </Typography>
             </Box>
           </Box>
@@ -274,7 +273,7 @@ const Dashboard = () => {
               transition: 'all 0.2s',
             }}
           >
-            View Calendar
+            {t('nav.calendar')}
           </Button>
         </Box>
       </motion.div>
@@ -301,14 +300,14 @@ const Dashboard = () => {
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <Box>
                       <Typography sx={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '1rem', color: 'var(--color-text)' }}>
-                        Learning Hours
+                        {t('dashboard.learning_hours')}
                       </Typography>
                       <Typography sx={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', mt: 0.25 }}>
-                        This week
+                        {t('dashboard.this_week')}
                       </Typography>
                     </Box>
                     <Chip
-                      label="21.5h total"
+                      label={t('dashboard.total_learning_time', { count: 21.5 })}
                       size="small"
                       sx={{
                         bgcolor: 'rgba(99,102,241,0.12)',
@@ -331,11 +330,11 @@ const Dashboard = () => {
                     <AreaChart data={chartData} margin={{ top: 8, right: 8, left: -24, bottom: 0 }}>
                       <defs>
                         <linearGradient id="gradHours" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%"  stopColor="#6366F1" stopOpacity={0.3} />
+                          <stop offset="5%" stopColor="#6366F1" stopOpacity={0.3} />
                           <stop offset="95%" stopColor="#6366F1" stopOpacity={0} />
                         </linearGradient>
                         <linearGradient id="gradStroke" x1="0" y1="0" x2="1" y2="0">
-                          <stop offset="0%"   stopColor="#6366F1" />
+                          <stop offset="0%" stopColor="#6366F1" />
                           <stop offset="100%" stopColor="#22D3EE" />
                         </linearGradient>
                       </defs>
@@ -377,7 +376,7 @@ const Dashboard = () => {
               <CardHeader
                 title={
                   <Typography sx={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '1rem', color: 'var(--color-text)' }}>
-                    Continue Learning
+                    {t('dashboard.continue_learning')}
                   </Typography>
                 }
                 sx={{ pb: 0, px: 3, pt: 2.5 }}
@@ -450,14 +449,14 @@ const Dashboard = () => {
                         {Icons.clock}
                       </Box>
                       <Typography sx={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                        12 / 24 lessons completed
+                        {t('dashboard.completion_status', { completed: 12, total: 24 })}
                       </Typography>
                     </Box>
 
                     {/* Progress */}
                     <Box>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                        <Typography sx={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Progress</Typography>
+                        <Typography sx={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{t('common.progress')}</Typography>
                         <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#818CF8' }}>50%</Typography>
                       </Box>
                       <LinearProgress
@@ -491,7 +490,7 @@ const Dashboard = () => {
                         transition: 'all 0.2s',
                       }}
                     >
-                      Continue Learning
+                      {t('dashboard.continue_learning_btn')}
                     </Button>
                   </Box>
                 )}
@@ -501,7 +500,7 @@ const Dashboard = () => {
         </Grid>
       </Grid>
 
-      {/* ── Activity + Meetings Row ────────────────────────────────── */}
+      {/* ── Activity Row ──────────────────────────────────────────── */}
       <Grid container spacing={2.5}>
         {/* Recent Activities */}
         <Grid item xs={12} md={7}>
@@ -510,7 +509,7 @@ const Dashboard = () => {
               <CardHeader
                 title={
                   <Typography sx={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '1rem', color: 'var(--color-text)' }}>
-                    Recent Activity
+                    {t('dashboard.recent_activity')}
                   </Typography>
                 }
                 action={
@@ -519,14 +518,14 @@ const Dashboard = () => {
                     endIcon={Icons.arrowRight}
                     sx={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', cursor: 'pointer', '&:hover': { color: 'var(--color-primary-lt)' } }}
                   >
-                    See all
+                    {t('dashboard.view_all')}
                   </Button>
                 }
                 sx={{ pb: 0, px: 3, pt: 2.5 }}
               />
               <CardContent sx={{ px: 2, pb: '16px !important', pt: 1.5 }}>
                 {loading ? (
-                  [1, 2, 3].map((i) => (
+                  Array.from({ length: 3 }).map((_, i) => (
                     <Box key={i} sx={{ display: 'flex', gap: 1.5, p: 1.5, mb: 0.5 }}>
                       <Skeleton variant="rounded" width={36} height={36} sx={{ borderRadius: '9px', bgcolor: 'rgba(33,38,45,0.8)' }} />
                       <Box sx={{ flex: 1 }}>
@@ -560,8 +559,8 @@ const Dashboard = () => {
                             bgcolor: act.type === 'assignment'
                               ? 'rgba(245,158,11,0.12)'
                               : act.type === 'course'
-                              ? 'rgba(99,102,241,0.12)'
-                              : 'rgba(34,211,238,0.1)',
+                                ? 'rgba(99,102,241,0.12)'
+                                : 'rgba(34,211,238,0.1)',
                             color: act.type === 'assignment' ? '#FDE68A' : act.type === 'course' ? '#818CF8' : '#67E8F9',
                           }}
                         >
@@ -597,7 +596,7 @@ const Dashboard = () => {
               <CardHeader
                 title={
                   <Typography sx={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '1rem', color: 'var(--color-text)' }}>
-                    Upcoming Meetings
+                    {t('dashboard.upcoming_meetings')}
                   </Typography>
                 }
                 action={
@@ -608,14 +607,14 @@ const Dashboard = () => {
                     endIcon={Icons.arrowRight}
                     sx={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', cursor: 'pointer', '&:hover': { color: 'var(--color-primary-lt)' } }}
                   >
-                    Calendar
+                    {t('nav.calendar')}
                   </Button>
                 }
                 sx={{ pb: 0, px: 3, pt: 2.5 }}
               />
               <CardContent sx={{ px: 2, pb: '16px !important', pt: 1.5 }}>
                 {loading ? (
-                  [1, 2].map((i) => (
+                  Array.from({ length: 2 }).map((_, i) => (
                     <Box key={i} sx={{ p: 1.5, mb: 1.5 }}>
                       <Skeleton variant="rounded" height={68} sx={{ borderRadius: '10px', bgcolor: 'rgba(33,38,45,0.8)' }} />
                     </Box>
@@ -686,7 +685,7 @@ const Dashboard = () => {
                             }}
                           >
                             <Typography sx={{ fontSize: '0.5625rem', fontWeight: 700, color: '#FCA5A5', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                              Today
+                              {t('common.today')}
                             </Typography>
                           </Box>
                         </Box>

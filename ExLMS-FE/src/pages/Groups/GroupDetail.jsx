@@ -44,12 +44,14 @@ import courseService from '../../services/courseService'
 import assignmentService from '../../services/assignmentService'
 import meetingService from '../../services/meetingService'
 import { format } from 'date-fns'
-import { vi } from 'date-fns/locale'
+import { vi, enUS } from 'date-fns/locale'
+import { useTranslation } from 'react-i18next'
 
 import GroupMembers from './components/GroupMembers'
 import GroupFeed from './components/GroupFeed'
 
 const GroupDetail = () => {
+  const { t, i18n } = useTranslation()
   const { id } = useParams()
   const [group, setGroup] = useState(null)
   const [courses, setCourses] = useState([])
@@ -70,12 +72,6 @@ const GroupDetail = () => {
   const [editingMeeting, setEditingMeeting] = useState(null)
   const [editMeetingData, setEditMeetingData] = useState({ title: '', description: '', startAt: '', durationMinutes: 60 })
   const navigate = useNavigate()
-
-  // Mock meetings
-  const mockMeetings = [
-    { id: 'meet-1', title: 'Spring Boot Q&A', startAt: 'Today, 3:00 PM', roomName: 'CS2024-Spring-QA' },
-    { id: 'meet-2', title: 'Assignment Review', startAt: 'Tomorrow, 10:00 AM', roomName: 'CS2024-Review' }
-  ]
 
   useEffect(() => {
     const fetchGroupData = async () => {
@@ -105,20 +101,20 @@ const GroupDetail = () => {
           }
         }
       } catch (err) {
-        setError('Failed to load group details.')
+        setError(t('groups.errors.fetch_failed'))
       } finally {
         setLoading(false)
       }
     }
     fetchGroupData()
-  }, [id])
+  }, [id, t])
 
   const handleJoinGroup = async () => {
     try {
-      const response = await groupService.createJoinRequest(id, 'I want to join this group.')
-      alert(response || 'Join request sent!')
+      const response = await groupService.createJoinRequest(id, t('groups.messages.join_default'))
+      alert(response || t('groups.messages.join_sent'))
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to send join request.')
+      alert(err.response?.data?.message || t('groups.errors.join_failed'))
     }
   }
 
@@ -128,24 +124,24 @@ const GroupDetail = () => {
       await groupService.updateGroup(id, editGroupData)
       setGroup({ ...group, ...editGroupData })
       setManageDialogOpen(false)
-      alert('Cập nhật thông tin thành công!')
+      alert(t('group_detail.messages.update_success'))
     } catch (err) {
-      alert(err.response?.data?.message || 'Lỗi cập nhật!')
+      alert(err.response?.data?.message || t('group_detail.errors.update_failed'))
     }
   }
 
   const handleDeleteGroup = async () => {
     if (deleteConfirmText !== group.name) {
-      alert('Tên xác nhận không khớp!')
+      alert(t('group_detail.danger_zone.desc') + group.name)
       return
     }
-    if (window.confirm('Hành động này không thể hoàn tác. Bạn chắc chắn chứ?')) {
+    if (window.confirm(t('common.confirm_delete'))) {
       try {
         await groupService.deleteGroup(id)
-        alert('Đã xóa nhóm học tập!')
+        alert(t('common.success'))
         navigate('/groups')
       } catch (err) {
-        alert(err.response?.data?.message || 'Lỗi xóa nhóm!')
+        alert(err.response?.data?.message || t('common.error'))
       }
     }
   }
@@ -158,20 +154,20 @@ const GroupDetail = () => {
       setMeetings(freshMeetings)
       setScheduleDialogOpen(false)
       setNewMeetingData({ title: '', description: '', startAt: '', durationMinutes: 60 })
-      alert('Đã lên lịch buổi họp!')
+      alert(t('group_detail.meetings.schedule_success'))
     } catch (err) {
-      alert('Lỗi khi lên lịch buổi họp!')
+      alert(t('group_detail.meetings.schedule_failed'))
     }
   }
 
   const handleDeleteMeeting = async (meetingId) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa buổi họp này?')) {
+    if (window.confirm(t('group_detail.meetings.delete_confirm'))) {
       try {
         await meetingService.deleteMeeting(meetingId)
         setMeetings(meetings.filter(m => m.id !== meetingId))
-        alert('Đã xóa buổi họp!')
+        alert(t('group_detail.meetings.delete_success'))
       } catch (err) {
-        alert(err.response?.data?.message || 'Lỗi khi xóa buổi họp!')
+        alert(err.response?.data?.message || t('group_detail.meetings.delete_failed'))
       }
     }
   }
@@ -197,9 +193,9 @@ const GroupDetail = () => {
       const freshMeetings = await meetingService.getMeetingsByGroup(id)
       setMeetings(freshMeetings)
       setEditMeetingDialogOpen(false)
-      alert('Đã cập nhật buổi họp!')
+      alert(t('group_detail.meetings.update_success'))
     } catch (err) {
-      alert(err.response?.data?.message || 'Lỗi khi cập nhật buổi họp!')
+      alert(err.response?.data?.message || t('group_detail.meetings.update_failed'))
     }
   }
 
@@ -234,7 +230,7 @@ const GroupDetail = () => {
                 <Chip label={group.category} size="small" sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }} />
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   <PeopleIcon sx={{ fontSize: 18, mr: 0.5 }} />
-                  <Typography variant="body2">{group.memberCount} members</Typography>
+                  <Typography variant="body2">{t('group_card.members_count', { count: group.memberCount })}</Typography>
                 </Box>
               </Box>
             </Box>
@@ -243,27 +239,27 @@ const GroupDetail = () => {
         
         <Box sx={{ p: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 3 }}>
           <Tabs value={activeTab} onChange={(e, val) => setActiveTab(val)}>
-            <Tab icon={<InfoIcon />} iconPosition="start" label="Overview" />
-            {group.isJoined && <Tab icon={<CourseIcon />} iconPosition="start" label="Courses" />}
-            {group.isJoined && <Tab icon={<AssignmentIcon />} iconPosition="start" label="Assignments" />}
-            {group.isJoined && <Tab icon={<MeetingIcon />} iconPosition="start" label="Meetings" />}
-            {group.isJoined && <Tab icon={<ForumIcon />} iconPosition="start" label="Feed" />}
-            {group.isJoined && <Tab icon={<PeopleIcon />} iconPosition="start" label="Members" />}
+            <Tab icon={<InfoIcon />} iconPosition="start" label={t('group_detail.tabs.overview')} />
+            {group.isJoined && <Tab icon={<CourseIcon />} iconPosition="start" label={t('group_detail.tabs.courses')} />}
+            {group.isJoined && <Tab icon={<AssignmentIcon />} iconPosition="start" label={t('group_detail.tabs.assignments')} />}
+            {group.isJoined && <Tab icon={<MeetingIcon />} iconPosition="start" label={t('group_detail.tabs.meetings')} />}
+            {group.isJoined && <Tab icon={<ForumIcon />} iconPosition="start" label={t('group_detail.tabs.feed')} />}
+            {group.isJoined && <Tab icon={<PeopleIcon />} iconPosition="start" label={t('group_detail.tabs.members')} />}
           </Tabs>
           <Box sx={{ display: 'flex', gap: 1 }}>
             {!group.isJoined ? (
               <Button variant="contained" color="secondary" onClick={handleJoinGroup}>
-                Join Group
+                {t('group_card.join')}
               </Button>
             ) : (
               <>
                 {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
                   <>
-                    <Tooltip title="Share group">
+                    <Tooltip title={t('group_detail.share')}>
                       <IconButton onClick={() => setShareDialogOpen(true)}><ShareIcon /></IconButton>
                     </Tooltip>
                     {group.currentUserRole === 'OWNER' && (
-                      <Button variant="contained" startIcon={<SettingsIcon />} onClick={() => setManageDialogOpen(true)}>Manage</Button>
+                      <Button variant="contained" startIcon={<SettingsIcon />} onClick={() => setManageDialogOpen(true)}>{t('group_detail.manage')}</Button>
                     )}
                   </>
                 )}
@@ -279,28 +275,28 @@ const GroupDetail = () => {
           <Grid container spacing={3}>
             <Grid item xs={12} md={8}>
               <Paper sx={{ p: 3, mb: 3 }}>
-                <Typography variant="h6" gutterBottom>About this group</Typography>
+                <Typography variant="h6" gutterBottom>{t('group_detail.details')}</Typography>
                 <Typography variant="body1" paragraph>
-                  {group.description || 'No description provided.'}
+                  {group.description || t('group_card.no_desc')}
                 </Typography>
               </Paper>
             </Grid>
             <Grid item xs={12} md={4}>
               <Paper sx={{ p: 3 }}>
-                <Typography variant="h6" gutterBottom>Owner</Typography>
+                <Typography variant="h6" gutterBottom>{t('group_detail.owner')}</Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
                   <Avatar sx={{ mr: 2 }}>{group.ownerName.charAt(0)}</Avatar>
                   <Box>
                     <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>{group.ownerName}</Typography>
-                    <Typography variant="body2" color="text.secondary">Group Founder</Typography>
+                    <Typography variant="body2" color="text.secondary">{t('group_detail.founder')}</Typography>
                   </Box>
                 </Box>
                 <Divider sx={{ my: 3 }} />
-                <Typography variant="subtitle2" gutterBottom>Group Details</Typography>
+                <Typography variant="subtitle2" gutterBottom>{t('group_detail.details')}</Typography>
                 <Box sx={{ mt: 1 }}>
-                  <Typography variant="body2" color="text.secondary"><strong>Visibility:</strong> {group.visibility}</Typography>
-                  <Typography variant="body2" color="text.secondary"><strong>Created:</strong> Recently</Typography>
-                  <Typography variant="body2" color="text.secondary"><strong>Language:</strong> Vietnamese</Typography>
+                  <Typography variant="body2" color="text.secondary"><strong>{t('group_detail.visibility')}:</strong> {group.visibility}</Typography>
+                  <Typography variant="body2" color="text.secondary"><strong>{t('group_detail.created')}:</strong> {t('group_detail.recently')}</Typography>
+                  <Typography variant="body2" color="text.secondary"><strong>{t('group_detail.language')}:</strong> {i18n.language === 'vi' ? t('common.language_vi') : t('common.language_en')}</Typography>
                 </Box>
               </Paper>
             </Grid>
@@ -310,7 +306,7 @@ const GroupDetail = () => {
         {activeTab === 1 && (
           <Box>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-              <Typography variant="h5">Courses in {group.name}</Typography>
+              <Typography variant="h5">{t('group_detail.tabs.courses')} in {group.name}</Typography>
               {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
                 <Button
                   variant="contained"
@@ -318,13 +314,13 @@ const GroupDetail = () => {
                   component={RouterLink}
                   to={`/groups/${id}/courses/create`}
                 >
-                  Create Course
+                  {t('group_detail.actions.create_course')}
                 </Button>
               )}
             </Box>
             {courses.length === 0 ? (
               <Paper sx={{ p: 5, textAlign: 'center' }}>
-                <Typography color="text.secondary">No courses available yet.</Typography>
+                <Typography color="text.secondary">{t('groups.no_groups')}</Typography>
               </Paper>
             ) : (
               <Grid container spacing={3}>
@@ -350,7 +346,7 @@ const GroupDetail = () => {
                           component={RouterLink}
                           to={`/groups/${id}/courses/${course.id}/view`}
                         >
-                          Học ngay
+                          {t('group_detail.actions.learn_now')}
                         </Button>
                         {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
                           <Button
@@ -358,7 +354,7 @@ const GroupDetail = () => {
                             component={RouterLink}
                             to={`/groups/${id}/courses/${course.id}/edit`}
                           >
-                            Sửa
+                            {t('common.edit')}
                           </Button>
                         )}
                       </Box>
@@ -373,7 +369,7 @@ const GroupDetail = () => {
         {activeTab === 2 && (
           <Box>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-              <Typography variant="h5">Assignments</Typography>
+              <Typography variant="h5">{t('group_detail.tabs.assignments')}</Typography>
               <Box sx={{ display: 'flex', gap: 1 }}>
                 {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
                   <Button
@@ -382,7 +378,7 @@ const GroupDetail = () => {
                     component={RouterLink}
                     to={`/groups/${id}/assignments/create`}
                   >
-                    Create
+                    {t('common.create')}
                   </Button>
                 )}
                 <Button
@@ -390,14 +386,14 @@ const GroupDetail = () => {
                   component={RouterLink}
                   to={`/groups/${id}/assignments`}
                 >
-                  View All
+                  {t('group_detail.actions.view_all')}
                 </Button>
               </Box>
             </Box>
             
             {assignments.length === 0 ? (
               <Paper sx={{ p: 5, textAlign: 'center' }}>
-                <Typography color="text.secondary">No assignments available yet.</Typography>
+                <Typography color="text.secondary">{t('assignments.no_assignments_student')}</Typography>
               </Paper>
             ) : (
               <Grid container spacing={2}>
@@ -419,7 +415,7 @@ const GroupDetail = () => {
                           <Box>
                             <Typography variant="subtitle1" fontWeight="bold">{asgn.title}</Typography>
                             <Typography variant="caption" color="textSecondary">
-                              Due: {format(new Date(asgn.dueAt), 'HH:mm dd/MM/yyyy')}
+                              {t('assignments.due')}: {format(new Date(asgn.dueAt), 'HH:mm dd/MM/yyyy')}
                             </Typography>
                           </Box>
                         </Box>
@@ -428,7 +424,7 @@ const GroupDetail = () => {
                           component={RouterLink} 
                           to={`/groups/${id}/assignments/${asgn.id}`}
                         >
-                          Details
+                          {t('group_detail.actions.details')}
                         </Button>
                       </CardContent>
                     </Card>
@@ -437,7 +433,7 @@ const GroupDetail = () => {
                 {assignments.length > 6 && (
                   <Grid item xs={12} sx={{ textAlign: 'center', mt: 1 }}>
                     <Button component={RouterLink} to={`/groups/${id}/assignments`}>
-                      See all {assignments.length} assignments
+                      {t('group_detail.actions.see_all_assignments', { count: assignments.length })}
                     </Button>
                   </Grid>
                 )}
@@ -449,14 +445,14 @@ const GroupDetail = () => {
         {activeTab === 3 && (
           <Box>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-              <Typography variant="h5">Online Meetings</Typography>
+              <Typography variant="h5">{t('group_detail.tabs.meetings')}</Typography>
               {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
                 <Button 
                   variant="contained" 
                   startIcon={<MeetingIcon />}
                   onClick={() => setScheduleDialogOpen(true)}
                 >
-                  Schedule Meeting
+                  {t('group_detail.meetings.schedule')}
                 </Button>
               )}
             </Box>
@@ -464,7 +460,7 @@ const GroupDetail = () => {
               {meetings.length === 0 ? (
                 <Grid item xs={12}>
                   <Paper sx={{ p: 5, textAlign: 'center' }}>
-                    <Typography color="text.secondary">No meetings scheduled yet.</Typography>
+                    <Typography color="text.secondary">{t('group_detail.meetings.no_meetings')}</Typography>
                   </Paper>
                 </Grid>
               ) : (
@@ -495,14 +491,14 @@ const GroupDetail = () => {
                         {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
                           <Box sx={{ display: 'flex', mr: 1 }}>
                             {meeting.status === 'SCHEDULED' && (
-                              <Tooltip title="Chỉnh sửa">
+                              <Tooltip title={t('common.edit')}>
                                 <IconButton size="small" onClick={() => handleOpenEditMeeting(meeting)}>
                                   <EditIcon fontSize="small" />
                                 </IconButton>
                               </Tooltip>
                             )}
                             {meeting.status !== 'LIVE' && (
-                              <Tooltip title="Xóa">
+                              <Tooltip title={t('common.delete')}>
                                 <IconButton size="small" color="error" onClick={() => handleDeleteMeeting(meeting.id)}>
                                   <DeleteIcon fontSize="small" />
                                 </IconButton>
@@ -515,7 +511,7 @@ const GroupDetail = () => {
                           component={RouterLink}
                           to={`/groups/${id}/meetings/${meeting.id}`}
                         >
-                          {meeting.status === 'ENDED' ? 'View Report' : 'Join'}
+                          {meeting.status === 'ENDED' ? t('group_detail.meetings.view_report') : t('group_detail.meetings.join')}
                         </Button>
                       </Box>
                     </Paper>
@@ -546,10 +542,10 @@ const GroupDetail = () => {
 
       {/* Share Dialog */}
       <Dialog open={shareDialogOpen} onClose={() => setShareDialogOpen(false)}>
-        <DialogTitle>Mời thành viên mới</DialogTitle>
+        <DialogTitle>{t('group_detail.share')}</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Gửi mã mời này cho bạn bè hoặc học viên để họ có thể tham gia vào nhóm học tập.
+            {t('groups.invite_code_desc')}
           </DialogContentText>
           <Box sx={{ p: 3, mt: 2, bgcolor: 'background.default', borderRadius: 2, textAlign: 'center', border: '1px dashed grey' }}>
             <Typography variant="h4" fontWeight="bold" letterSpacing={6} color="primary">
@@ -558,72 +554,72 @@ const GroupDetail = () => {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setShareDialogOpen(false)}>Đóng</Button>
-          <Button variant="contained" onClick={() => { navigator.clipboard.writeText(group.inviteCode); alert('Đã chép mã!'); }}>
-            Copy Mã
+          <Button onClick={() => setShareDialogOpen(false)}>{t('common.close')}</Button>
+          <Button variant="contained" onClick={() => { navigator.clipboard.writeText(group.inviteCode); alert(t('common.success')); }}>
+            {t('common.copy')}
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* Manage Dialog */}
       <Dialog open={manageDialogOpen} onClose={() => setManageDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Quản lý Nhóm học tập</DialogTitle>
+        <DialogTitle>{t('group_detail.manage')}</DialogTitle>
         <DialogContent>
           <Box component="form" onSubmit={handleUpdateGroup} sx={{ mt: 2 }}>
-            <TextField fullWidth label="Tên nhóm" margin="normal" value={editGroupData.name} onChange={(e) => setEditGroupData({...editGroupData, name: e.target.value})} required />
-            <TextField fullWidth label="Mô tả" margin="normal" multiline rows={3} value={editGroupData.description} onChange={(e) => setEditGroupData({...editGroupData, description: e.target.value})} />
+            <TextField fullWidth label={t('groups.create.name_label')} margin="normal" value={editGroupData.name} onChange={(e) => setEditGroupData({...editGroupData, name: e.target.value})} required />
+            <TextField fullWidth label={t('groups.create.desc_label')} margin="normal" multiline rows={3} value={editGroupData.description} onChange={(e) => setEditGroupData({...editGroupData, description: e.target.value})} />
             <Grid container spacing={2} sx={{ mt: 1 }}>
               <Grid item xs={6}>
-                <TextField fullWidth select label="Chế độ hiển thị" value={editGroupData.visibility} onChange={(e) => setEditGroupData({...editGroupData, visibility: e.target.value})}>
-                  <MenuItem value="PUBLIC">Công khai (Public)</MenuItem>
-                  <MenuItem value="PRIVATE">Riêng tư (Private)</MenuItem>
+                <TextField fullWidth select label={t('group_detail.visibility')} value={editGroupData.visibility} onChange={(e) => setEditGroupData({...editGroupData, visibility: e.target.value})}>
+                  <MenuItem value="PUBLIC">{t('groups.create.public_title')}</MenuItem>
+                  <MenuItem value="PRIVATE">{t('groups.create.private_title')}</MenuItem>
                 </TextField>
               </Grid>
               <Grid item xs={6}>
-                <TextField fullWidth label="Danh mục" placeholder="Ví dụ: IT, Toán..." value={editGroupData.category} onChange={(e) => setEditGroupData({...editGroupData, category: e.target.value})} />
+                <TextField fullWidth label={t('groups.create.category_label')} placeholder={t('groups.create.category_placeholder')} value={editGroupData.category} onChange={(e) => setEditGroupData({...editGroupData, category: e.target.value})} />
               </Grid>
             </Grid>
-            <Button type="submit" variant="contained" sx={{ mt: 3, mb: 2 }} fullWidth>Lưu Thay Đổi</Button>
+            <Button type="submit" variant="contained" sx={{ mt: 3, mb: 2 }} fullWidth>{t('common.save')}</Button>
           </Box>
           <Divider sx={{ my: 3 }} />
-          <Typography variant="h6" color="error" gutterBottom sx={{ fontWeight: 'bold' }}>Khu vực nguy hiểm (Xóa nhóm)</Typography>
+          <Typography variant="h6" color="error" gutterBottom sx={{ fontWeight: 'bold' }}>{t('group_detail.danger_zone.title')}</Typography>
           <Typography variant="body2" color="text.secondary" paragraph>
-            Để xác nhận xóa, vui lòng nhập chính xác tên nhóm: <strong>{group.name}</strong>
+            {t('group_detail.danger_zone.desc')} <strong>{group.name}</strong>
           </Typography>
           <TextField fullWidth size="small" placeholder={group.name} value={deleteConfirmText} onChange={(e) => setDeleteConfirmText(e.target.value)} sx={{ mb: 2 }} />
           <Button variant="outlined" color="error" fullWidth onClick={handleDeleteGroup} disabled={deleteConfirmText !== group.name}>
-            XÓA NHÓM NÀY CHẮC CHẮN
+            {t('common.confirm_delete')}
           </Button>
         </DialogContent>
       </Dialog>
       {/* Schedule Meeting Dialog */}
       <Dialog open={scheduleDialogOpen} onClose={() => setScheduleDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Lên lịch buổi họp trực tuyến</DialogTitle>
+        <DialogTitle>{t('group_detail.meetings.schedule')}</DialogTitle>
         <DialogContent>
           <Box component="form" onSubmit={handleScheduleMeeting} sx={{ mt: 2 }}>
             <TextField 
-              fullWidth label="Tiêu đề" margin="normal" required
+              fullWidth label={t('group_detail.meetings.title')} margin="normal" required
               value={newMeetingData.title} 
               onChange={(e) => setNewMeetingData({...newMeetingData, title: e.target.value})} 
             />
             <TextField 
-              fullWidth label="Mô tả" margin="normal" multiline rows={2}
+              fullWidth label={t('group_detail.meetings.description')} margin="normal" multiline rows={2}
               value={newMeetingData.description} 
               onChange={(e) => setNewMeetingData({...newMeetingData, description: e.target.value})} 
             />
             <TextField 
-              fullWidth label="Thời gian bắt đầu" margin="normal" type="datetime-local" required
+              fullWidth label={t('group_detail.meetings.start_time')} margin="normal" type="datetime-local" required
               InputLabelProps={{ shrink: true }}
               value={newMeetingData.startAt} 
               onChange={(e) => setNewMeetingData({...newMeetingData, startAt: e.target.value})} 
             />
             <TextField 
-              fullWidth label="Thời lượng (phút)" margin="normal" type="number" required
+              fullWidth label={t('group_detail.meetings.duration')} margin="normal" type="number" required
               value={newMeetingData.durationMinutes} 
               onChange={(e) => setNewMeetingData({...newMeetingData, durationMinutes: e.target.value})} 
             />
             <Button type="submit" variant="contained" fullWidth sx={{ mt: 3 }}>
-              Tạo buổi họp
+              {t('common.create')}
             </Button>
           </Box>
         </DialogContent>
@@ -631,32 +627,32 @@ const GroupDetail = () => {
 
       {/* Edit Meeting Dialog */}
       <Dialog open={editMeetingDialogOpen} onClose={() => setEditMeetingDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Chỉnh sửa buổi họp</DialogTitle>
+        <DialogTitle>{t('group_detail.meetings.edit')}</DialogTitle>
         <DialogContent>
           <Box component="form" onSubmit={handleUpdateMeeting} sx={{ mt: 2 }}>
             <TextField 
-              fullWidth label="Tiêu đề" margin="normal" required
+              fullWidth label={t('group_detail.meetings.title')} margin="normal" required
               value={editMeetingData.title} 
               onChange={(e) => setEditMeetingData({...editMeetingData, title: e.target.value})} 
             />
             <TextField 
-              fullWidth label="Mô tả" margin="normal" multiline rows={2}
+              fullWidth label={t('group_detail.meetings.description')} margin="normal" multiline rows={2}
               value={editMeetingData.description} 
               onChange={(e) => setEditMeetingData({...editMeetingData, description: e.target.value})} 
             />
             <TextField 
-              fullWidth label="Thời gian bắt đầu" margin="normal" type="datetime-local" required
+              fullWidth label={t('group_detail.meetings.start_time')} margin="normal" type="datetime-local" required
               InputLabelProps={{ shrink: true }}
               value={editMeetingData.startAt} 
               onChange={(e) => setEditMeetingData({...editMeetingData, startAt: e.target.value})} 
             />
             <TextField 
-              fullWidth label="Thời lượng (phút)" margin="normal" type="number" required
+              fullWidth label={t('group_detail.meetings.duration')} margin="normal" type="number" required
               value={editMeetingData.durationMinutes} 
               onChange={(e) => setEditMeetingData({...editMeetingData, durationMinutes: e.target.value})} 
             />
             <Button type="submit" variant="contained" fullWidth sx={{ mt: 3 }}>
-              Cập nhật buổi họp
+              {t('common.save_changes')}
             </Button>
           </Box>
         </DialogContent>

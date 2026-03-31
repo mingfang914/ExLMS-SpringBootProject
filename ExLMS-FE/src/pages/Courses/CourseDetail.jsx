@@ -5,6 +5,7 @@ import {
 } from '@mui/material'
 import { Link as RouterLink, useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import courseService from '../../services/courseService'
 
 // ── SVG Icons ─────────────────────────────────────────────────────
@@ -56,6 +57,7 @@ const PlaySmall = () => (
 )
 
 const CourseDetail = () => {
+  const { t } = useTranslation()
   const { groupId, id: courseId } = useParams()
   const navigate = useNavigate()
   const [course,       setCourse]       = useState(null)
@@ -90,7 +92,7 @@ const CourseDetail = () => {
         if (firstLesson)    setSelectedItem({ type: 'LESSON', ...firstLesson })
         else if (quizList[0]) setSelectedItem({ type: 'QUIZ', ...quizList[0] })
       } catch {
-        setError('Could not load course data.')
+        setError(t('course_detail.errors.load_failed'))
       } finally {
         setLoading(false)
       }
@@ -121,11 +123,11 @@ const CourseDetail = () => {
       {!focusMode && (
         <Box sx={{ mb: 2.5, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
           <Box component={RouterLink} to="/groups" sx={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', textDecoration: 'none', '&:hover': { color: 'var(--color-text)' } }}>
-            Groups
+            {t('common.groups')}
           </Box>
           <Box sx={{ color: 'var(--color-border-lt)', fontSize: '0.875rem' }}>/</Box>
           <Box component={RouterLink} to={`/groups/${groupId}`} sx={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', textDecoration: 'none', '&:hover': { color: 'var(--color-text)' } }}>
-            {loading ? <Skeleton width={80} sx={{ bgcolor: 'rgba(33,38,45,0.8)', display: 'inline-block' }} /> : (course?.groupName || 'Group')}
+            {loading ? <Skeleton width={80} sx={{ bgcolor: 'rgba(33,38,45,0.8)', display: 'inline-block' }} /> : (course?.groupName || t('common.group'))}
           </Box>
           <Box sx={{ color: 'var(--color-border-lt)', fontSize: '0.875rem' }}>/</Box>
           <Typography sx={{ fontSize: '0.8125rem', color: 'var(--color-text-sec)', fontWeight: 600 }}>
@@ -169,7 +171,7 @@ const CourseDetail = () => {
                         {selectedItem.title}
                       </Typography>
                       <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', mb: 3 }}>
-                        Ready to test your knowledge?
+                        {t('course_detail.quiz_ready')}
                       </Typography>
                       <Button
                         variant="contained"
@@ -182,21 +184,21 @@ const CourseDetail = () => {
                           transition: 'all 0.2s',
                         }}
                       >
-                        Start Quiz
+                        {t('course_detail.start_quiz')}
                       </Button>
                     </Box>
                   ) : selectedItem.contentType === 'VIDEO' ? (
                     <Box sx={{ textAlign: 'center', color: 'rgba(255,255,255,0.4)' }}>
                       <Box sx={{ mb: 1 }}><PlayIcon /></Box>
                       <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
-                        Video content
+                        {t('course_detail.video_content')}
                       </Typography>
                     </Box>
                   ) : (
                     <Box sx={{ textAlign: 'center', color: 'rgba(255,255,255,0.4)' }}>
                       <Box sx={{ mb: 1 }}><DocIcon /></Box>
                       <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
-                        Document content
+                        {t('course_detail.doc_content')}
                       </Typography>
                     </Box>
                   )}
@@ -218,7 +220,7 @@ const CourseDetail = () => {
                 </>
               ) : (
                 <Typography sx={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>
-                  Select a lesson to begin
+                  {t('course_detail.select_to_begin')}
                 </Typography>
               )}
             </Box>
@@ -230,7 +232,7 @@ const CourseDetail = () => {
                   <Typography sx={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '1.25rem', color: 'var(--color-text)', flex: 1 }}>
                     {selectedItem.title}
                   </Typography>
-                  <Tooltip title="Focus Mode">
+                  <Tooltip title={t('course_detail.focus_mode')}>
                     <IconButton
                       onClick={() => setFocusMode(true)}
                       sx={{ color: 'var(--color-text-muted)', cursor: 'pointer', '&:hover': { color: 'var(--color-primary-lt)', bgcolor: 'rgba(99,102,241,0.08)' }, borderRadius: '8px' }}
@@ -240,7 +242,7 @@ const CourseDetail = () => {
                   </Tooltip>
                 </Box>
                 <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', lineHeight: 1.6 }}>
-                  {selectedItem.description || 'No description provided for this lesson.'}
+                  {selectedItem.description || t('course_detail.no_desc')}
                 </Typography>
               </Box>
             )}
@@ -274,7 +276,7 @@ const CourseDetail = () => {
                     }}
                   >
                     <Typography sx={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '0.9375rem', color: 'var(--color-text)', mb: 1.5 }}>
-                      Course Content
+                      {t('course_detail.content')}
                     </Typography>
 
                     {/* Progress */}
@@ -282,7 +284,7 @@ const CourseDetail = () => {
                       <Box>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.75 }}>
                           <Typography sx={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                            {completedLessons} / {totalLessons} lessons
+                            {t('course_detail.lessons_count', { count: completedLessons, total: totalLessons })}
                           </Typography>
                           <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#818CF8' }}>
                             {progress}%

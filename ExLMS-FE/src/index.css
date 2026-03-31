@@ -1,11 +1,11 @@
 /* ═══════════════════════════════════════════════════════════════
-   ExLMS – Global Styles  (Dark OLED Premium)
+   ExLMS – Global Styles  (Dark OLED + Light Premium)
    ═══════════════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;1,14..32,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
-/* ── Design tokens ─────────────────────────────────────────────── */
-:root {
+/* ── Dark theme tokens (default) ───────────────────────────────── */
+:root,
+[data-theme="dark"] {
   --color-bg:          #02040A;
   --color-surface:     #0D1117;
   --color-surface-2:   #161B22;
@@ -27,6 +27,37 @@
   --color-text-sec:    #8B949E;
   --color-text-muted:  #6E7681;
 
+  color-scheme: dark;
+}
+
+/* ── Light theme tokens ─────────────────────────────────────────── */
+[data-theme="light"] {
+  --color-bg:          #F5F7FA;
+  --color-surface:     #FFFFFF;
+  --color-surface-2:   #F0F4F8;
+  --color-surface-3:   #E2E8F0;
+  --color-border:      #CBD5E1;
+  --color-border-lt:   #94A3B8;
+
+  --color-primary:     #6366F1;
+  --color-primary-dk:  #4F46E5;
+  --color-primary-lt:  #4F46E5;
+  --color-accent:      #06B6D4;
+  --color-accent-dk:   #0891B2;
+
+  --color-success:     #16A34A;
+  --color-warning:     #D97706;
+  --color-error:       #DC2626;
+
+  --color-text:        #0F172A;
+  --color-text-sec:    #475569;
+  --color-text-muted:  #94A3B8;
+
+  color-scheme: light;
+}
+
+/* ── Shared tokens (same for both) ─────────────────────────────── */
+:root {
   --font-heading: 'Plus Jakarta Sans', 'Inter', sans-serif;
   --font-body:    'Inter', sans-serif;
 
@@ -52,7 +83,6 @@
   font-family: var(--font-body);
   line-height: 1.6;
   font-weight: 400;
-  color-scheme: dark;
   color: var(--color-text);
   background-color: var(--color-bg);
   font-synthesis: none;
@@ -120,7 +150,7 @@ img, video { max-width: 100%; height: auto; }
    GLASS & SURFACE PANELS
    ──────────────────────────────────────────────────────────────── */
 .glass-panel {
-  background: rgba(13, 17, 23, 0.85);
+  background: var(--color-surface);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--color-border);
@@ -128,7 +158,7 @@ img, video { max-width: 100%; height: auto; }
 }
 
 .glass-card {
-  background: linear-gradient(135deg, rgba(22, 27, 34, 0.9), rgba(13, 17, 23, 0.8));
+  background: var(--color-surface-2);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--color-border);
@@ -137,7 +167,7 @@ img, video { max-width: 100%; height: auto; }
 }
 .glass-card:hover {
   border-color: var(--color-border-lt);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), var(--shadow-glow-primary);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15), var(--shadow-glow-primary);
 }
 
 .surface-card {
@@ -179,10 +209,25 @@ img, video { max-width: 100%; height: auto; }
 }
 
 .brand-text {
-  background: linear-gradient(135deg, #818CF8 0%, #6366F1 50%, #22D3EE 100%);
+  background: linear-gradient(135deg, var(--color-primary-lt) 0%, var(--color-primary) 50%, var(--color-accent) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+/* ── Theme transition (smooth switching) ───────────────────────── */
+body,
+body * {
+  transition:
+    background-color var(--transition-base),
+    border-color var(--transition-base),
+    color var(--transition-fast),
+    box-shadow var(--transition-base);
+}
+/* Exclude animations and transforms from the blanket transition */
+.no-theme-transition,
+.no-theme-transition * {
+  transition: none !important;
 }
 
 /* ──────────────────────────────────────────────────────────────────
@@ -273,11 +318,11 @@ img, video { max-width: 100%; height: auto; }
   border-radius: var(--radius-md);
   flex-shrink: 0;
 }
-.icon-badge--indigo { background: rgba(99, 102, 241, 0.15); color: #818CF8; }
-.icon-badge--cyan   { background: rgba(34, 211, 238, 0.12); color: #67E8F9; }
-.icon-badge--green  { background: rgba(34, 197, 94, 0.12);  color: #86EFAC; }
-.icon-badge--amber  { background: rgba(245, 158, 11, 0.12); color: #FDE68A; }
-.icon-badge--red    { background: rgba(239, 68, 68, 0.12);  color: #FCA5A5; }
+.icon-badge--indigo { background: rgba(99, 102, 241, 0.15); color: var(--color-primary-lt); }
+.icon-badge--cyan   { background: rgba(34, 211, 238, 0.12); color: var(--color-accent);    }
+.icon-badge--green  { background: rgba(34, 197, 94, 0.12);  color: var(--color-success);   }
+.icon-badge--amber  { background: rgba(245, 158, 11, 0.12); color: var(--color-warning);   }
+.icon-badge--red    { background: rgba(239, 68, 68, 0.12);  color: var(--color-error);     }
 
 /* ──────────────────────────────────────────────────────────────────
    PROGRESS BAR GRADIENT
@@ -368,16 +413,25 @@ img, video { max-width: 100%; height: auto; }
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
-.tag--primary { background: rgba(99,102,241,0.15); color: #818CF8; border: 1px solid rgba(99,102,241,0.3); }
-.tag--success { background: rgba(34,197,94,0.12);  color: #86EFAC; border: 1px solid rgba(34,197,94,0.25); }
-.tag--warning { background: rgba(245,158,11,0.12); color: #FDE68A; border: 1px solid rgba(245,158,11,0.25); }
-.tag--error   { background: rgba(239,68,68,0.12);  color: #FCA5A5; border: 1px solid rgba(239,68,68,0.25); }
+.tag--primary { background: rgba(99,102,241,0.15); color: var(--color-primary-lt); border: 1px solid rgba(99,102,241,0.3); }
+.tag--success { background: rgba(34,197,94,0.12);  color: var(--color-success);    border: 1px solid rgba(34,197,94,0.25); }
+.tag--warning { background: rgba(245,158,11,0.12); color: var(--color-warning);    border: 1px solid rgba(245,158,11,0.25); }
+.tag--error   { background: rgba(239,68,68,0.12);  color: var(--color-error);      border: 1px solid rgba(239,68,68,0.25); }
 
 /* ──────────────────────────────────────────────────────────────────
    MISC HELPERS
    ──────────────────────────────────────────────────────────────── */
 .truncate        { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .clamp-2         { display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* ── Global Search Enhancements ─────────────────────────────────── */
+.search-input::placeholder {
+  color: var(--color-text-sec) !important;
+  opacity: 0.85 !important;
+}
+input::placeholder {
+  transition: color var(--transition-fast), opacity var(--transition-fast);
+}
 
 /* Reduce motion */
 @media (prefers-reduced-motion: reduce) {

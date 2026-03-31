@@ -6,12 +6,14 @@ import {
 } from '@mui/material'
 import {
   Timer as TimerIcon, NavigateNext, NavigateBefore, Send as SendIcon,
-  CheckCircle as CheckIcon
+  CheckCircle as CheckIcon, Cancel as CancelIcon
 } from '@mui/icons-material'
 import { useParams, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import courseService from '../../services/courseService'
 
 const QuizPlayer = () => {
+  const { t } = useTranslation()
   const { groupId, courseId, quizId } = useParams()
   const navigate = useNavigate()
 
@@ -56,13 +58,13 @@ const QuizPlayer = () => {
             }
           } catch (_) {}
         }
-        setError(msg || 'Không thể bắt đầu bài kiểm tra.')
+        setError(msg || t('quizzes.player.start_failed'))
       } finally {
         setLoading(false)
       }
     }
     start()
-  }, [quizId])
+  }, [quizId, groupId, courseId, navigate, t])
 
   // Countdown timer
   useEffect(() => {
@@ -72,7 +74,7 @@ const QuizPlayer = () => {
     }
     timerRef.current = setInterval(() => setTimeLeft(prev => prev - 1), 1000)
     return () => clearInterval(timerRef.current)
-  }, [timeLeft])
+  }, [timeLeft, attempt])
 
   const formatTime = (seconds) => {
     const m = Math.floor(seconds / 60)
@@ -125,20 +127,26 @@ const QuizPlayer = () => {
       await courseService.submitQuizAttempt(attempt.id, buildPayload())
       navigate(`/groups/${groupId}/courses/${courseId}/quiz/attempts/${attempt.id}/result`)
     } catch (e) {
-      setError(e.response?.data?.message || 'Lỗi nộp bài')
+      setError(e.response?.data?.message || t('quizzes.messages.submit_failed'))
       setSubmitting(false)
     }
   }
 
   if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', mt: 8 }}><CircularProgress /></Box>
   if (error) return (
-    <Box sx={{ maxWidth: 600, mx: 'auto', p: 4 }}>
-      <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
-      <Button variant="outlined" onClick={() => navigate(-1)}>Quay lại</Button>
+    <Box sx={{ maxWidth: 640, mx: 'auto', p: 4, mt: 4 }}>
+      <Alert severity="error" sx={{ mb: 3, borderRadius: 3 }}>{error}</Alert>
+      <Button variant="outlined" onClick={() => navigate(-1)} sx={{ borderRadius: '10px' }} startIcon={<CancelIcon />}>
+        {t('common.back')}
+      </Button>
     </Box>
   )
   if (!quiz || !quiz.questions || quiz.questions.length === 0)
-    return <Alert severity="warning">Bài kiểm tra này chưa có câu hỏi nào.</Alert>
+    return (
+        <Box sx={{ maxWidth: 640, mx: 'auto', p: 4, mt: 4 }}>
+            <Alert severity="warning" sx={{ borderRadius: 3 }}>{t('quizzes.player.no_questions')}</Alert>
+        </Box>
+    )
 
   const currentQ = quiz.questions[currentQIdx]
   const progress = ((currentQIdx + 1) / quiz.questions.length) * 100
@@ -147,30 +155,38 @@ const QuizPlayer = () => {
   }).length
 
   return (
-    <Box sx={{ maxWidth: 860, mx: 'auto', p: 3 }}>
+    <Box sx={{ maxWidth: 900, mx: 'auto', p: 3 }}>
       {/* Header */}
-      <Paper sx={{ p: 2, mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderRadius: 2, position: 'sticky', top: 16, zIndex: 10, bgcolor: 'background.paper' }}>
+      <Paper elevation={0} sx={{ p: 2.5, mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderRadius: 4, position: 'sticky', top: 16, zIndex: 10, bgcolor: 'var(--color-surface)', border: '1px solid var(--color-border)', color: 'var(--color-text)', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
         <Box>
-          <Typography variant="h6" fontWeight={700}>{quiz.title}</Typography>
-          <Typography variant="caption" color="text.secondary">
-            Câu {currentQIdx + 1} / {quiz.questions.length} &nbsp;•&nbsp; Đã trả lời: {answeredCount}/{quiz.questions.length}
+          <Typography variant="h6" fontWeight={800} sx={{ fontFamily: 'var(--font-heading)' }}>{quiz.title}</Typography>
+          <Typography variant="caption" fontWeight={600} color="var(--color-text-muted)">
+            {t('quizzes.player.current_question', { current: currentQIdx + 1, total: quiz.questions.length })} &nbsp;•&nbsp; {t('quizzes.player.answered', { answered: answeredCount, total: quiz.questions.length })}
           </Typography>
         </Box>
         {timeLeft !== null && (
           <Chip
-            icon={<TimerIcon />}
+            icon={<TimerIcon sx={{ color: 'inherit !important' }} />}
             label={formatTime(timeLeft)}
             color={timeLeft < 60 ? 'error' : 'primary'}
             variant={timeLeft < 60 ? 'filled' : 'outlined'}
-            sx={{ fontWeight: 700, fontSize: '1.1rem', px: 1 }}
+            sx={{ fontWeight: 800, fontSize: '1.2rem', px: 1.5, py: 2.5, borderRadius: 3 }}
           />
         )}
       </Paper>
 
-      <LinearProgress variant="determinate" value={progress} sx={{ mb: 3, borderRadius: 1, height: 8 }} />
+      <LinearProgress 
+        variant="determinate" 
+        value={progress} 
+        sx={{ 
+            mb: 4, borderRadius: 2, height: 10, 
+            bgcolor: 'rgba(99,102,241,0.1)',
+            '& .MuiLinearProgress-bar': { borderRadius: 2, background: 'linear-gradient(90deg, #6366F1, #818CF8)' }
+        }} 
+      />
 
       {/* Question Navigator (mini dots) */}
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 3 }}>
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mb: 4, justifyContent: 'center' }}>
         {quiz.questions.map((q, i) => {
           const isAnswered = answers[q.id] !== undefined && answers[q.id] !== '' &&
             (Array.isArray(answers[q.id]) ? answers[q.id].length > 0 : true)
@@ -181,7 +197,11 @@ const QuizPlayer = () => {
               variant={i === currentQIdx ? 'contained' : 'outlined'}
               color={isAnswered ? 'success' : 'primary'}
               onClick={() => setCurrentQIdx(i)}
-              sx={{ minWidth: 36, px: 0, py: 0.5, fontSize: '0.75rem' }}
+              sx={{ 
+                  minWidth: 44, width: 44, height: 44, borderRadius: 2.5, fontWeight: 800,
+                  boxShadow: i === currentQIdx ? '0 4px 12px rgba(99,102,241,0.3)' : 'none',
+                  borderWidth: '2px !important'
+              }}
             >
               {i + 1}
             </Button>
@@ -190,13 +210,13 @@ const QuizPlayer = () => {
       </Box>
 
       {/* Question Area */}
-      <Paper sx={{ p: 4, borderRadius: 2, minHeight: 280 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-          <Chip label={currentQ.questionType.replace('_', ' ')} size="small" />
-          <Typography variant="caption" color="text.secondary">{currentQ.points} điểm</Typography>
+      <Paper elevation={0} sx={{ p: 5, borderRadius: 4, minHeight: 320, border: '1px solid var(--color-border)', bgcolor: 'var(--color-surface)', color: 'var(--color-text)' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Chip label={t(`quizzes.types.${currentQ.questionType.toLowerCase()}`) || currentQ.questionType.replace('_', ' ')} size="small" sx={{ fontWeight: 700, borderRadius: 1.5, bgcolor: 'rgba(99,102,241,0.1)', color: '#6366F1' }} />
+          <Typography variant="button" fontWeight={800} color="var(--color-text-muted)">{t('quizzes.player.points', { count: currentQ.points })}</Typography>
         </Box>
-        <Typography variant="h6" gutterBottom sx={{ mt: 1 }}>{currentQ.content}</Typography>
-        <Divider sx={{ my: 2 }} />
+        <Typography variant="h5" fontWeight={700} gutterBottom sx={{ mb: 4, lineHeight: 1.5 }}>{currentQ.content}</Typography>
+        <Divider sx={{ my: 4, borderColor: 'var(--color-border)' }} />
 
         {/* SINGLE_CHOICE / TRUE_FALSE */}
         {(currentQ.questionType === 'SINGLE_CHOICE' || currentQ.questionType === 'TRUE_FALSE') && (
@@ -208,13 +228,15 @@ const QuizPlayer = () => {
               <FormControlLabel
                 key={a.id}
                 value={a.id}
-                control={<Radio />}
-                label={a.content}
+                control={<Radio color="primary" />}
+                label={<Typography fontWeight={600} variant="body1">{a.content}</Typography>}
                 sx={{
-                  mb: 1, px: 2, py: 0.5, borderRadius: 2, border: '1px solid',
-                  borderColor: answers[currentQ.id] === a.id ? 'primary.main' : 'divider',
-                  bgcolor: answers[currentQ.id] === a.id ? 'primary.50' : 'transparent',
-                  '&:hover': { bgcolor: 'action.hover' }
+                  mb: 2.5, px: 3, py: 1.5, borderRadius: 3, border: '2px solid',
+                  width: '100%', mx: 0,
+                  borderColor: answers[currentQ.id] === a.id ? '#6366F1' : 'var(--color-border)',
+                  bgcolor: answers[currentQ.id] === a.id ? 'rgba(99,102,241,0.05)' : 'transparent',
+                  transition: 'all 0.2s ease',
+                  '&:hover': { bgcolor: 'rgba(99,102,241,0.03)', borderColor: answers[currentQ.id] === a.id ? '#6366F1' : 'rgba(99,102,241,0.4)' }
                 }}
               />
             ))}
@@ -233,14 +255,17 @@ const QuizPlayer = () => {
                     <Checkbox
                       checked={selected}
                       onChange={(e) => handleMultiAnswer(currentQ.id, a.id, e.target.checked)}
+                      color="primary"
                     />
                   }
-                  label={a.content}
+                  label={<Typography fontWeight={600} variant="body1">{a.content}</Typography>}
                   sx={{
-                    mb: 1, px: 2, py: 0.5, borderRadius: 2, border: '1px solid',
-                    borderColor: selected ? 'primary.main' : 'divider',
-                    bgcolor: selected ? 'primary.50' : 'transparent',
-                    '&:hover': { bgcolor: 'action.hover' }
+                    mb: 2.5, px: 3, py: 1.5, borderRadius: 3, border: '2px solid',
+                    width: '100%', mx: 0,
+                    borderColor: selected ? '#6366F1' : 'var(--color-border)',
+                    bgcolor: selected ? 'rgba(99,102,241,0.05)' : 'transparent',
+                    transition: 'all 0.2s ease',
+                    '&:hover': { bgcolor: 'rgba(99,102,241,0.03)', borderColor: selected ? '#6366F1' : 'rgba(99,102,241,0.4)' }
                   }}
                 />
               )
@@ -253,40 +278,46 @@ const QuizPlayer = () => {
           <TextField
             fullWidth
             multiline={currentQ.questionType === 'SHORT_ANSWER'}
-            rows={currentQ.questionType === 'SHORT_ANSWER' ? 4 : 1}
+            rows={currentQ.questionType === 'SHORT_ANSWER' ? 6 : 1}
             variant="outlined"
-            placeholder={currentQ.questionType === 'FILL_BLANK' ? 'Điền vào chỗ trống...' : 'Viết câu trả lời của bạn...'}
+            placeholder={currentQ.questionType === 'FILL_BLANK' ? t('quizzes.player.fill_blank_placeholder') : t('quizzes.player.short_answer_placeholder')}
             value={answers[currentQ.id] || ''}
             onChange={(e) => handleTextAnswer(currentQ.id, e.target.value)}
-            sx={{ mt: 1 }}
+            sx={{ 
+                mt: 1,
+                '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: 'var(--color-surface-2)' }
+            }}
           />
         )}
       </Paper>
 
       {/* Navigation */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
         <Button
           startIcon={<NavigateBefore />}
           disabled={currentQIdx === 0}
           onClick={() => setCurrentQIdx(p => p - 1)}
+          sx={{ borderRadius: '10px', fontWeight: 700, px: 3 }}
         >
-          Câu trước
+          {t('quizzes.player.prev_btn')}
         </Button>
         <Button
           variant="outlined"
           color="error"
           startIcon={<SendIcon />}
           onClick={() => setIsConfirmOpen(true)}
+          sx={{ borderRadius: '10px', fontWeight: 800, px: 4, borderWidth: '2px !important' }}
         >
-          Nộp bài ({answeredCount}/{quiz.questions.length})
+          {t('quizzes.player.submit_btn', { answered: answeredCount, total: quiz.questions.length })}
         </Button>
         {currentQIdx < quiz.questions.length - 1 ? (
           <Button
             endIcon={<NavigateNext />}
             variant="contained"
             onClick={() => setCurrentQIdx(p => p + 1)}
+            sx={{ borderRadius: '10px', fontWeight: 800, px: 4, background: 'linear-gradient(135deg, #6366F1, #4F46E5)' }}
           >
-            Câu tiếp theo
+            {t('quizzes.player.next_btn')}
           </Button>
         ) : (
           <Button
@@ -294,29 +325,28 @@ const QuizPlayer = () => {
             variant="contained"
             color="success"
             onClick={() => setIsConfirmOpen(true)}
+            sx={{ borderRadius: '10px', fontWeight: 800, px: 4 }}
           >
-            Hoàn tất & Nộp
+            {t('quizzes.player.finish_btn')}
           </Button>
         )}
       </Box>
 
       {/* Confirm Dialog */}
-      <Dialog open={isConfirmOpen} onClose={() => setIsConfirmOpen(false)}>
-        <DialogTitle>Xác nhận nộp bài</DialogTitle>
+      <Dialog open={isConfirmOpen} onClose={() => setIsConfirmOpen(false)} PaperProps={{ sx: { borderRadius: 4, p: 1 } }}>
+        <DialogTitle sx={{ fontWeight: 800, fontSize: '1.4rem' }}>{t('quizzes.player.confirm_title')}</DialogTitle>
         <DialogContent>
-          <Typography gutterBottom>
-            Bạn đã trả lời <strong>{answeredCount}/{quiz.questions.length}</strong> câu.
-          </Typography>
+          <Typography gutterBottom variant="body1" sx={{ color: 'var(--color-text-sec)' }} dangerouslySetInnerHTML={{ __html: t('quizzes.player.confirm_desc', { count: answeredCount, total: quiz.questions.length }) }} />
           {answeredCount < quiz.questions.length && (
-            <Alert severity="warning" sx={{ mt: 1 }}>
-              Còn {quiz.questions.length - answeredCount} câu chưa được trả lời. Sau khi nộp bạn không thể chỉnh sửa.
+            <Alert severity="warning" sx={{ mt: 2, borderRadius: 3, fontWeight: 600 }}>
+              {t('quizzes.player.warning_unanswered', { count: quiz.questions.length - answeredCount })}
             </Alert>
           )}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setIsConfirmOpen(false)}>Quay lại làm tiếp</Button>
-          <Button onClick={handleFinalSubmit} variant="contained" color="success" disabled={submitting}>
-            {submitting ? <CircularProgress size={20} color="inherit" /> : 'Xác nhận nộp bài'}
+        <DialogActions sx={{ p: 3, pt: 1, gap: 1 }}>
+          <Button onClick={() => setIsConfirmOpen(false)} sx={{ fontWeight: 700, borderRadius: 2 }}>{t('quizzes.player.back_to_quiz')}</Button>
+          <Button onClick={handleFinalSubmit} variant="contained" color="success" disabled={submitting} sx={{ fontWeight: 800, borderRadius: 2, px: 3, py: 1 }}>
+            {submitting ? <CircularProgress size={20} color="inherit" /> : t('quizzes.player.confirm_submit_btn')}
           </Button>
         </DialogActions>
       </Dialog>

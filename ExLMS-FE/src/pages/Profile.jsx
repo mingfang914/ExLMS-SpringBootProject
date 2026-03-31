@@ -13,6 +13,7 @@ import {
   LinearProgress,
 } from '@mui/material'
 import { useSelector, useDispatch } from 'react-redux'
+import { useTranslation } from 'react-i18next'
 import api from '../services/api'
 import { setUser } from '../store/authSlice'
 import FileUpload from '../components/Common/FileUpload'
@@ -80,6 +81,7 @@ const calcCompletion = (data) => {
 }
 
 const Profile = () => {
+  const { t }      = useTranslation()
   const { user }   = useSelector((state) => state.auth)
   const dispatch   = useDispatch()
 
@@ -115,11 +117,11 @@ const Profile = () => {
     setErrorMsg('')
     try {
       await api.put('/users/me/profile', profileData)
-      setSuccessMsg('Profile updated successfully!')
+      setSuccessMsg(t('profile.update_success'))
       const userRes = await api.get('/users/me')
       dispatch(setUser(userRes.data))
     } catch (err) {
-      setErrorMsg(err.response?.data?.message || 'Could not save profile.')
+      setErrorMsg(err.response?.data?.message || t('profile.update_failed'))
     } finally {
       setSaving(false)
     }
@@ -153,10 +155,10 @@ const Profile = () => {
             fontSize: { xs: '1.75rem', sm: '2rem' },
             color: 'var(--color-text)', letterSpacing: '-0.03em', mb: 0.5,
           }}>
-            My Profile
+            {t('profile.title')}
           </Typography>
           <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
-            Manage your personal information and account settings
+            {t('profile.subtitle')}
           </Typography>
         </Box>
       </motion.div>
@@ -230,14 +232,14 @@ const Profile = () => {
               </Box>
 
               <Typography sx={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '1rem', color: 'var(--color-text)', mb: 0.25, textAlign: 'center' }}>
-                {profileData.fullName || 'Your Name'}
+                {profileData.fullName || t('profile.full_name')}
               </Typography>
               <Typography sx={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', mb: 0.5 }}>
                 {user?.email}
               </Typography>
               {user?.role && (
                 <Chip
-                  label={user.role === 'ADMIN' ? 'Administrator' : user.role === 'INSTRUCTOR' ? 'Instructor' : 'Student'}
+                  label={user.role === 'ADMIN' ? t('common.administrator') : user.role === 'INSTRUCTOR' ? t('common.instructor') : t('common.student')}
                   size="small"
                   sx={{
                     mt: 0.5, height: 20, fontSize: '0.625rem', fontWeight: 700,
@@ -254,11 +256,11 @@ const Profile = () => {
                 <FileUpload
                   onUploadSuccess={(fileKey) => setProfileData(prev => ({ ...prev, avatarKey: fileKey }))}
                   accept="image/*"
-                  label="Upload New Avatar"
+                  label={t('profile.avatar_upload')}
                 />
               </Box>
               <Typography sx={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)', mt: 1, textAlign: 'center' }}>
-                JPG, PNG or GIF · Max 1MB
+                {t('profile.avatar_hint')}
               </Typography>
             </Box>
           </motion.div>
@@ -275,7 +277,7 @@ const Profile = () => {
             >
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
                 <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text)' }}>
-                  Profile Completion
+                  {t('profile.completion')}
                 </Typography>
                 <Typography sx={{ fontSize: '0.8125rem', fontWeight: 700, color: '#818CF8' }}>
                   {completion}%
@@ -285,13 +287,13 @@ const Profile = () => {
                 variant="determinate"
                 value={completion}
                 className="progress-gradient"
-                sx={{ height: 6, borderRadius: 99, bgcolor: 'rgba(33,38,45,0.8)', mb: 2 }}
+                sx={{ height: 6, borderRadius: 99, bgcolor: 'var(--color-surface-3)', mb: 2 }}
               />
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 {[
-                  { label: 'Full name added', done: !!profileData.fullName },
-                  { label: 'Bio written',     done: !!profileData.bio },
-                  { label: 'Avatar uploaded', done: !!profileData.avatarKey },
+                  { label: t('profile.completion_full_name'), done: !!profileData.fullName },
+                  { label: t('profile.completion_bio'),     done: !!profileData.bio },
+                  { label: t('profile.completion_avatar'), done: !!profileData.avatarKey },
                 ].map(({ label, done }) => (
                   <Box key={label} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Box
@@ -330,44 +332,37 @@ const Profile = () => {
               }}
             >
               <Typography sx={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '1rem', color: 'var(--color-text)', mb: 3 }}>
-                Personal Information
+                {t('profile.personal_info')}
               </Typography>
 
               {/* Full Name */}
               <Box sx={{ mb: 2.5 }}>
-                <FieldLabel icon={<UserIcon />}>Full Name</FieldLabel>
+                <FieldLabel icon={<UserIcon />}>{t('profile.full_name')}</FieldLabel>
                 <TextField
                   fullWidth
                   name="fullName"
                   value={profileData.fullName}
                   onChange={handleChange}
-                  placeholder="Your full name"
+                  placeholder={t('profile.full_name_placeholder')}
                   required
-                  sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'rgba(33,38,45,0.6)', borderRadius: '10px' } }}
                 />
               </Box>
 
               {/* Email (read-only) */}
               <Box sx={{ mb: 2.5 }}>
-                <FieldLabel icon={<MailIcon />}>Email Address</FieldLabel>
+                <FieldLabel icon={<MailIcon />}>{t('profile.email')}</FieldLabel>
                 <TextField
                   fullWidth
                   value={user?.email || ''}
                   disabled
-                  helperText="Email cannot be changed"
+                  helperText={t('profile.email_hint')}
                   FormHelperTextProps={{ sx: { color: 'var(--color-text-muted)', fontSize: '0.75rem', mt: 0.5 } }}
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      bgcolor: 'rgba(22,27,34,0.5)', borderRadius: '10px',
-                      '&.Mui-disabled': { opacity: 0.6 },
-                    },
-                  }}
                 />
               </Box>
 
               {/* Bio */}
               <Box sx={{ mb: 3.5 }}>
-                <FieldLabel icon={<FileTextIcon />}>Bio / Introduction</FieldLabel>
+                <FieldLabel icon={<FileTextIcon />}>{t('profile.bio')}</FieldLabel>
                 <TextField
                   fullWidth
                   name="bio"
@@ -375,11 +370,10 @@ const Profile = () => {
                   onChange={handleChange}
                   multiline
                   rows={4}
-                  placeholder="Tell others a bit about yourself, your interests, and what you're learning…"
-                  sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'rgba(33,38,45,0.6)', borderRadius: '10px' } }}
+                  placeholder={t('profile.bio_placeholder')}
                 />
                 <Typography sx={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', mt: 0.75, textAlign: 'right' }}>
-                  {profileData.bio.length} / 300 characters
+                  {t('profile.bio_limit', { count: profileData.bio.length })}
                 </Typography>
               </Box>
 
@@ -393,10 +387,11 @@ const Profile = () => {
                   sx={{
                     height: 40, borderRadius: '9px', px: 3, fontSize: '0.875rem',
                     borderColor: 'var(--color-border)', color: 'var(--color-text-sec)', cursor: 'pointer',
-                    '&:hover': { borderColor: 'var(--color-border-lt)', bgcolor: 'rgba(240,246,252,0.04)' },
+                    '&:hover': { borderColor: 'var(--color-border-lt)', bgcolor: 'rgba(99,102,241,0.04)' },
                   }}
+                  onClick={() => window.history.back()}
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </Button>
                 <Button
                   type="submit"
@@ -411,7 +406,7 @@ const Profile = () => {
                     transition: 'all 0.2s',
                   }}
                 >
-                  {saving ? <CircularProgress size={18} sx={{ color: 'rgba(255,255,255,0.6)' }} /> : 'Save Changes'}
+                  {saving ? <CircularProgress size={18} sx={{ color: 'rgba(255,255,255,0.6)' }} /> : t('common.save_changes')}
                 </Button>
               </Box>
             </Box>

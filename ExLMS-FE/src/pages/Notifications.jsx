@@ -12,6 +12,7 @@ import {
 import { useSelector, useDispatch } from 'react-redux'
 import { markAsRead, markAllAsRead } from '../store/notificationSlice'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 
 // ── SVG Icons ─────────────────────────────────────────────────────
 const BellIcon = () => (
@@ -47,21 +48,22 @@ const item = {
   exit:    { opacity: 0, x: -20, transition: { duration: 0.25 } },
 }
 
-const timeSince = (dateStr) => {
+const timeSince = (dateStr, t, i18n) => {
   try {
     const diff  = Date.now() - new Date(dateStr).getTime()
     const mins  = Math.floor(diff / 60000)
-    if (mins < 1)  return 'just now'
-    if (mins < 60) return `${mins}m ago`
+    if (mins < 1)  return t('common.just_now')
+    if (mins < 60) return t('common.mins_ago', { count: mins })
     const hrs = Math.floor(mins / 60)
-    if (hrs < 24)  return `${hrs}h ago`
+    if (hrs < 24)  return t('common.hrs_ago', { count: hrs })
     const days = Math.floor(hrs / 24)
-    if (days < 7)  return `${days}d ago`
-    return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    if (days < 7)  return t('common.days_ago', { count: days })
+    return new Date(dateStr).toLocaleDateString(i18n.language === 'vi' ? 'vi-VN' : 'en-US')
   } catch { return '' }
 }
 
 const Notifications = () => {
+  const { t, i18n } = useTranslation()
   const { notifications, unreadCount } = useSelector((state) => state.notifications)
   const dispatch = useDispatch()
 
@@ -78,7 +80,7 @@ const Notifications = () => {
                 fontSize: { xs: '1.75rem', sm: '2rem' },
                 color: 'var(--color-text)', letterSpacing: '-0.03em',
               }}>
-                Notifications
+                {t('navigation.notifications')}
               </Typography>
               {unreadCount > 0 && (
                 <Chip
@@ -94,7 +96,7 @@ const Notifications = () => {
               )}
             </Box>
             <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
-              {unreadCount > 0 ? `You have ${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}` : 'All caught up!'}
+              {unreadCount > 0 ? t('navigation.unread_count', { count: unreadCount }) : t('navigation.all_caught_up')}
             </Typography>
           </Box>
 
@@ -110,7 +112,7 @@ const Notifications = () => {
                 '&:hover': { borderColor: 'var(--color-primary)', color: 'var(--color-primary-lt)', bgcolor: 'rgba(99,102,241,0.06)' },
               }}
             >
-              Mark All as Read
+              {t('common.mark_all_read')}
             </Button>
           )}
         </Box>
@@ -138,10 +140,10 @@ const Notifications = () => {
               <BellBigIcon />
             </Box>
             <Typography sx={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '1.125rem', color: 'var(--color-text)', mb: 0.75 }}>
-              No notifications
+              {t('common.no_notifications')}
             </Typography>
             <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
-              You're all caught up! Check back later.
+              {t('navigation.all_caught_up')}
             </Typography>
           </Box>
         </motion.div>
@@ -200,7 +202,7 @@ const Notifications = () => {
                         {notif.message}
                       </Typography>
                       {!notif.read && (
-                        <Tooltip title="Mark as read">
+                        <Tooltip title={t('common.mark_as_read')}>
                           <IconButton
                             size="small"
                             onClick={(e) => { e.stopPropagation(); dispatch(markAsRead(notif.id)) }}
@@ -217,7 +219,7 @@ const Notifications = () => {
                     </Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                       <Typography sx={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                        {timeSince(notif.createdAt)}
+                        {timeSince(notif.createdAt, t, i18n)}
                       </Typography>
                       {!notif.read && (
                         <Box

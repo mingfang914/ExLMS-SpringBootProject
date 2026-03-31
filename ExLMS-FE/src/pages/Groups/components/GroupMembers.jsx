@@ -25,6 +25,7 @@ import {
   Button
 } from '@mui/material'
 import { MoreVert as MoreVertIcon } from '@mui/icons-material'
+import { useTranslation } from 'react-i18next'
 import groupService from '../../../services/groupService'
 
 // Decode JWT to get current user email (sub in JWT is email for this system)
@@ -40,6 +41,7 @@ const getCurrentUserEmail = () => {
 }
 
 const GroupMembers = ({ groupId, groupRole }) => {
+  const { t } = useTranslation()
   const [members, setMembers] = useState([])
   const [pendingRequests, setPendingRequests] = useState([])
   const [loading, setLoading] = useState(true)
@@ -53,8 +55,6 @@ const GroupMembers = ({ groupId, groupRole }) => {
   // Dialog State
   const [confirmDialog, setConfirmDialog] = useState({ open: false, title: '', content: '', action: null })
 
-  // Use groupRole from parent (already resolved correctly from backend). 
-  // Fallback: try matching by email in member list if groupRole is not yet available
   const currentUserEmail = getCurrentUserEmail()
   const currentUserMember = members.find(m => m.email === currentUserEmail)
   const currentUserRole = groupRole || (currentUserMember ? currentUserMember.role : 'MEMBER')
@@ -65,7 +65,7 @@ const GroupMembers = ({ groupId, groupRole }) => {
       const data = await groupService.getGroupMembers(groupId)
       setMembers(data)
     } catch (err) {
-      setError('Failed to load group members.')
+      setError(t('groups.errors.fetch_failed'))
     } finally {
       setLoading(false)
     }
@@ -74,6 +74,7 @@ const GroupMembers = ({ groupId, groupRole }) => {
   useEffect(() => {
     fetchMembers()
   }, [groupId])
+
   const fetchPendingRequests = async () => {
     if (currentUserRole !== 'OWNER' && currentUserRole !== 'EDITOR') return
     try {
@@ -84,7 +85,6 @@ const GroupMembers = ({ groupId, groupRole }) => {
     }
   }
 
-
   useEffect(() => {
     if (currentUserRole === 'OWNER' || currentUserRole === 'EDITOR') {
       fetchPendingRequests()
@@ -94,11 +94,11 @@ const GroupMembers = ({ groupId, groupRole }) => {
   const handleReviewRequest = async (requestId, approve) => {
     try {
       const resMsg = await groupService.reviewJoinRequest(requestId, approve)
-      showSnackbar(resMsg || (approve ? 'Đã duyệt thành công!' : 'Đã từ chối.'), 'success')
+      showSnackbar(resMsg || (approve ? t('common.success') : t('common.error')), 'success')
       fetchPendingRequests()
       if (approve) fetchMembers()
     } catch (err) {
-      showSnackbar(err.response?.data?.message || 'Lỗi xử lý yêu cầu!', 'error')
+      showSnackbar(err.response?.data?.message || t('common.error'), 'error')
     }
   }
 
@@ -122,7 +122,7 @@ const GroupMembers = ({ groupId, groupRole }) => {
       showSnackbar(response || successMsg)
       fetchMembers()
     } catch (err) {
-      showSnackbar(err.response?.data?.message || 'An error occurred.', 'error')
+      showSnackbar(err.response?.data?.message || t('common.error'), 'error')
     } finally {
       setConfirmDialog({ open: false })
       handleMenuClose()
@@ -177,13 +177,13 @@ const GroupMembers = ({ groupId, groupRole }) => {
     })
   }
 
-  if (loading) return <CircularProgress />
+  if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}><CircularProgress /></Box>
   if (error) return <Alert severity="error">{error}</Alert>
 
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-        <Typography variant="h5">Group Members ({members.length})</Typography>
+        <Typography variant="h5">{t('group_detail.tabs.members')} ({members.length})</Typography>
       </Box>
 
       {/* Pending Requests Section */}
@@ -198,7 +198,7 @@ const GroupMembers = ({ groupId, groupRole }) => {
                   <TableCell>Email</TableCell>
                   <TableCell>Lời nhắn</TableCell>
                   <TableCell>Thời gian gửi</TableCell>
-                  <TableCell align="right">Hành động</TableCell>
+                  <TableCell align="right">{t('common.actions')}</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -224,11 +224,11 @@ const GroupMembers = ({ groupId, groupRole }) => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Member</TableCell>
-              <TableCell>Email</TableCell>
+              <TableCell>{t('group_detail.founder')}</TableCell>
+              <TableCell>{t('auth.email')}</TableCell>
               <TableCell>Role</TableCell>
-              <TableCell>Joined At</TableCell>
-              <TableCell align="right">Actions</TableCell>
+              <TableCell>{t('group_detail.created')}</TableCell>
+              <TableCell align="right">{t('common.actions')}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -250,7 +250,6 @@ const GroupMembers = ({ groupId, groupRole }) => {
                 </TableCell>
                 <TableCell>{new Date(member.joinedAt).toLocaleDateString()}</TableCell>
                 <TableCell align="right">
-                  {/* Action Menu button logic */}
                   {currentUserRole === 'OWNER' && member.email !== currentUserEmail && (
                     <IconButton onClick={(e) => handleMenuOpen(e, member)}>
                       <MoreVertIcon />
@@ -293,8 +292,8 @@ const GroupMembers = ({ groupId, groupRole }) => {
           <DialogContentText>{confirmDialog.content}</DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setConfirmDialog({ open: false })}>Cancel</Button>
-          <Button onClick={confirmDialog.action} variant="contained" color="error" autoFocus>Confirm</Button>
+          <Button onClick={() => setConfirmDialog({ open: false })}>{t('common.cancel')}</Button>
+          <Button onClick={confirmDialog.action} variant="contained" color="error" autoFocus>{t('common.confirm')}</Button>
         </DialogActions>
       </Dialog>
 

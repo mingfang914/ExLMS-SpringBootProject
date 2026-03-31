@@ -14,6 +14,7 @@ import {
 } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import groupService from '../../services/groupService'
 import FileUpload from '../../components/Common/FileUpload'
 
@@ -66,6 +67,7 @@ const inputSx = {
 }
 
 const CreateGroup = () => {
+  const { t } = useTranslation()
   const [formData, setFormData] = useState({
     name:        '',
     description: '',
@@ -83,14 +85,14 @@ const CreateGroup = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!formData.name.trim()) { setError('Group name is required.'); return }
+    if (!formData.name.trim()) { setError(t('groups.create.error_name_required')); return }
     setLoading(true)
     setError(null)
     try {
       await groupService.createGroup(formData)
       navigate('/groups')
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to create group. Please try again.')
+      setError(err.response?.data?.message || t('groups.create.error_failed'))
     } finally {
       setLoading(false)
     }
@@ -107,7 +109,7 @@ const CreateGroup = () => {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1, cursor: 'pointer' }} onClick={() => navigate('/groups')}>
           <Box sx={{ color: 'var(--color-text-muted)' }}><ArrowLeft /></Box>
           <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', '&:hover': { color: 'var(--color-text)' } }}>
-            Back to Groups
+            {t('groups.create.back')}
           </Typography>
         </Box>
         <Box sx={{ mb: 4, mt: 1.5 }}>
@@ -116,10 +118,10 @@ const CreateGroup = () => {
             fontSize: { xs: '1.75rem', sm: '2rem' },
             color: 'var(--color-text)', letterSpacing: '-0.03em', mb: 0.5,
           }}>
-            Create Study Group
+            {t('groups.create.title')}
           </Typography>
           <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
-            Groups are the core of ExLMS — share courses, organize meetings, and learn together.
+            {t('groups.create.subtitle')}
           </Typography>
         </Box>
       </motion.div>
@@ -152,12 +154,12 @@ const CreateGroup = () => {
           {/* Group name */}
           <Grid item xs={12}>
             <motion.div variants={item}>
-              <FieldLabel required>Group Name</FieldLabel>
+              <FieldLabel required>{t('groups.create.name_label')}</FieldLabel>
               <TextField
                 fullWidth name="name"
                 value={formData.name}
                 onChange={handleChange}
-                placeholder="e.g. Advanced Java Programming"
+                placeholder={t('groups.create.name_placeholder')}
                 sx={inputSx}
               />
             </motion.div>
@@ -166,13 +168,13 @@ const CreateGroup = () => {
           {/* Description */}
           <Grid item xs={12}>
             <motion.div variants={item}>
-              <FieldLabel>Description</FieldLabel>
+              <FieldLabel>{t('groups.create.desc_label')}</FieldLabel>
               <TextField
                 fullWidth name="description"
                 value={formData.description}
                 onChange={handleChange}
                 multiline rows={4}
-                placeholder="Describe what this group is about, its goals, and who should join…"
+                placeholder={t('groups.create.desc_placeholder')}
                 sx={inputSx}
               />
               <Typography sx={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', mt: 0.75, textAlign: 'right' }}>
@@ -184,7 +186,7 @@ const CreateGroup = () => {
           {/* Visibility */}
           <Grid item xs={12}>
             <motion.div variants={item}>
-              <FieldLabel>Visibility</FieldLabel>
+              <FieldLabel>{t('groups.create.visibility_label')}</FieldLabel>
               <ToggleButtonGroup
                 value={formData.visibility}
                 exclusive
@@ -214,15 +216,15 @@ const CreateGroup = () => {
                 <ToggleButton value="PUBLIC" id="vis-public">
                   <PublicIcon />
                   <Box sx={{ textAlign: 'left' }}>
-                    <Typography sx={{ fontSize: '0.875rem', fontWeight: 600, lineHeight: 1.2 }}>Public</Typography>
-                    <Typography sx={{ fontSize: '0.6875rem', opacity: 0.7, lineHeight: 1.3 }}>Anyone can find and request to join</Typography>
+                    <Typography sx={{ fontSize: '0.875rem', fontWeight: 600, lineHeight: 1.2 }}>{t('groups.create.public_title')}</Typography>
+                    <Typography sx={{ fontSize: '0.6875rem', opacity: 0.7, lineHeight: 1.3 }}>{t('groups.create.public_desc')}</Typography>
                   </Box>
                 </ToggleButton>
                 <ToggleButton value="PRIVATE" id="vis-private">
                   <LockIcon />
                   <Box sx={{ textAlign: 'left' }}>
-                    <Typography sx={{ fontSize: '0.875rem', fontWeight: 600, lineHeight: 1.2 }}>Private</Typography>
-                    <Typography sx={{ fontSize: '0.6875rem', opacity: 0.7, lineHeight: 1.3 }}>By invite code only</Typography>
+                    <Typography sx={{ fontSize: '0.875rem', fontWeight: 600, lineHeight: 1.2 }}>{t('groups.create.private_title')}</Typography>
+                    <Typography sx={{ fontSize: '0.6875rem', opacity: 0.7, lineHeight: 1.3 }}>{t('groups.create.private_desc')}</Typography>
                   </Box>
                 </ToggleButton>
               </ToggleButtonGroup>
@@ -232,12 +234,12 @@ const CreateGroup = () => {
           {/* Category */}
           <Grid item xs={12} sm={6}>
             <motion.div variants={item}>
-              <FieldLabel>Category / Subject</FieldLabel>
+              <FieldLabel>{t('groups.create.category_label')}</FieldLabel>
               <TextField
                 select fullWidth name="category"
                 value={formData.category}
                 onChange={handleChange}
-                placeholder="Select a category"
+                placeholder={t('groups.create.category_placeholder')}
                 sx={inputSx}
               >
                 {['Computer Science', 'Mathematics', 'Physics', 'Chemistry', 'Biology', 'Language', 'Business', 'Arts', 'Other'].map(c => (
@@ -250,15 +252,15 @@ const CreateGroup = () => {
           {/* Cover image */}
           <Grid item xs={12} sm={6}>
             <motion.div variants={item}>
-              <FieldLabel>Cover Image</FieldLabel>
+              <FieldLabel>{t('groups.create.cover_label')}</FieldLabel>
               <FileUpload
                 onUploadSuccess={(fk) => setFormData(p => ({ ...p, coverKey: fk }))}
                 accept="image/*"
-                label="Upload Cover"
+                label={t('groups.create.upload_btn')}
               />
               {formData.coverKey && (
                 <Typography sx={{ fontSize: '0.75rem', color: 'var(--color-success)', mt: 0.75, fontWeight: 600 }}>
-                  ✓ Cover image uploaded
+                  {t('groups.create.upload_success')}
                 </Typography>
               )}
             </motion.div>
@@ -280,7 +282,7 @@ const CreateGroup = () => {
                 '&:hover': { borderColor: 'var(--color-border-lt)', bgcolor: 'rgba(240,246,252,0.04)' },
               }}
             >
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button
               type="submit"
@@ -296,7 +298,7 @@ const CreateGroup = () => {
                 transition: 'all 0.2s',
               }}
             >
-              {loading ? <CircularProgress size={20} sx={{ color: 'rgba(255,255,255,0.7)' }} /> : 'Create Group'}
+              {loading ? <CircularProgress size={20} sx={{ color: 'rgba(255,255,255,0.7)' }} /> : t('groups.create_group')}
             </Button>
           </Box>
         </motion.div>

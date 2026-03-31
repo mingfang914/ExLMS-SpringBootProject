@@ -16,10 +16,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import assignmentService from '../../services/assignmentService';
 import groupService from '../../services/groupService';
 import { format } from 'date-fns';
-import { vi } from 'date-fns/locale';
+import { vi, enUS } from 'date-fns/locale';
 import { useSelector } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 
 const AssignmentList = ({ courseId, isInstructor: isInstructorProp }) => {
+  const { t, i18n } = useTranslation();
   const { groupId } = useParams();
   const navigate = useNavigate();
   const { user } = useSelector(state => state.auth);
@@ -51,8 +53,7 @@ const AssignmentList = ({ courseId, isInstructor: isInstructorProp }) => {
       }
       setAssignments(data);
     } catch (err) {
-      setError('Không thể tải danh sách bài tập');
-      console.error(err);
+      setError(t('assignments.errors.fetch_failed'));
     } finally {
       setLoading(false);
     }
@@ -65,13 +66,13 @@ const AssignmentList = ({ courseId, isInstructor: isInstructorProp }) => {
   }, [groupId, courseId, isInstructorProp, user?.id]);
 
   const handleDelete = async (id) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa bài tập này không?')) {
+    if (window.confirm(t('common.confirm_delete'))) {
       try {
         await assignmentService.deleteAssignment(id);
         setAssignments(assignments.filter(a => a.id !== id));
-        alert('Đã xóa bài tập thành công!');
+        alert(t('common.success'));
       } catch (err) {
-        alert('Không thể xóa bài tập');
+        alert(t('common.error'));
       }
     }
   };
@@ -80,10 +81,10 @@ const AssignmentList = ({ courseId, isInstructor: isInstructorProp }) => {
     const now = new Date();
     const due = new Date(asgn.dueAt);
 
-    if (asgn.status === 'CLOSED') return <Chip label="Đã đóng" color="error" size="small" />;
-    if (asgn.status === 'DRAFT') return <Chip label="Nháp" color="default" size="small" />;
-    if (now > due) return <Chip label="Hết hạn" color="warning" size="small" />;
-    return <Chip label="Đang mở" color="success" size="small" />;
+    if (asgn.status === 'CLOSED') return <Chip label={t('assignments.status.closed')} color="error" size="small" />;
+    if (asgn.status === 'DRAFT') return <Chip label={t('assignments.status.draft')} color="default" size="small" />;
+    if (now > due) return <Chip label={t('assignments.status.expired')} color="warning" size="small" />;
+    return <Chip label={t('assignments.status.open')} color="success" size="small" />;
   };
 
   if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', p: 10 }}><CircularProgress /></Box>;
@@ -92,7 +93,7 @@ const AssignmentList = ({ courseId, isInstructor: isInstructorProp }) => {
     <Box sx={{ p: courseId ? 0 : 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h5" sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 1 }}>
-          <AssignmentIcon color="primary" /> Bài tập
+          <AssignmentIcon color="primary" /> {t('group_detail.tabs.assignments')}
         </Typography>
         {isInstructor && (
           <Button
@@ -100,7 +101,7 @@ const AssignmentList = ({ courseId, isInstructor: isInstructorProp }) => {
             startIcon={<AddIcon />}
             onClick={() => navigate(`/groups/${groupId}/assignments/create`)}
           >
-            Create
+            {t('common.create')}
           </Button>
         )}
       </Box>
@@ -109,7 +110,7 @@ const AssignmentList = ({ courseId, isInstructor: isInstructorProp }) => {
 
       {assignments.length === 0 ? (
         <Alert severity="info" sx={{ mt: 2 }}>
-          {isInstructor ? "Chưa có bài tập nào. Hãy tạo bài tập đầu tiên!" : "Hiện chưa có bài tập nào được giao."}
+          {isInstructor ? t('assignments.no_assignments_instructor') : t('assignments.no_assignments_student')}
         </Alert>
       ) : (
         <Grid container spacing={2}>
@@ -144,14 +145,14 @@ const AssignmentList = ({ courseId, isInstructor: isInstructorProp }) => {
                     <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
                       <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                         <TimelineIcon fontSize="inherit" />
-                        Hạn: {format(new Date(asgn.dueAt), 'HH:mm dd/MM/yyyy', { locale: vi })}
+                        {t('assignments.due')}: {format(new Date(asgn.dueAt), 'HH:mm dd/MM/yyyy', { locale: i18n.language === 'vi' ? vi : enUS })}
                       </Typography>
                       <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                         {asgn.submissionType === 'FILE' ? <FileIcon fontSize="inherit" /> : <DescriptionIcon fontSize="inherit" />}
-                        Loại: {asgn.submissionType === 'FILE' ? 'Nộp tệp' : 'Văn bản'}
+                        {t('assignments.type')}: {asgn.submissionType === 'FILE' ? t('assignments.type_file') : t('assignments.type_text')}
                       </Typography>
                       <Typography variant="caption" sx={{ fontWeight: 'bold' }}>
-                        Điểm tối đa: {asgn.maxScore}
+                        {t('assignments.max_score')}: {asgn.maxScore}
                       </Typography>
                     </Box>
                   </Box>
@@ -161,11 +162,11 @@ const AssignmentList = ({ courseId, isInstructor: isInstructorProp }) => {
                       variant="outlined"
                       onClick={() => navigate(`/groups/${groupId}/assignments/${asgn.id}`)}
                     >
-                      {isInstructor ? 'Xem & Chấm điểm' : 'Chi tiết'}
+                      {isInstructor ? t('assignments.actions.grade') : t('common.details')}
                     </Button>
                     {isInstructor && (
                       <>
-                        <Tooltip title="Chỉnh sửa">
+                        <Tooltip title={t('common.edit')}>
                           <IconButton size="small" color="primary" onClick={(e) => {
                             e.stopPropagation();
                             navigate(`/groups/${groupId}/assignments/${asgn.id}/edit`);
@@ -173,7 +174,7 @@ const AssignmentList = ({ courseId, isInstructor: isInstructorProp }) => {
                             <EditIcon />
                           </IconButton>
                         </Tooltip>
-                        <Tooltip title="Xóa">
+                        <Tooltip title={t('common.delete')}>
                           <IconButton size="small" color="error" onClick={(e) => {
                             e.stopPropagation();
                             handleDelete(asgn.id);

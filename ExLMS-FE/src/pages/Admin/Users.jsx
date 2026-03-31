@@ -19,6 +19,7 @@ import adminService from '../../services/adminService'
 import { useSelector } from 'react-redux'
 import { motion } from 'framer-motion'
 import { alpha } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 
 // ── SVG Icons ─────────────────────────────────────────────────────
 const SearchIcon = () => (
@@ -59,9 +60,9 @@ const UsersIcon = () => (
 )
 
 const roleConfig = {
-  ADMIN:      { color: '#FCA5A5', bg: 'rgba(239,68,68,0.12)',  border: 'rgba(239,68,68,0.25)',  label: 'Admin' },
-  INSTRUCTOR: { color: '#818CF8', bg: 'rgba(99,102,241,0.12)', border: 'rgba(99,102,241,0.25)', label: 'Instructor' },
-  STUDENT:    { color: '#8B949E', bg: 'rgba(139,148,158,0.12)',border: 'rgba(139,148,158,0.2)', label: 'Student' },
+  ADMIN:      { color: '#FCA5A5', bg: 'rgba(239,68,68,0.12)',  border: 'rgba(239,68,68,0.25)' },
+  INSTRUCTOR: { color: '#818CF8', bg: 'rgba(99,102,241,0.12)', border: 'rgba(99,102,241,0.25)' },
+  STUDENT:    { color: '#8B949E', bg: 'rgba(139,148,158,0.12)',border: 'rgba(139,148,158,0.2)' },
 }
 const statusConfig = {
   ACTIVE:    { color: '#86EFAC', bg: 'rgba(34,197,94,0.12)',  border: 'rgba(34,197,94,0.25)' },
@@ -70,23 +71,25 @@ const statusConfig = {
 }
 
 const StatusBadge = ({ status }) => {
+  const { t } = useTranslation();
   const cfg = statusConfig[status] ?? statusConfig.PENDING
   return (
     <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: '5px', px: '9px', py: '2px', borderRadius: '99px', bgcolor: cfg.bg, border: `1px solid ${cfg.border}` }}>
       <Box sx={{ width: 5, height: 5, borderRadius: '50%', bgcolor: cfg.color, flexShrink: 0 }} />
       <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, color: cfg.color, letterSpacing: '0.04em' }}>
-        {status}
+        {t(`admin.users.status.${status.toLowerCase()}`, { defaultValue: status })}
       </Typography>
     </Box>
   )
 }
 
 const RoleBadge = ({ role }) => {
+  const { t } = useTranslation();
   const cfg = roleConfig[role] ?? roleConfig.STUDENT
   return (
     <Box sx={{ display: 'inline-flex', px: '9px', py: '2px', borderRadius: '99px', bgcolor: cfg.bg, border: `1px solid ${cfg.border}` }}>
       <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, color: cfg.color, letterSpacing: '0.04em' }}>
-        {cfg.label}
+        {t(`admin.users.roles.${role.toLowerCase()}`, { defaultValue: role })}
       </Typography>
     </Box>
   )
@@ -111,6 +114,7 @@ const cellSx = {
 }
 
 const Users = () => {
+  const { t, i18n } = useTranslation();
   const [users,         setUsers]         = useState([])
   const [page,          setPage]          = useState(0)
   const [rowsPerPage,   setRowsPerPage]   = useState(10)
@@ -137,18 +141,19 @@ const Users = () => {
       setUsers(data.content)
       setTotalElements(data.totalElements)
     } catch (err) {
-      setSnackbar({ open: true, message: err.response?.data?.message || 'Failed to load users', severity: 'error' })
+      setSnackbar({ open: true, message: err.response?.data?.message || t('admin.users.errors.load_failed'), severity: 'error' })
     } finally {
       setLoading(false)
     }
   }
 
-  useEffect(() => { fetchUsers() }, [page, rowsPerPage, keyword])
+  useEffect(() => { fetchUsers() }, [page, rowsPerPage, keyword, t])
 
   const handleSearch = (e) => {
     e.preventDefault()
     setKeyword(searchInput)
-    setPage(0)
+    setPage(page === 0 ? 0 : 0) // Force re-fetch by keeping 0 if already 0
+    if (page === 0) fetchUsers();
   }
 
   const handleStatusChange = async () => {
@@ -157,9 +162,9 @@ const Users = () => {
       await adminService.changeUserStatus(selectedUser.id, statusToChange)
       setStatusDialogOpen(false)
       fetchUsers()
-      setSnackbar({ open: true, message: 'Status updated successfully!', severity: 'success' })
+      setSnackbar({ open: true, message: t('admin.users.messages.status_success'), severity: 'success' })
     } catch (err) {
-      setSnackbar({ open: true, message: err.response?.data?.message || 'Failed to update status', severity: 'error' })
+      setSnackbar({ open: true, message: err.response?.data?.message || t('admin.users.errors.update_failed'), severity: 'error' })
     } finally {
       setActionLoading(false)
     }
@@ -171,9 +176,9 @@ const Users = () => {
       await adminService.changeUserRole(selectedUser.id, newRole)
       setRoleDialogOpen(false)
       fetchUsers()
-      setSnackbar({ open: true, message: 'Role updated successfully!', severity: 'success' })
+      setSnackbar({ open: true, message: t('admin.users.messages.role_success'), severity: 'success' })
     } catch (err) {
-      setSnackbar({ open: true, message: err.response?.data?.message || 'Failed to update role', severity: 'error' })
+      setSnackbar({ open: true, message: err.response?.data?.message || t('admin.users.errors.update_failed'), severity: 'error' })
     } finally {
       setActionLoading(false)
     }
@@ -190,7 +195,7 @@ const Users = () => {
         a.click()
         window.URL.revokeObjectURL(url)
       })
-      .catch(() => setSnackbar({ open: true, message: 'Failed to export', severity: 'error' }))
+      .catch(() => setSnackbar({ open: true, message: t('admin.users.errors.export_failed'), severity: 'error' }))
   }
 
   const initials = (name = '') => name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase() || '?'
@@ -211,11 +216,11 @@ const Users = () => {
               fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: { xs: '1.75rem', sm: '2rem' },
               color: 'var(--color-text)', letterSpacing: '-0.03em',
             }}>
-              User Management
+              {t('admin.users.title')}
             </Typography>
           </Box>
           <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
-            {totalElements} registered users
+            {t('admin.users.count', { count: totalElements })}
           </Typography>
         </Box>
         <Button
@@ -229,7 +234,7 @@ const Users = () => {
             '&:hover': { borderColor: 'var(--color-border-lt)', color: 'var(--color-text)', bgcolor: 'rgba(240,246,252,0.04)' },
           }}
         >
-          Export Excel
+          {t('admin.users.export_excel')}
         </Button>
       </Box>
 
@@ -253,7 +258,7 @@ const Users = () => {
           <input
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="Search by name or email…"
+            placeholder={t('admin.users.search_placeholder')}
             style={{
               flex: 1, background: 'none', border: 'none', outline: 'none',
               color: 'var(--color-text)', fontSize: '0.875rem', fontFamily: 'var(--font-body)',
@@ -269,7 +274,7 @@ const Users = () => {
             '&:hover': { background: 'linear-gradient(135deg, #818CF8, #6366F1)' },
           }}
         >
-          Search
+          {t('common.search')}
         </Button>
       </Box>
 
@@ -286,7 +291,14 @@ const Users = () => {
           <Table>
             <TableHead>
               <TableRow>
-                {['User', 'Email', 'Role', 'Status', 'Joined', 'Actions'].map(h => (
+                {[
+                  t('admin.users.table.user'),
+                  t('admin.users.table.email'),
+                  t('admin.users.table.role'),
+                  t('admin.users.table.status'),
+                  t('admin.users.table.joined'),
+                  t('common.actions')
+                ].map(h => (
                   <TableCell key={h} sx={headerSx}>{h}</TableCell>
                 ))}
               </TableRow>
@@ -305,7 +317,7 @@ const Users = () => {
               ) : users.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} sx={{ ...cellSx, textAlign: 'center', py: 6, color: 'var(--color-text-muted)' }}>
-                    No users found
+                    {t('admin.users.errors.no_users_found')}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -317,7 +329,6 @@ const Users = () => {
                       transition: 'background-color 0.15s',
                     }}
                   >
-                    {/* User name + avatar */}
                     <TableCell sx={cellSx}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                         <Avatar
@@ -349,15 +360,14 @@ const Users = () => {
                     </TableCell>
 
                     <TableCell sx={{ ...cellSx, color: 'var(--color-text-muted)', fontSize: '0.8125rem' }}>
-                      {new Date(u.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      {new Date(u.createdAt).toLocaleDateString(i18n.language === 'vi' ? 'vi-VN' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </TableCell>
 
-                    {/* Actions */}
                     <TableCell sx={cellSx}>
                       {currentUser?.role === 'ADMIN' && u.email !== currentUser.email ? (
                         <Box sx={{ display: 'flex', gap: 0.5 }}>
                           {u.status !== 'ACTIVE' && (
-                            <Tooltip title="Activate">
+                            <Tooltip title={t('admin.users.actions.activate')}>
                               <IconButton
                                 size="small"
                                 onClick={() => { setSelectedUser(u); setStatusToChange('ACTIVE'); setStatusDialogOpen(true) }}
@@ -368,7 +378,7 @@ const Users = () => {
                             </Tooltip>
                           )}
                           {u.status === 'ACTIVE' && (
-                            <Tooltip title="Suspend">
+                            <Tooltip title={t('admin.users.actions.suspend')}>
                               <IconButton
                                 size="small"
                                 onClick={() => { setSelectedUser(u); setStatusToChange('SUSPENDED'); setStatusDialogOpen(true) }}
@@ -378,7 +388,7 @@ const Users = () => {
                               </IconButton>
                             </Tooltip>
                           )}
-                          <Tooltip title="Change Role">
+                          <Tooltip title={t('admin.users.actions.change_role')}>
                             <IconButton
                               size="small"
                               onClick={() => { setSelectedUser(u); setNewRole(u.role); setRoleDialogOpen(true) }}
@@ -425,11 +435,11 @@ const Users = () => {
         PaperProps={{ sx: { bgcolor: 'var(--color-surface-2)', border: '1px solid var(--color-border)', borderRadius: '14px', boxShadow: '0 24px 60px rgba(0,0,0,0.6)', minWidth: 360 } }}
       >
         <DialogTitle sx={{ fontFamily: 'var(--font-heading)', fontWeight: 700, color: 'var(--color-text)', pb: 1 }}>
-          Change User Role
+          {t('admin.users.dialogs.role_title')}
         </DialogTitle>
         <DialogContent>
           <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', mb: 2 }}>
-            Select a new role for <strong style={{ color: 'var(--color-text)' }}>{selectedUser?.fullName}</strong>
+            {t('admin.users.dialogs.role_desc')} <strong style={{ color: 'var(--color-text)' }}>{selectedUser?.fullName}</strong>
           </Typography>
           <Select
             fullWidth
@@ -443,16 +453,16 @@ const Users = () => {
             }}
           >
             {['STUDENT', 'INSTRUCTOR', 'ADMIN'].map(r => (
-              <MenuItem key={r} value={r} sx={{ fontSize: '0.875rem' }}>{r}</MenuItem>
+              <MenuItem key={r} value={r} sx={{ fontSize: '0.875rem' }}>{t(`admin.users.roles.${r.toLowerCase()}`)}</MenuItem>
             ))}
           </Select>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2.5, gap: 1 }}>
           <Button onClick={() => setRoleDialogOpen(false)} sx={{ borderRadius: '8px', color: 'var(--color-text-sec)', cursor: 'pointer', '&:hover': { bgcolor: 'rgba(240,246,252,0.04)' } }}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button variant="contained" onClick={handleRoleChange} disabled={actionLoading} sx={{ borderRadius: '8px', fontWeight: 600, cursor: 'pointer', background: 'linear-gradient(135deg, #6366F1, #4F46E5)', '&:hover': { background: 'linear-gradient(135deg, #818CF8, #6366F1)' } }}>
-            {actionLoading ? <CircularProgress size={18} sx={{ color: 'rgba(255,255,255,0.7)' }} /> : 'Confirm'}
+            {actionLoading ? <CircularProgress size={18} sx={{ color: 'rgba(255,255,255,0.7)' }} /> : t('common.confirm')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -464,21 +474,21 @@ const Users = () => {
         PaperProps={{ sx: { bgcolor: 'var(--color-surface-2)', border: '1px solid var(--color-border)', borderRadius: '14px', boxShadow: '0 24px 60px rgba(0,0,0,0.6)', minWidth: 360 } }}
       >
         <DialogTitle sx={{ fontFamily: 'var(--font-heading)', fontWeight: 700, color: 'var(--color-text)', pb: 1 }}>
-          Confirm Status Change
+          {t('admin.users.dialogs.status_title')}
         </DialogTitle>
         <DialogContent>
           <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', lineHeight: 1.6 }}>
-            Are you sure you want to change the status of{' '}
+            {t('admin.users.dialogs.status_desc1')} {' '}
             <strong style={{ color: 'var(--color-text)' }}>{selectedUser?.fullName}</strong>{' '}
-            to{' '}
+            {t('admin.users.dialogs.status_desc2')} {' '}
             <strong style={{ color: statusToChange === 'ACTIVE' ? '#86EFAC' : '#FCA5A5' }}>
-              {statusToChange}
+              {statusToChange ? t(`admin.users.status.${statusToChange.toLowerCase()}`) : ''}
             </strong>?
           </Typography>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2.5, gap: 1 }}>
           <Button onClick={() => setStatusDialogOpen(false)} sx={{ borderRadius: '8px', color: 'var(--color-text-sec)', cursor: 'pointer', '&:hover': { bgcolor: 'rgba(240,246,252,0.04)' } }}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button
             variant="contained"
@@ -491,7 +501,7 @@ const Users = () => {
               '&.Mui-disabled': { bgcolor: 'rgba(99,102,241,0.25)', color: 'rgba(255,255,255,0.3)' },
             }}
           >
-            {actionLoading ? <CircularProgress size={18} sx={{ color: 'rgba(255,255,255,0.7)' }} /> : 'Confirm'}
+            {actionLoading ? <CircularProgress size={18} sx={{ color: 'rgba(255,255,255,0.7)' }} /> : t('common.confirm')}
           </Button>
         </DialogActions>
       </Dialog>

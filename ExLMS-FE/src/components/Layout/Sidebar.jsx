@@ -17,6 +17,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { motion, AnimatePresence } from 'framer-motion'
 import { alpha } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 
 // ── Lucide-style SVG Icons (inline, consistent 20×20) ─────────────────────────
 const icons = {
@@ -78,13 +79,13 @@ const drawerWidth = 256
 
 
 const menuItems = [
-  { text: 'Dashboard',    icon: icons.dashboard,     path: '/',              section: 'main' },
-  { text: 'Study Groups', icon: icons.groups,         path: '/groups',        section: 'main', badge: null },
-  { text: 'Courses',      icon: icons.courses,        path: '/courses',       section: 'main' },
-  { text: 'Assignments',  icon: icons.assignments,    path: '/assignments',   section: 'main' },
-  { text: 'Forum',        icon: icons.forum,          path: '/forum',         section: 'community' },
-  { text: 'Calendar',     icon: icons.calendar,       path: '/calendar',      section: 'community' },
-  { text: 'Notifications',icon: icons.notifications,  path: '/notifications', section: 'community' },
+  { key: 'dashboard',    icon: icons.dashboard,     path: '/',              section: 'main' },
+  { key: 'groups',       icon: icons.groups,        path: '/groups',        section: 'main', badge: null },
+  { key: 'courses',      icon: icons.courses,        path: '/courses',       section: 'main' },
+  { key: 'assignments',  icon: icons.assignments,    path: '/assignments',   section: 'main' },
+  { key: 'forum',        icon: icons.forum,          path: '/forum',         section: 'community' },
+  { key: 'calendar',     icon: icons.calendar,       path: '/calendar',      section: 'community' },
+  { key: 'notifications',icon: icons.notifications,  path: '/notifications', section: 'community' },
 ]
 
 const Sidebar = () => {
@@ -92,15 +93,16 @@ const Sidebar = () => {
   const { user } = useSelector((state) => state.auth)
   const unreadCount = useSelector((s) => s.notifications?.unreadCount ?? 0)
 
+  const { t } = useTranslation()
   const allItems = [...menuItems]
   if (user?.role === 'ADMIN') {
-    allItems.push({ text: 'User Management', icon: icons.admin, path: '/admin/users', section: 'admin' })
+    allItems.push({ key: 'admin', icon: icons.admin, path: '/admin/users', section: 'admin' })
   }
 
   const sections = {
-    main: { label: 'MAIN MENU', items: allItems.filter(i => i.section === 'main') },
-    community: { label: 'COMMUNITY', items: allItems.filter(i => i.section === 'community') },
-    ...(user?.role === 'ADMIN' ? { admin: { label: 'ADMINISTRATION', items: allItems.filter(i => i.section === 'admin') } } : {}),
+    main: { label: t('nav.sections.main') || 'MAIN MENU', items: allItems.filter(i => i.section === 'main') },
+    community: { label: t('nav.sections.community') || 'COMMUNITY', items: allItems.filter(i => i.section === 'community') },
+    ...(user?.role === 'ADMIN' ? { admin: { label: t('nav.sections.admin') || 'ADMINISTRATION', items: allItems.filter(i => i.section === 'admin') } } : {}),
   }
 
   const isActive = (path) =>
@@ -208,7 +210,7 @@ const Sidebar = () => {
             {user?.name || user?.fullName || user?.email?.split('@')[0] || 'Student'}
           </Typography>
           <Typography sx={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)', lineHeight: 1.2 }} className="truncate">
-            {user?.role === 'ADMIN' ? 'Administrator' : 'Student'}
+            {user?.role === 'ADMIN' ? t('common.administrator') : t('common.student')}
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -238,7 +240,7 @@ const Sidebar = () => {
                 const active = isActive(item.path)
                 const badge = item.path === '/notifications' ? unreadCount : item.badge
                 return (
-                  <ListItem key={item.text} disablePadding>
+                  <ListItem key={item.key} disablePadding>
                     <motion.div style={{ width: '100%' }} whileTap={{ scale: 0.98 }}>
                       <ListItemButton
                         component={Link}
@@ -271,7 +273,7 @@ const Sidebar = () => {
                           {item.icon}
                         </ListItemIcon>
                         <ListItemText
-                          primary={item.text}
+                          primary={t(`nav.${item.key}`)}
                           primaryTypographyProps={{
                             fontSize: '0.875rem',
                             fontWeight: active ? 600 : 400,

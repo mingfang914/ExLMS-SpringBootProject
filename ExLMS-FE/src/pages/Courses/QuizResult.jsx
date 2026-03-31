@@ -5,12 +5,14 @@ import {
 } from '@mui/material'
 import {
   CheckCircle as CheckIcon, Cancel as ErrorIcon,
-  HelpOutline as QuestionIcon, ArrowBack
+  HelpOutline as QuestionIcon, ArrowBack, ExitToApp
 } from '@mui/icons-material'
 import { useParams, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import courseService from '../../services/courseService'
 
 const QuizResult = () => {
+  const { t } = useTranslation()
   const { groupId, courseId, attemptId } = useParams()
   const navigate = useNavigate()
   const [result, setResult] = useState(null)
@@ -22,55 +24,71 @@ const QuizResult = () => {
         const data = await courseService.getQuizAttemptResult(attemptId)
         setResult(data)
       } catch (e) {
-        alert(e.response?.data?.message || 'Không thể tải kết quả bài kiểm tra')
+        alert(e.response?.data?.message || t('quizzes.result.load_failed'))
       } finally {
         setLoading(false)
       }
     }
     loadResult()
-  }, [attemptId])
+  }, [attemptId, t])
 
   if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', mt: 8 }}><CircularProgress /></Box>
-  if (!result) return <Alert severity="error">Không tìm thấy kết quả.</Alert>
+  if (!result) return (
+      <Box sx={{ maxWidth: 600, mx: 'auto', p: 4 }}>
+          <Alert severity="error" sx={{ borderRadius: 3 }}>{t('quizzes.result.not_found')}</Alert>
+      </Box>
+  )
 
   const isPassed = result.score >= (result.passingScore || 50)
 
   return (
-    <Box sx={{ maxWidth: 800, mx: 'auto', p: 3 }}>
-      <Paper sx={{ p: 4, textAlign: 'center', borderRadius: 2, mb: 3 }}>
-        <Box sx={{ mb: 2 }}>
+    <Box sx={{ maxWidth: 860, mx: 'auto', p: 3 }}>
+      <Paper elevation={0} sx={{ p: 5, textAlign: 'center', borderRadius: 4, mb: 4, bgcolor: 'var(--color-surface)', color: 'var(--color-text)', border: '1px solid var(--color-border)', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}>
+        <Box sx={{ mb: 3 }}>
           {isPassed ? (
-            <CheckIcon sx={{ fontSize: 80, color: 'success.main' }} />
+            <CheckIcon sx={{ fontSize: 100, color: '#10B981' }} />
           ) : (
-            <ErrorIcon sx={{ fontSize: 80, color: 'error.main' }} />
+            <ErrorIcon sx={{ fontSize: 100, color: '#EF4444' }} />
           )}
         </Box>
-        <Typography variant="h4" fontWeight={700} gutterBottom>
-          {isPassed ? 'Chúc mừng! Bạn đã đạt' : 'Rất tiếc! Bạn chưa đạt'}
+        <Typography variant="h4" fontWeight={800} gutterBottom sx={{ fontFamily: 'var(--font-heading)' }}>
+          {isPassed ? t('quizzes.result.title_passed') : t('quizzes.result.title_failed')}
         </Typography>
-        <Typography variant="h2" color={isPassed ? 'success.main' : 'error.main'} fontWeight={800} sx={{ my: 2 }}>
+        <Typography variant="h1" color={isPassed ? '#10B981' : '#EF4444'} fontWeight={900} sx={{ my: 3, letterSpacing: -2 }}>
           {(result.score || 0).toFixed(1)}%
         </Typography>
-        <Typography color="text.secondary">
-          Điểm cần đạt: {result.passingScore}%
+        <Typography variant="subtitle1" fontWeight={600} color="var(--color-text-muted)">
+          {t('quizzes.result.score_needed', { score: result.passingScore })}
         </Typography>
         
-        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 3, mt: 4 }}>
-          <Button variant="outlined" startIcon={<ArrowBack />} onClick={() => navigate(`/groups/${groupId}/courses/${courseId}/view`)}>
-            Quay lại khóa học
+        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2.5, mt: 5 }}>
+          <Button 
+            variant="outlined" 
+            startIcon={<ArrowBack />} 
+            onClick={() => navigate(`/groups/${groupId}/courses/${courseId}/view`)}
+            sx={{ borderRadius: '12px', fontWeight: 700, px: 3, py: 1.5, borderWidth: '2px !important' }}
+          >
+            {t('quizzes.result.back_to_course')}
           </Button>
-          <Button variant="contained" onClick={() => navigate(-2)}>
-            Thoát
+          <Button 
+            variant="contained" 
+            startIcon={<ExitToApp />}
+            onClick={() => navigate(-2)}
+            sx={{ borderRadius: '12px', fontWeight: 800, px: 4, py: 1.5, background: 'linear-gradient(135deg, #6366F1, #4F46E5)' }}
+          >
+            {t('quizzes.result.exit')}
           </Button>
         </Box>
       </Paper>
 
       {/* Detailed Feedback (if visible) */}
-      <Typography variant="h6" sx={{ mb: 2, fontWeight: 700 }}>Chi tiết bài làm</Typography>
-      <List>
+      <Typography variant="h5" sx={{ mb: 3, fontWeight: 800, fontFamily: 'var(--font-heading)' }}>
+        {t('quizzes.result.details_title')}
+      </Typography>
+      <List sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {(result.responses || []).map((resp, idx) => (
-          <Paper key={resp.questionId || idx} sx={{ mb: 2, p: 2, borderRadius: 2 }}>
-            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+          <Paper key={resp.questionId || idx} elevation={0} sx={{ p: 3, borderRadius: 3, bgcolor: 'var(--color-surface)', color: 'var(--color-text)', border: '1px solid var(--color-border)' }}>
+            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2.5 }}>
               <Box sx={{ mt: 0.5 }}>
                 {resp.correct ? (
                   <CheckIcon color="success" />
@@ -79,21 +97,30 @@ const QuizResult = () => {
                 )}
               </Box>
               <Box sx={{ flex: 1 }}>
-                <Typography fontWeight={600}>Câu {idx + 1}: {resp.questionContent}</Typography>
-                <Box sx={{ mt: 1, p: 1.5, bgcolor: 'action.hover', borderRadius: 1 }}>
-                  <Typography variant="body2" color="text.secondary">Câu trả lời của bạn:</Typography>
-                  <Typography variant="body1">{resp.content || '(Bỏ trống)'}</Typography>
+                <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>
+                    {t('quizzes.result.question_no', { count: idx + 1, content: resp.questionContent })}
+                </Typography>
+                <Box sx={{ mt: 2, p: 2, bgcolor: 'var(--color-surface-2)', borderRadius: 2, border: '1px solid var(--color-border)' }}>
+                  <Typography variant="caption" fontWeight={700} color="var(--color-text-muted)" sx={{ textTransform: 'uppercase', mb: 0.5, display: 'block' }}>
+                    {t('quizzes.result.your_answer')}
+                  </Typography>
+                  <Typography variant="body1" fontWeight={600}>{resp.content || t('quizzes.result.empty_answer')}</Typography>
                 </Box>
                 
                 {!resp.correct && resp.explanation && (
-                  <Box sx={{ mt: 1.5, p: 1.5, bgcolor: 'info.lighter', borderLeft: '4px solid', borderColor: 'info.main', borderRadius: '0 4px 4px 0' }}>
-                    <Typography variant="body2" fontWeight={700} color="info.main">Giải thích:</Typography>
-                    <Typography variant="body2">{resp.explanation}</Typography>
+                  <Box sx={{ mt: 3, p: 2, bgcolor: 'rgba(59, 130, 246, 0.05)', borderLeft: '4px solid #3B82F6', borderRadius: '0 12px 12px 0' }}>
+                    <Typography variant="caption" fontWeight={800} color="#3B82F6" sx={{ textTransform: 'uppercase', mb: 0.5, display: 'block' }}>
+                        {t('quizzes.result.explanation_title')}
+                    </Typography>
+                    <Typography variant="body2" fontWeight={600}>{resp.explanation}</Typography>
                   </Box>
                 )}
               </Box>
-              <Chip label={resp.correct ? `+${resp.points} điểm` : '0 điểm'} 
-                    color={resp.correct ? 'success' : 'default'} size="small" />
+              <Chip 
+                label={resp.correct ? `+${resp.points} pts` : '0 pts'} 
+                color={resp.correct ? 'success' : 'default'} 
+                sx={{ fontWeight: 800, borderRadius: 1.5, height: 28 }} 
+              />
             </Box>
           </Paper>
         ))}

@@ -58,6 +58,10 @@ public class OAuth2GoogleService {
 
     @Transactional
     public AuthResponse authenticateWithGoogle(GoogleOAuth2Request request) {
+        log.info("DEBUG: Google Client ID loaded: {}...{}", 
+            googleClientId.substring(0, Math.min(5, googleClientId.length())),
+            googleClientId.substring(Math.max(0, googleClientId.length() - 5)));
+            
         // Bước 1: Exchange code → Google tokens
         GoogleTokenResponse tokenResponse = exchangeCodeForTokens(request.getCode(), request.getRedirectUri());
 

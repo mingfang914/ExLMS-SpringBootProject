@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import {
   Box, Typography, Paper, List, ListItemButton, ListItemIcon, ListItemText,
   Chip, LinearProgress, Button, Divider, CircularProgress, Alert,
-  Accordion, AccordionSummary, AccordionDetails, Snackbar
+  Accordion, AccordionSummary, AccordionDetails, Snackbar, Tooltip
 } from '@mui/material'
 import {
   PlayCircle as VideoIcon, Description as DocIcon, AttachFile as FileIcon,
@@ -10,6 +10,7 @@ import {
   ExpandMore as ExpandMoreIcon, Quiz as QuizIcon
 } from '@mui/icons-material'
 import { useParams, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import courseService from '../../services/courseService'
 
 const CONTENT_ICONS = {
@@ -45,6 +46,7 @@ const processContent = (html) => {
 }
 
 const GroupCourseDetail = () => {
+  const { t } = useTranslation()
   const { groupId, courseId } = useParams()
   const [course, setCourse] = useState(null)
   const [chapters, setChapters] = useState([])
@@ -95,9 +97,9 @@ const GroupCourseDetail = () => {
     try {
       const enroll = await courseService.enrollCourse(courseId)
       setEnrollment(enroll)
-      setSnackbar({ open: true, msg: 'Đăng ký khóa học thành công!', severity: 'success' })
+      setSnackbar({ open: true, msg: t('group_course_detail.enroll_success'), severity: 'success' })
     } catch (e) {
-      const msg = e.response?.data?.message || 'Không thể đăng ký khóa học'
+      const msg = e.response?.data?.message || t('group_course_detail.enroll_failed')
       setSnackbar({ open: true, msg, severity: 'error' })
     }
   }
@@ -111,7 +113,7 @@ const GroupCourseDetail = () => {
       const updated = await courseService.getMyEnrollment(courseId)
       setEnrollment(updated)
     } catch (e) {
-      alert(e.response?.data?.message || 'Lỗi đánh dấu hoàn thành')
+      setSnackbar({ open: true, msg: e.response?.data?.message || t('group_course_detail.mark_complete_failed'), severity: 'error' })
     } finally {
       setCompleting(false)
     }
@@ -128,7 +130,7 @@ const GroupCourseDetail = () => {
         const embedSrc = toEmbedUrl(lesson.content)
         if (embedSrc) {
           return (
-            <Box sx={{ position: 'relative', paddingTop: '56.25%', borderRadius: 2, overflow: 'hidden' }}>
+            <Box sx={{ position: 'relative', paddingTop: '56.25%', borderRadius: 3, overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.1)' }}>
               <iframe
                 src={embedSrc}
                 title={lesson.title}
@@ -139,11 +141,10 @@ const GroupCourseDetail = () => {
             </Box>
           )
         }
-        // Direct video file
         return (
-          <video controls style={{ width: '100%', borderRadius: 8 }}>
+          <video controls style={{ width: '100%', borderRadius: 12 }}>
             <source src={lesson.content} />
-            Trình duyệt không hỗ trợ video.
+            Your browser does not support video.
           </video>
         )
       }
@@ -151,108 +152,94 @@ const GroupCourseDetail = () => {
         return (
           <Box className="ck-content" sx={{ 
             p: 2,
-            '& img': { maxWidth: '100%', height: 'auto', borderRadius: 2 },
+            '& img': { maxWidth: '100%', height: 'auto', borderRadius: 3 },
             '& .iframe-container': {
               position: 'relative',
               paddingTop: '56.25%',
-              mb: 2,
+              mb: 3,
               '& iframe': {
                 position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-                borderRadius: 2
+                borderRadius: 3
               }
-            },
-            '& blockquote': {
-              borderLeft: '4px solid',
-              borderColor: 'primary.main',
-              pl: 2, fontStyle: 'italic', color: 'text.secondary'
-            },
-            '& table': {
-              width: '100%', borderCollapse: 'collapse', mb: 2,
-              '& td, & th': { border: '1px solid', borderColor: 'divider', p: 1 }
             }
           }}
             dangerouslySetInnerHTML={{ __html: processContent(lesson.content) }}
           />
         )
-      case 'EMBED':
-        return (
-          <Box sx={{ position: 'relative', paddingTop: '56.25%', borderRadius: 2, overflow: 'hidden' }}>
-            <iframe
-              src={lesson.content}
-              title={lesson.title}
-              frameBorder="0"
-              allowFullScreen
-              sandbox="allow-scripts allow-same-origin allow-popups"
-              style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
-            />
-          </Box>
-        )
       case 'FILE':
         return (
-          <Box sx={{ p: 3, textAlign: 'center' }}>
-            <FileIcon sx={{ fontSize: 60, color: 'warning.main', mb: 2 }} />
-            <Typography variant="h6">{lesson.title}</Typography>
-            <Button variant="contained" color="warning" sx={{ mt: 2 }} href={lesson.content} download>
-              Tải xuống tệp
+          <Box sx={{ p: 6, textAlign: 'center', bgcolor: 'var(--color-surface-2)', borderRadius: 4, border: '1px dashed var(--color-border)' }}>
+            <FileIcon sx={{ fontSize: 80, color: 'warning.main', mb: 3 }} />
+            <Typography variant="h6" fontWeight={700} gutterBottom>{lesson.title}</Typography>
+            <Button variant="contained" color="warning" sx={{ mt: 2, borderRadius: '10px', px: 4, fontWeight: 700 }} href={lesson.content} download>
+              {t('group_course_detail.download_file')}
             </Button>
           </Box>
         )
       default:
-        return <Typography color="text.secondary" sx={{ p: 2 }}>Không có nội dung.</Typography>
+        return <Typography color="text.secondary" sx={{ p: 4, textAlign: 'center' }}>{t('group_course_detail.no_content')}</Typography>
     }
   }
 
   if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', mt: 6 }}><CircularProgress /></Box>
-  if (!course) return <Alert severity="error">Không tìm thấy khóa học.</Alert>
+  if (!course) return <Alert severity="error" sx={{ mx: 2, mt: 2 }}>{t('group_course_detail.not_found')}</Alert>
 
   return (
     <>
-      <Box sx={{ display: 'flex', gap: 2, p: 2, height: 'calc(100vh - 80px)' }}>
+      <Box sx={{ display: 'flex', gap: 3, p: 3, height: 'calc(100vh - 84px)' }}>
       {/* ── Sidebar: Chapters + Lessons ── */}
-      <Paper sx={{ width: 300, flexShrink: 0, overflowY: 'auto', borderRadius: 2, p: 1 }}>
-        <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
-          <Typography fontWeight={700} noWrap>{course.title}</Typography>
-          {enrollment && (
+      <Paper elevation={0} sx={{ width: 340, flexShrink: 0, overflowY: 'auto', borderRadius: 4, p: 1, border: '1px solid var(--color-border)', bgcolor: 'var(--color-surface)', color: 'var(--color-text)' }}>
+        <Box sx={{ p: 2.5, mb: 1, borderBottom: '1px solid var(--color-border)' }}>
+          <Typography variant="h6" fontWeight={800} sx={{ mb: 1, fontFamily: 'var(--font-heading)' }}>{course.title}</Typography>
+          {enrollment ? (
             <Box sx={{ mt: 1 }}>
-              <Typography variant="caption">
-                Tiến độ: {enrollment.progressPercent || 0}%
-              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                <Typography variant="caption" fontWeight={600} color="var(--color-text-muted)">
+                    {t('group_course_detail.progress', { percent: enrollment.progressPercent || 0 })}
+                </Typography>
+                <Typography variant="caption" fontWeight={700} color="var(--color-primary-lt)">
+                    {enrollment.progressPercent || 0}%
+                </Typography>
+              </Box>
               <LinearProgress
                 variant="determinate"
                 value={enrollment.progressPercent || 0}
-                sx={{ mt: 0.5, borderRadius: 1, height: 6 }}
+                sx={{ borderRadius: 2, height: 8, bgcolor: 'rgba(99,102,241,0.1)', '& .MuiLinearProgress-bar': { borderRadius: 2, background: 'linear-gradient(90deg, #6366F1, #818CF8)' } }}
               />
             </Box>
-          )}
-          {!enrollment && (
-            <Button variant="contained" size="small" fullWidth sx={{ mt: 1 }} onClick={handleEnroll}>
-              Đăng ký học
+          ) : (
+            <Button variant="contained" fullWidth sx={{ mt: 1.5, borderRadius: '10px', fontWeight: 700, background: 'linear-gradient(135deg, #6366F1, #4F46E5)' }} onClick={handleEnroll}>
+              {t('group_course_detail.enroll_btn')}
             </Button>
           )}
         </Box>
 
         {chapters.map((ch, idx) => (
           <Accordion key={ch.id} defaultExpanded={idx === 0}
-            sx={{ boxShadow: 'none', '&:before': { display: 'none' } }}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ px: 1 }}>
-              <Typography variant="body2" fontWeight={600}>
-                Chương {idx + 1}: {ch.title}
+            sx={{ boxShadow: 'none', bgcolor: 'transparent', color: 'inherit', '&:before': { display: 'none' } }}>
+            <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: 'var(--color-text-muted)' }} />} sx={{ px: 2, '& .MuiAccordionSummary-content': { my: 1.5 } }}>
+              <Typography variant="subtitle2" fontWeight={800}>
+                {t('group_course_detail.chapter_title', { idx: idx + 1, title: ch.title })}
               </Typography>
             </AccordionSummary>
-            <AccordionDetails sx={{ p: 0 }}>
+            <AccordionDetails sx={{ p: 0, pb: 1 }}>
               <List dense disablePadding>
                 {(ch.lessons || []).map((lesson) => (
                   <ListItemButton
                     key={lesson.id}
                     selected={activeItem?.type === 'LESSON' && activeItem?.id === lesson.id}
                     onClick={() => setActiveItem({ type: 'LESSON', ...lesson, chapterId: ch.id })}
-                    sx={{ pl: 2, borderRadius: 1 }}>
-                    <ListItemIcon sx={{ minWidth: 32 }}>
-                      {CONTENT_ICONS[lesson.contentType] || <DocIcon />}
+                    sx={{ 
+                        mx: 1, my: 0.5, borderRadius: 2, 
+                        '&.Mui-selected': { bgcolor: 'rgba(99,102,241,0.08)', borderLeft: '4px solid #6366F1' },
+                        '&:hover': { bgcolor: 'rgba(99,102,241,0.04)' }
+                    }}>
+                    <ListItemIcon sx={{ minWidth: 36, color: 'var(--color-text-sec)' }}>
+                      {CONTENT_ICONS[lesson.contentType] || <DocIcon fontSize="small" />}
                     </ListItemIcon>
                     <ListItemText
                       primary={lesson.title}
-                      primaryTypographyProps={{ variant: 'body2', noWrap: true }}
+                      primaryTypographyProps={{ variant: 'body2', fontWeight: 600, noWrap: true }}
                     />
                     {lesson.completed && <CheckIcon fontSize="small" color="success" />}
                   </ListItemButton>
@@ -263,11 +250,14 @@ const GroupCourseDetail = () => {
                     key={quiz.id}
                     selected={activeItem?.type === 'QUIZ' && activeItem?.id === quiz.id}
                     onClick={() => setActiveItem({ type: 'QUIZ', ...quiz })}
-                    sx={{ pl: 2, borderRadius: 1 }}>
-                    <ListItemIcon sx={{ minWidth: 32 }}><QuizIcon color="primary" /></ListItemIcon>
+                    sx={{ 
+                        mx: 1, my: 0.5, borderRadius: 2,
+                        '&.Mui-selected': { bgcolor: 'rgba(99,102,241,0.08)', borderLeft: '4px solid #6366F1' }
+                    }}>
+                    <ListItemIcon sx={{ minWidth: 36 }}><QuizIcon fontSize="small" color="primary" /></ListItemIcon>
                     <ListItemText
                       primary={`[Quiz] ${quiz.title}`}
-                      primaryTypographyProps={{ variant: 'body2', noWrap: true, color: 'primary.main' }}
+                      primaryTypographyProps={{ variant: 'body2', noWrap: true, color: 'var(--color-primary-lt)', fontWeight: 600 }}
                     />
                   </ListItemButton>
                 ))}
@@ -277,17 +267,17 @@ const GroupCourseDetail = () => {
         ))}
 
         {/* Top-level Quizzes */}
-        <List dense sx={{ px: 1 }}>
+        <List dense sx={{ px: 1, mt: 1, borderTop: '1px solid var(--color-border)' }}>
           {quizzes.filter(q => !q.chapterId).map(quiz => (
             <ListItemButton
               key={quiz.id}
               selected={activeItem?.type === 'QUIZ' && activeItem?.id === quiz.id}
               onClick={() => setActiveItem({ type: 'QUIZ', ...quiz })}
-              sx={{ borderRadius: 1 }}>
-              <ListItemIcon sx={{ minWidth: 32 }}><QuizIcon color="primary" /></ListItemIcon>
+              sx={{ my: 0.5, borderRadius: 2, '&.Mui-selected': { bgcolor: 'rgba(99,102,241,0.08)', borderLeft: '4px solid #6366F1' } }}>
+              <ListItemIcon sx={{ minWidth: 36 }}><QuizIcon fontSize="small" color="primary" /></ListItemIcon>
               <ListItemText
-                primary={`Bài kiểm tra: ${quiz.title}`}
-                primaryTypographyProps={{ variant: 'body2', fontWeight: 600, color: 'primary.main' }}
+                primary={`${t('quizzes.quiz_label') || '[Quiz]'}: ${quiz.title}`}
+                primaryTypographyProps={{ variant: 'body2', fontWeight: 700, color: 'var(--color-primary-lt)' }}
               />
             </ListItemButton>
           ))}
@@ -295,18 +285,18 @@ const GroupCourseDetail = () => {
       </Paper>
 
       {/* ── Main Content Area ── */}
-      <Box sx={{ flex: 1, overflowY: 'auto' }}>
+      <Box sx={{ flex: 1, overflowY: 'auto', pr: 1 }}>
         {activeItem?.type === 'LESSON' ? (
-          <Paper sx={{ p: 3, borderRadius: 2 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+          <Paper elevation={0} sx={{ p: 4, borderRadius: 4, border: '1px solid var(--color-border)', bgcolor: 'var(--color-surface)', color: 'var(--color-text)' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
               <Box>
                 <Chip
                   icon={CONTENT_ICONS[activeItem.contentType]}
                   label={activeItem.contentType}
                   size="small"
-                  sx={{ mb: 1 }}
+                  sx={{ mb: 1.5, fontWeight: 700, borderRadius: 1.5, textTransform: 'capitalize' }}
                 />
-                <Typography variant="h5" fontWeight={700}>{activeItem.title}</Typography>
+                <Typography variant="h4" fontWeight={800} sx={{ fontFamily: 'var(--font-heading)' }}>{activeItem.title}</Typography>
               </Box>
               {enrollment && (
                 <Button
@@ -315,57 +305,56 @@ const GroupCourseDetail = () => {
                   startIcon={<CheckIcon />}
                   onClick={handleMarkComplete}
                   disabled={completing}
+                  sx={{ borderRadius: '10px', px: 3, fontWeight: 700 }}
                 >
-                  {completing ? <CircularProgress size={18} color="inherit" /> : 'Hoàn thành'}
+                  {completing ? <CircularProgress size={18} color="inherit" /> : t('group_course_detail.mark_complete_btn')}
                 </Button>
               )}
             </Box>
 
-            <Divider sx={{ mb: 2 }} />
+            <Divider sx={{ mb: 4, borderColor: 'var(--color-border)' }} />
 
             {renderLessonContent(activeItem)}
           </Paper>
         ) : activeItem?.type === 'QUIZ' ? (
-          <Paper sx={{ p: 4, borderRadius: 2 }}>
-            {/* Quiz Header */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-              <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: 'primary.main', color: 'white', display: 'flex' }}>
-                <QuizIcon sx={{ fontSize: 36 }} />
+          <Paper elevation={0} sx={{ p: 5, borderRadius: 4, border: '1px solid var(--color-border)', bgcolor: 'var(--color-surface)', color: 'var(--color-text)' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mb: 4 }}>
+              <Box sx={{ width: 64, height: 64, borderRadius: 3, bgcolor: 'rgba(99,102,241,0.1)', color: '#6366F1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <QuizIcon sx={{ fontSize: 40 }} />
               </Box>
               <Box>
-                <Typography variant="overline" color="text.secondary">Bài kiểm tra</Typography>
-                <Typography variant="h5" fontWeight={700}>{activeItem.title}</Typography>
+                <Typography variant="overline" fontWeight={800} color="var(--color-text-muted)" sx={{ letterSpacing: 1.5 }}>
+                    {t('quizzes.quiz_label') || 'QUIZ'}
+                </Typography>
+                <Typography variant="h4" fontWeight={800} sx={{ fontFamily: 'var(--font-heading)' }}>{activeItem.title}</Typography>
               </Box>
             </Box>
 
             {activeItem.description && (
-              <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+              <Typography variant="body1" sx={{ mb: 4, color: 'var(--color-text-sec)', lineHeight: 1.7 }}>
                 {activeItem.description}
               </Typography>
             )}
 
             {/* Quiz Stats */}
-            <Box sx={{ display: 'flex', gap: 2, mb: 4 }}>
+            <Box sx={{ display: 'flex', gap: 3, mb: 5 }}>
               {[
-                { label: 'Thời gian', value: activeItem.timeLimitSec ? `${Math.floor(activeItem.timeLimitSec / 60)} phút` : 'Không giới hạn' },
-                { label: 'Số lần làm', value: activeItem.maxAttempts ?? '∞' },
-                { label: 'Điểm đạt', value: `${activeItem.passingScore ?? 50}%` },
+                { label: t('quizzes.form.time_limit'), value: activeItem.timeLimitSec ? `${Math.floor(activeItem.timeLimitSec / 60)} min` : t('common.no_limit') },
+                { label: t('course_editor.quiz_desc', { count: activeItem.maxAttempts }).split('•')[1]?.trim() || 'Attempts', value: activeItem.maxAttempts ?? '∞' },
+                { label: t('quizzes.form.passing_score'), value: `${activeItem.passingScore ?? 50}%` },
               ].map(stat => (
-                <Paper key={stat.label} variant="outlined" sx={{ p: 2, flex: 1, textAlign: 'center', borderRadius: 2 }}>
-                  <Typography variant="h6" fontWeight={700} color="primary.main">{stat.value}</Typography>
-                  <Typography variant="caption" color="text.secondary">{stat.label}</Typography>
+                <Paper key={stat.label} elevation={0} sx={{ p: 3, flex: 1, textAlign: 'center', borderRadius: 3, bgcolor: 'var(--color-surface-2)', border: '1px solid var(--color-border)' }}>
+                  <Typography variant="h5" fontWeight={800} color="var(--color-primary-lt)" sx={{ mb: 0.5 }}>{stat.value}</Typography>
+                  <Typography variant="caption" fontWeight={700} color="var(--color-text-muted)" sx={{ textTransform: 'uppercase', letterSpacing: 1 }}>{stat.label}</Typography>
                 </Paper>
               ))}
             </Box>
 
-            {/* CTA */}
             {!enrollment ? (
-              <Box>
-                <Alert severity="warning" sx={{ mb: 2 }}>
-                  Bạn cần <strong>đăng ký khóa học</strong> để tham gia bài kiểm tra này.
-                </Alert>
-                <Button variant="contained" fullWidth size="large" onClick={handleEnroll} sx={{ py: 1.5 }}>
-                  Đăng ký học ngay
+              <Box sx={{ textAlign: 'center', p: 4, bgcolor: 'rgba(239,68,68,0.05)', borderRadius: 4, border: '1px solid rgba(239,68,68,0.2)' }}>
+                <Typography sx={{ mb: 3, color: 'var(--color-text)', display: 'block' }} dangerouslySetInnerHTML={{ __html: t('group_course_detail.quiz_requirement') }} />
+                <Button variant="contained" fullWidth size="large" onClick={handleEnroll} sx={{ py: 2, borderRadius: '12px', fontWeight: 800, background: 'linear-gradient(135deg, #6366F1, #4F46E5)' }}>
+                  {t('group_course_detail.enroll_to_take')}
                 </Button>
               </Box>
             ) : (
@@ -374,23 +363,26 @@ const GroupCourseDetail = () => {
                 size="large"
                 fullWidth
                 onClick={() => handleStartQuiz(activeItem.id)}
-                sx={{ py: 1.5, fontSize: '1.1rem', fontWeight: 700, borderRadius: 2 }}
+                sx={{ py: 2.5, fontSize: '1.2rem', fontWeight: 800, borderRadius: 3, background: 'linear-gradient(135deg, #6366F1, #4F46E5)', transition: 'all 0.3s ease', '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 8px 24px rgba(99,102,241,0.4)' } }}
               >
-                Bắt đầu làm bài →
+                {t('group_course_detail.take_quiz')}
               </Button>
             )}
           </Paper>
         ) : (
-          <Paper sx={{ p: 6, textAlign: 'center', borderRadius: 2 }}>
-            <Typography variant="h6" color="text.secondary">
-              Chọn một bài học từ danh sách bên trái để bắt đầu học
+          <Paper elevation={0} sx={{ p: 10, textAlign: 'center', borderRadius: 4, border: '1px dashed var(--color-border)', bgcolor: 'var(--color-surface)', color: 'var(--color-text-muted)' }}>
+            <Box sx={{ mb: 3, opacity: 0.5 }}>
+                <DocIcon sx={{ fontSize: 60 }} />
+            </Box>
+            <Typography variant="h6" fontWeight={600}>
+              {t('group_course_detail.lessons_list_placeholder')}
             </Typography>
           </Paper>
         )}
       </Box>
     </Box>
     <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={() => setSnackbar(s => ({ ...s, open: false }))}>
-      <Alert severity={snackbar.severity} onClose={() => setSnackbar(s => ({ ...s, open: false }))}>{snackbar.msg}</Alert>
+      <Alert severity={snackbar.severity} onClose={() => setSnackbar(s => ({ ...s, open: false }))} sx={{ borderRadius: '10px', fontWeight: 600 }}>{snackbar.msg}</Alert>
     </Snackbar>
   </>
   )
