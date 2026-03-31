@@ -44,6 +44,7 @@ import {
 } from '@mui/icons-material'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import calendarService from '../services/calendarService'
 import { 
   CalendarContainer, 
@@ -65,17 +66,17 @@ const EVENT_COLORS = {
   GROUP_EVENT: '#f43f5e'
 };
 
-const LEGEND_LABELS = {
-  MEETING: 'Cuộc họp',
-  ASSIGNMENT_DUE: 'Hạn bài tập',
-  QUIZ: 'Bài kiểm tra',
-  COURSE_START: 'Bắt đầu khóa học',
-  COURSE_END: 'Kết thúc khóa học',
-  COURSE_SESSION: 'Buổi học',
-  PERSONAL: 'Cá nhân',
-  SYSTEM: 'Hệ thống',
-  GROUP_EVENT: 'Sự kiện nhóm'
-};
+const getLegendLabels = (t) => ({
+  MEETING: t('calendar.event_types.meeting'),
+  ASSIGNMENT_DUE: t('calendar.event_types.assignment'),
+  QUIZ: t('calendar.event_types.quiz'),
+  COURSE_START: t('calendar.event_types.course_start'),
+  COURSE_END: t('calendar.event_types.course_end'),
+  COURSE_SESSION: t('calendar.event_types.course_session'),
+  PERSONAL: t('calendar.event_types.personal'),
+  SYSTEM: t('calendar.event_types.system'),
+  GROUP_EVENT: t('calendar.event_types.group_event')
+});
 
 const EVENT_ICONS = {
   MEETING: MeetingIcon,
@@ -91,6 +92,8 @@ const EVENT_ICONS = {
 };
 
 const Calendar = () => {
+  const { t, i18n } = useTranslation()
+  const LEGEND_LABELS = getLegendLabels(t)
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -111,7 +114,6 @@ const Calendar = () => {
       setLoading(true)
       try {
         const data = await calendarService.getEvents()
-        console.log('CALENDAR_DEBUG: Raw events from service:', data);
         const formattedEvents = data.map(event => ({
           ...event,
           extendedProps: {
@@ -119,30 +121,27 @@ const Calendar = () => {
             type: event.extendedProps?.type || 'DEFAULT'
           }
         }))
-        console.log('CALENDAR_DEBUG: Formatted events:', formattedEvents);
         setEvents(formattedEvents)
       } catch (err) {
-        setError('Failed to load calendar events.')
+        setError(t('calendar.errors.load_failed'))
       } finally {
         setLoading(false)
       }
     }
     fetchEvents()
-  }, [])
+  }, [t])
 
   const handleSync = async () => {
     setSyncing(true)
     setSyncMessage(null)
     try {
-      console.log('CALENDAR_DEBUG: Triggering sync...');
       const responseMessage = await calendarService.syncCalendar()
-      setSyncMessage({ type: 'success', text: responseMessage || 'Đồng bộ lịch thành công!' })
+      setSyncMessage({ type: 'success', text: responseMessage || t('common.success') })
       // Re-fetch events
       const data = await calendarService.getEvents()
       setEvents(data)
     } catch (err) {
-      console.error('CALENDAR_DEBUG: Sync failed:', err);
-      setSyncMessage({ type: 'error', text: 'Đồng bộ thất bại. Vui lòng thử lại.' })
+      setSyncMessage({ type: 'error', text: t('common.error') })
     } finally {
       setSyncing(false)
       setTimeout(() => setSyncMessage(null), 5000)
@@ -200,7 +199,6 @@ const Calendar = () => {
         navigate(`/groups/${groupId}/courses/${cid}/quiz/${qid}/take`)
         break
       case 'GROUP_EVENT':
-        // For now, if we don't have groupId, we navigate to the groups list or a specific group if available
         if (groupId) {
            navigate(`/groups/${groupId}`)
         } else {
@@ -283,10 +281,10 @@ const Calendar = () => {
           letterSpacing: '-0.02em',
           mb: 1
         }}>
-          Lịch Biểu
+          {t('calendar.title')}
         </Typography>
         <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-          Quản lý lịch học, bài tập và các cuộc họp.
+          {t('calendar.subtitle')}
         </Typography>
       </Box>
 
@@ -305,7 +303,7 @@ const Calendar = () => {
       {loading ? (
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '400px', gap: 2 }}>
           <CircularProgress size={48} thickness={4} />
-          <Typography color="text.secondary" variant="body2">Synchronizing your schedule...</Typography>
+          <Typography color="text.secondary" variant="body2">{t('common.loading')}</Typography>
         </Box>
       ) : error ? (
         <Alert severity="error" variant="outlined" sx={{ m: 3, borderRadius: 2 }}>{error}</Alert>
@@ -328,22 +326,22 @@ const Calendar = () => {
                 {calendarTitle}
               </Typography>
               <ButtonGroup size="small" variant="text" sx={{ bgcolor: alpha(theme.palette.action.hover, 0.05), borderRadius: 2, p: 0.5 }}>
-                <Tooltip title="Previous">
+                <Tooltip title={t('common.back')}>
                   <IconButton onClick={handlePrev} size="small" aria-label="previous month">
                     <PrevIcon />
                   </IconButton>
                 </Tooltip>
-                <Tooltip title="Today">
-                  <Button onClick={handleToday} sx={{ fontWeight: 600, px: 2 }}>Today</Button>
+                <Tooltip title={t('common.today')}>
+                  <Button onClick={handleToday} sx={{ fontWeight: 600, px: 2 }}>{t('common.today')}</Button>
                 </Tooltip>
-                <Tooltip title="Next">
+                <Tooltip title={t('common.next')}>
                   <IconButton onClick={handleNext} size="small" aria-label="next month">
                     <NextIcon />
                   </IconButton>
                 </Tooltip>
               </ButtonGroup>
               
-              <Tooltip title="Đồng bộ tất cả bài tập vào lịch">
+              <Tooltip title={t('calendar.sync_desc')}>
                 <Button 
                   onClick={handleSync} 
                   disabled={syncing}
@@ -352,7 +350,7 @@ const Calendar = () => {
                   startIcon={syncing ? <CircularProgress size={16} /> : <SyncIcon />}
                   sx={{ borderRadius: 2, ml: 2, fontWeight: 600 }}
                 >
-                  {syncing ? 'Đang đồng bộ...' : 'Đồng bộ'}
+                  {syncing ? t('calendar.syncing_text') : t('calendar.sync_text')}
                 </Button>
               </Tooltip>
             </Box>
@@ -389,28 +387,28 @@ const Calendar = () => {
                 onClick={() => handleViewChange('dayGridMonth')}
                 startIcon={<MonthIcon />}
               >
-                Month
+                {t('calendar.views.month')}
               </Button>
               <Button
                 className={currentView === 'timeGridWeek' ? 'active' : ''}
                 onClick={() => handleViewChange('timeGridWeek')}
                 startIcon={<WeekIcon />}
               >
-                Week
+                {t('calendar.views.week')}
               </Button>
               <Button
                 className={currentView === 'timeGridDay' ? 'active' : ''}
                 onClick={() => handleViewChange('timeGridDay')}
                 startIcon={<DayIcon />}
               >
-                Day
+                {t('calendar.views.day')}
               </Button>
               <Button
                 className={currentView === 'listWeek' ? 'active' : ''}
                 onClick={() => handleViewChange('listWeek')}
                 startIcon={<ListIcon />}
               >
-                List
+                {t('calendar.views.list')}
               </Button>
             </ButtonGroup>
           </CustomToolbar>
@@ -419,7 +417,7 @@ const Calendar = () => {
             ref={calendarRef}
             plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
             initialView="dayGridMonth"
-            headerToolbar={false} // Hidden as we use custom toolbar
+            headerToolbar={false}
             events={events}
             eventClick={handleEventClick}
             eventContent={renderEventContent}
@@ -430,6 +428,7 @@ const Calendar = () => {
             navLinks={true}
             businessHours={true}
             nowIndicator={true}
+            locale={i18n.language === 'vi' ? 'vi' : 'en'}
           />
         </CalendarContainer>
       )}
@@ -471,15 +470,15 @@ const Calendar = () => {
             <DialogContent>
               <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <Box>
-                  <Typography variant="overline" color="text.secondary" fontWeight={700}>Time Details</Typography>
+                  <Typography variant="overline" color="text.secondary" fontWeight={700}>{t('calendar.event_dialog.time_details')}</Typography>
                   <Typography variant="body1" sx={{ mt: 0.5, fontWeight: 500 }}>
-                    {selectedEvent.start && `Starts: ${new Date(selectedEvent.start).toLocaleString([], {
+                    {selectedEvent.start && `${t('calendar.event_dialog.starts')}: ${new Date(selectedEvent.start).toLocaleString(i18n.language === 'vi' ? 'vi-VN' : 'en-US', {
                       weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
                     })}`}
                     {selectedEvent.end && (
                       <>
                         <br />
-                        {`Ends: ${new Date(selectedEvent.end).toLocaleString([], {
+                        {`${t('calendar.event_dialog.ends')}: ${new Date(selectedEvent.end).toLocaleString(i18n.language === 'vi' ? 'vi-VN' : 'en-US', {
                           hour: '2-digit', minute: '2-digit'
                         })}`}
                       </>
@@ -489,7 +488,7 @@ const Calendar = () => {
 
                 {selectedEvent.extendedProps?.description && (
                   <Box>
-                    <Typography variant="overline" color="text.secondary" fontWeight={700}>Description</Typography>
+                    <Typography variant="overline" color="text.secondary" fontWeight={700}>{t('group_detail.meetings.description')}</Typography>
                     <Typography variant="body2" sx={{ mt: 0.5 }}>{selectedEvent.extendedProps.description}</Typography>
                   </Box>
                 )}
@@ -501,7 +500,7 @@ const Calendar = () => {
                 fontWeight: 600,
                 '&:hover': { bgcolor: alpha(theme.palette.text.secondary, 0.05) }
               }}>
-                Close
+                {t('common.close')}
               </Button>
               <Button
                 onClick={handleNavigate}
@@ -519,7 +518,7 @@ const Calendar = () => {
                   }
                 }}
               >
-                Go to Event
+                {t('calendar.event_dialog.goto_event')}
               </Button>
             </DialogActions>
           </Dialog>

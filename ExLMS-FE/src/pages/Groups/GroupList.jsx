@@ -20,6 +20,7 @@ import {
 } from '@mui/material'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import groupService from '../../services/groupService'
 import GroupCard from '../../components/Groups/GroupCard'
 
@@ -69,6 +70,7 @@ const item = {
 }
 
 const GroupList = () => {
+  const { t } = useTranslation()
   const [groups,  setGroups]  = useState([])
   const [loading, setLoading] = useState(true)
   const [error,   setError]   = useState(null)
@@ -89,7 +91,7 @@ const GroupList = () => {
         : await groupService.getAllPublicGroups()
       setGroups(data)
     } catch {
-      setError('Failed to fetch groups. Please try again later.')
+      setError(t('groups.errors.fetch_failed'))
     } finally {
       setLoading(false)
     }
@@ -99,10 +101,10 @@ const GroupList = () => {
 
   const handleJoinGroup = async (groupId) => {
     try {
-      const response = await groupService.createJoinRequest(groupId, 'I want to join this group.')
-      setSnackbar({ open: true, message: response || 'Join request sent!', severity: 'success' })
+      const response = await groupService.createJoinRequest(groupId, t('groups.messages.join_default'))
+      setSnackbar({ open: true, message: response || t('groups.messages.join_sent'), severity: 'success' })
     } catch (err) {
-      setSnackbar({ open: true, message: err.response?.data?.message || 'Failed to send join request.', severity: 'error' })
+      setSnackbar({ open: true, message: err.response?.data?.message || t('groups.errors.join_failed'), severity: 'error' })
     }
   }
 
@@ -111,12 +113,12 @@ const GroupList = () => {
     setInviteLoading(true)
     try {
       const response = await groupService.joinGroupByInviteCode(inviteCode)
-      setSnackbar({ open: true, message: response || 'Successfully joined the group!', severity: 'success' })
+      setSnackbar({ open: true, message: response || t('groups.messages.join_success'), severity: 'success' })
       setInviteDialogOpen(false)
       setInviteCode('')
       fetchGroups()
     } catch (err) {
-      setSnackbar({ open: true, message: err.response?.data?.message || 'Invalid invite code or already joined.', severity: 'error' })
+      setSnackbar({ open: true, message: err.response?.data?.message || t('groups.errors.invalid_code'), severity: 'error' })
     } finally {
       setInviteLoading(false)
     }
@@ -144,10 +146,10 @@ const GroupList = () => {
                 mb: 0.5,
               }}
             >
-              Study Groups
+              {t('groups.title')}
             </Typography>
             <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
-              Connect, collaborate, and learn together
+              {t('groups.subtitle')}
             </Typography>
           </Box>
 
@@ -164,7 +166,7 @@ const GroupList = () => {
                 '&:hover': { borderColor: 'var(--color-border-lt)', color: 'var(--color-text)', bgcolor: 'rgba(240,246,252,0.04)' },
               }}
             >
-              Refresh
+              {t('groups.refresh')}
             </Button>
             <Button
               variant="outlined"
@@ -177,7 +179,7 @@ const GroupList = () => {
                 '&:hover': { borderColor: 'var(--color-primary)', color: 'var(--color-primary-lt)', bgcolor: 'rgba(99,102,241,0.06)' },
               }}
             >
-              Join by Code
+              {t('groups.join_by_code')}
             </Button>
             <Button
               variant="contained"
@@ -191,7 +193,7 @@ const GroupList = () => {
                 '&:hover': { background: 'linear-gradient(135deg, #818CF8, #6366F1)', boxShadow: '0 4px 12px rgba(99,102,241,0.35)' },
               }}
             >
-              Create Group
+              {t('groups.create_group')}
             </Button>
           </Box>
         </Box>
@@ -219,18 +221,19 @@ const GroupList = () => {
               px: 1.5, height: 38, flex: '1 1 240px',
               borderRadius: '8px',
               border: '1px solid var(--color-border)',
-              bgcolor: 'rgba(33,38,45,0.6)',
+              bgcolor: 'var(--color-surface-3)',
               '&:focus-within': { borderColor: 'var(--color-primary)', boxShadow: '0 0 0 3px rgba(99,102,241,0.12)' },
               transition: 'all 0.2s',
             }}
           >
-            <Box sx={{ color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+            <Box sx={{ color: 'var(--color-text-sec)', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
               <SearchIcon />
             </Box>
             <input
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search by name or category…"
+              placeholder={t('groups.search_placeholder')}
+              className="search-input"
               style={{
                 flex: 1, background: 'none', border: 'none', outline: 'none',
                 color: 'var(--color-text)', fontSize: '0.875rem',
@@ -271,14 +274,14 @@ const GroupList = () => {
               },
             }}
           >
-            <Tab label="All Groups" id="tab-all" />
-            <Tab label="My Groups"  id="tab-mine" />
+            <Tab label={t('groups.tabs.all')} id="tab-all" />
+            <Tab label={t('groups.tabs.mine')}  id="tab-mine" />
           </Tabs>
 
           {/* Result count */}
           {!loading && (
             <Chip
-              label={`${filteredGroups.length} groups`}
+              label={t('groups.count', { count: filteredGroups.length })}
               size="small"
               sx={{
                 height: 24, fontSize: '0.75rem', fontWeight: 600,
@@ -337,12 +340,12 @@ const GroupList = () => {
               <UsersIcon />
             </Box>
             <Typography sx={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '1.125rem', color: 'var(--color-text)', mb: 0.75 }}>
-              {searchTerm ? 'No matching groups' : 'No groups yet'}
+              {searchTerm ? t('groups.no_matching') : t('groups.no_groups')}
             </Typography>
             <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', mb: 3 }}>
               {searchTerm
-                ? `No groups match "${searchTerm}". Try a different search.`
-                : 'Be the first to create a study group!'}
+                ? t('groups.search_no_results', { searchTerm })
+                : t('groups.be_first')}
             </Typography>
             {searchTerm ? (
               <Button
@@ -350,7 +353,7 @@ const GroupList = () => {
                 variant="outlined"
                 sx={{ borderRadius: '9px', borderColor: 'var(--color-border)', color: 'var(--color-text-sec)', cursor: 'pointer' }}
               >
-                Clear Search
+                {t('groups.clear_search')}
               </Button>
             ) : (
               <Button
@@ -359,7 +362,7 @@ const GroupList = () => {
                 startIcon={<PlusIcon />}
                 sx={{ borderRadius: '9px', background: 'linear-gradient(135deg, #6366F1, #4F46E5)', cursor: 'pointer' }}
               >
-                Create Group
+                {t('groups.create_group')}
               </Button>
             )}
           </Box>
@@ -391,11 +394,11 @@ const GroupList = () => {
         }}
       >
         <DialogTitle sx={{ fontFamily: 'var(--font-heading)', fontWeight: 700, color: 'var(--color-text)', pb: 1 }}>
-          Join with Invite Code
+          {t('groups.invite.dialog_title')}
         </DialogTitle>
         <DialogContent>
           <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', mb: 2.5 }}>
-            Enter the invite code shared by the group owner to join instantly.
+            {t('groups.invite.dialog_desc')}
           </Typography>
           <Box
             sx={{
@@ -416,7 +419,7 @@ const GroupList = () => {
               value={inviteCode}
               onChange={(e) => setInviteCode(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleJoinByCode()}
-              placeholder="e.g.  ABC123"
+              placeholder={t('groups.invite.input_placeholder')}
               style={{
                 flex: 1, background: 'none', border: 'none', outline: 'none',
                 color: 'var(--color-text)', fontSize: '0.9375rem',
@@ -430,7 +433,7 @@ const GroupList = () => {
             onClick={() => { setInviteDialogOpen(false); setInviteCode('') }}
             sx={{ borderRadius: '8px', color: 'var(--color-text-sec)', cursor: 'pointer', '&:hover': { bgcolor: 'rgba(240,246,252,0.04)' } }}
           >
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button
             onClick={handleJoinByCode}
@@ -443,7 +446,7 @@ const GroupList = () => {
               '&.Mui-disabled': { background: 'rgba(99,102,241,0.25)', color: 'rgba(255,255,255,0.3)' },
             }}
           >
-            {inviteLoading ? <CircularProgress size={20} sx={{ color: 'rgba(255,255,255,0.7)' }} /> : 'Join Group'}
+            {inviteLoading ? <CircularProgress size={20} sx={{ color: 'rgba(255,255,255,0.7)' }} /> : t('groups.invite.join_btn')}
           </Button>
         </DialogActions>
       </Dialog>

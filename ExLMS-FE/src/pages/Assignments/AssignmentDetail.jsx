@@ -22,10 +22,13 @@ import { useSelector } from 'react-redux';
 import assignmentService from '../../services/assignmentService';
 import groupService from '../../services/groupService';
 import { format } from 'date-fns';
-import { vi } from 'date-fns/locale';
+import { vi, enUS } from 'date-fns/locale';
 import CKEditorWrapper from '../../components/Common/CKEditorWrapper';
+import { useTranslation } from 'react-i18next';
 
 const AssignmentDetail = () => {
+  const { t, i18n } = useTranslation();
+  const currentLocale = i18n.language === 'vi' ? vi : enUS;
   const { groupId, id } = useParams();
   const navigate = useNavigate();
   const { user } = useSelector(state => state.auth);
@@ -76,14 +79,14 @@ const AssignmentDetail = () => {
           setMySubmissions(mySubs);
         }
       } catch (err) {
-        setError('Không thể tải chi tiết bài tập');
+        setError(t('assignments.errors.load_failed') || 'Could not load assignment details');
         console.error(err);
       } finally {
         setLoading(false);
       }
     };
     fetchData();
-  }, [id, groupId, user?.id]);
+  }, [id, groupId, user?.id, t]);
 
   const handleFileChange = (e) => {
     setSelectedFile(e.target.files[0]);
@@ -105,10 +108,10 @@ const AssignmentDetail = () => {
 
       if (editingSubmission) {
         await assignmentService.updateSubmission(editingSubmission, formData);
-        alert('Cập nhật bài nộp thành công!');
+        alert(t('assignment_detail.messages.update_success'));
       } else {
         await assignmentService.submitAssignment(id, formData);
-        alert('Nộp bài thành công!');
+        alert(t('assignment_detail.messages.submit_success'));
       }
 
       // Refresh my submissions
@@ -118,7 +121,7 @@ const AssignmentDetail = () => {
       setSelectedFile(null);
       setEditingSubmission(null);
     } catch (err) {
-      alert(err.response?.data?.message || 'Lỗi khi nộp bài');
+      alert(err.response?.data?.message || t('assignment_detail.errors.submit_failed'));
     } finally {
       setSubmitting(false);
     }
@@ -130,9 +133,9 @@ const AssignmentDetail = () => {
       await assignmentService.deleteSubmission(confirmCancel);
       const mySubs = await assignmentService.getMySubmissions(id);
       setMySubmissions(mySubs);
-      alert('Đã hủy nộp bài!');
+      alert(t('assignment_detail.messages.cancel_success'));
     } catch (err) {
-      alert(err.response?.data?.message || 'Không thể hủy bài nộp');
+      alert(err.response?.data?.message || t('assignment_detail.errors.cancel_failed'));
     } finally {
       setConfirmCancel(null);
     }
@@ -154,9 +157,9 @@ const AssignmentDetail = () => {
       const subs = await assignmentService.getAllSubmissions(id);
       setSubmissions(subs);
       setGradingSubmission(null);
-      alert('Đã lưu điểm thành công!');
+      alert(t('assignment_detail.messages.grade_success'));
     } catch (err) {
-      alert('Lỗi khi chấm điểm');
+      alert(t('assignment_detail.errors.grade_failed'));
     } finally {
       setGrading(false);
     }
@@ -171,13 +174,13 @@ const AssignmentDetail = () => {
       a.download = `Grades_${assignment.title}.xlsx`;
       a.click();
     } catch (err) {
-      alert('Lỗi khi xuất tệp Excel');
+      alert(t('assignment_detail.errors.export_failed'));
     }
   };
 
   if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', p: 10 }}><CircularProgress /></Box>;
   if (error) return <Alert severity="error" sx={{ m: 4 }}>{error}</Alert>;
-  if (!assignment) return <Alert severity="warning" sx={{ m: 4 }}>Không tìm thấy thông tin bài tập</Alert>;
+  if (!assignment) return <Alert severity="warning" sx={{ m: 4 }}>{t('assignments.errors.not_found')}</Alert>;
 
   return (
     <Box sx={{ p: 4 }}>
@@ -191,30 +194,30 @@ const AssignmentDetail = () => {
                 <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
                   <Chip
                     icon={<DueIcon />}
-                    label={`Hạn nộp: ${format(new Date(assignment.dueAt), 'HH:mm dd/MM/yyyy', { locale: vi })}`}
+                    label={`${t('assignments.due')}: ${format(new Date(assignment.dueAt), 'HH:mm dd/MM/yyyy', { locale: currentLocale })}`}
                     color="primary"
                     variant="outlined"
                   />
                   <Chip
                     icon={<TrophyIcon />}
-                    label={`Điểm tối đa: ${assignment.maxScore}`}
+                    label={`${t('assignments.max_score')}: ${assignment.maxScore}`}
                     color="secondary"
                   />
                   {assignment.allowLate && (
-                    <Chip label={`Cho phép nộp muộn (Trừ ${assignment.latePenaltyPercent}%)`} color="warning" size="small" />
+                    <Chip label={`${t('assignment_detail.allow_late')} (${t('assignment_detail.penalty')} ${assignment.latePenaltyPercent}%)`} color="warning" size="small" />
                   )}
                 </Box>
               </Box>
               {isInstructor && (
                 <Button variant="contained" startIcon={<DownloadIcon />} onClick={handleExport}>
-                  Xuất Excel
+                  {t('assignment_detail.export_excel')}
                 </Button>
               )}
             </Box>
 
             <Divider sx={{ my: 3 }} />
 
-            <Typography variant="h6" fontWeight="bold" gutterBottom>Hướng dẫn</Typography>
+            <Typography variant="h6" fontWeight="bold" gutterBottom>{t('assignment_detail.instructions')}</Typography>
             <Typography
               variant="body1"
               sx={{ whiteSpace: 'pre-wrap', color: 'text.secondary' }}
@@ -225,17 +228,17 @@ const AssignmentDetail = () => {
           {/* Instructor View: List of Submissions */}
           {isInstructor && (
             <Paper sx={{ p: 4, borderRadius: 3 }}>
-              <Typography variant="h5" fontWeight="bold" gutterBottom>Danh sách nộp bài</Typography>
+              <Typography variant="h5" fontWeight="bold" gutterBottom>{t('assignment_detail.submission_list')}</Typography>
               <TableContainer>
                 <Table>
                   <TableHead>
                     <TableRow>
-                      <TableCell>Sinh viên</TableCell>
-                      <TableCell>Thời gian nộp</TableCell>
-                      <TableCell>Lần nộp</TableCell>
-                      <TableCell>Trạng thái</TableCell>
-                      <TableCell>Điểm</TableCell>
-                      <TableCell>Hành động</TableCell>
+                      <TableCell>{t('assignment_detail.student')}</TableCell>
+                      <TableCell>{t('assignment_detail.submitted_at')}</TableCell>
+                      <TableCell>{t('assignment_detail.attempt')}</TableCell>
+                      <TableCell>{t('assignment_detail.status')}</TableCell>
+                      <TableCell>{t('assignment_detail.score')}</TableCell>
+                      <TableCell>{t('common.actions')}</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -247,12 +250,12 @@ const AssignmentDetail = () => {
                         </TableCell>
                         <TableCell>
                           {format(new Date(sub.submittedAt), 'HH:mm dd/MM/yyyy')}
-                          {sub.isLate && <Chip label="Muộn" color="error" size="small" sx={{ ml: 1 }} />}
+                          {sub.isLate && <Chip label={t('assignment_detail.late')} color="error" size="small" sx={{ ml: 1 }} />}
                         </TableCell>
-                        <TableCell>Lần {sub.attemptNumber}</TableCell>
+                        <TableCell>{t('assignment_detail.attempt_no', { count: sub.attemptNumber })}</TableCell>
                         <TableCell>
                           <Chip
-                            label={sub.gradeStatus === 'GRADED' ? 'Đã chấm' : 'Chờ chấm'}
+                            label={sub.gradeStatus === 'GRADED' ? t('assignment_detail.graded') : t('assignment_detail.awaiting_grade')}
                             color={sub.gradeStatus === 'GRADED' ? 'success' : 'warning'}
                             size="small"
                           />
@@ -261,7 +264,7 @@ const AssignmentDetail = () => {
                           {sub.score !== null && sub.score !== undefined ? `${sub.score}/${assignment.maxScore}` : '-'}
                         </TableCell>
                         <TableCell>
-                          <Tooltip title="Chấm điểm">
+                          <Tooltip title={t('assignment_detail.actions.grade')}>
                             <IconButton color="primary" onClick={() => {
                               setGradingSubmission(sub);
                               setGradeData({
@@ -274,7 +277,7 @@ const AssignmentDetail = () => {
                             </IconButton>
                           </Tooltip>
                           {sub.fileUrl && (
-                            <Tooltip title="Tải tệp nộp">
+                            <Tooltip title={t('assignment_detail.actions.download_file')}>
                               <IconButton color="secondary" component="a" href={sub.fileUrl} download>
                                 <DownloadIcon />
                               </IconButton>
@@ -294,17 +297,17 @@ const AssignmentDetail = () => {
         {!isInstructor && (
           <Grid item xs={12} md={4}>
             <Paper sx={{ p: 3, borderRadius: 3, mb: 4 }}>
-              <Typography variant="h6" fontWeight="bold" gutterBottom>Nộp bài của bạn</Typography>
+              <Typography variant="h6" fontWeight="bold" gutterBottom>{t('assignment_detail.your_submission')}</Typography>
               <Divider sx={{ mb: 2 }} />
 
               <Box component="form" onSubmit={handleSubmission}>
                 {(assignment.submissionType === 'TEXT' || assignment.submissionType === 'MIXED') && (
                   <Box sx={{ mb: 2 }}>
-                    <Typography variant="subtitle2" gutterBottom>Nội dung văn bản</Typography>
+                    <Typography variant="subtitle2" gutterBottom>{t('assignment_detail.text_content')}</Typography>
                     <CKEditorWrapper
                       value={submissionText}
                       onChange={setSubmissionText}
-                      placeholder="Nhập câu trả lời của bạn..."
+                      placeholder={t('assignment_detail.enter_answer')}
                       minHeight="200px"
                     />
                   </Box>
@@ -312,7 +315,7 @@ const AssignmentDetail = () => {
 
                 {(assignment.submissionType === 'FILE' || assignment.submissionType === 'MIXED') && (
                   <Box sx={{ mb: 3 }}>
-                    <Typography variant="subtitle2" gutterBottom>Tệp đính kèm ({assignment.allowedFileTypes})</Typography>
+                    <Typography variant="subtitle2" gutterBottom>{t('assignment_detail.attachments')} ({assignment.allowedFileTypes})</Typography>
                     <Button
                       variant="outlined"
                       component="label"
@@ -320,12 +323,12 @@ const AssignmentDetail = () => {
                       startIcon={<UploadIcon />}
                       sx={{ py: 2, borderStyle: 'dashed' }}
                     >
-                      {selectedFile ? selectedFile.name : 'Chọn tệp nộp'}
+                      {selectedFile ? selectedFile.name : t('assignment_detail.choose_file')}
                       <input type="file" hidden onChange={handleFileChange} accept={assignment.allowedFileTypes} />
                     </Button>
                     {selectedFile && (
                       <Typography variant="caption" color="textSecondary" sx={{ mt: 1, display: 'block' }}>
-                        Dung lượng: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                        {t('assignment_detail.file_size')}: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                       </Typography>
                     )}
                   </Box>
@@ -339,7 +342,7 @@ const AssignmentDetail = () => {
                   disabled={submitting || (assignment.submissionType === 'FILE' && !selectedFile && !editingSubmission)}
                   startIcon={submitting ? <CircularProgress size={20} color="inherit" /> : <CheckCircleIcon />}
                 >
-                  {submitting ? 'Đang nộp...' : (editingSubmission ? 'Cập nhật bài nộp' : 'Bắt đầu nộp bài')}
+                  {submitting ? t('assignment_detail.submitting') : (editingSubmission ? t('assignment_detail.update_btn') : t('assignment_detail.submit_btn'))}
                 </Button>
                 {editingSubmission && (
                   <Button 
@@ -351,36 +354,35 @@ const AssignmentDetail = () => {
                       setSelectedFile(null);
                     }}
                   >
-                    Hủy sửa
+                    {t('common.cancel')}
                   </Button>
                 )}
               </Box>
             </Paper>
 
-            <Typography variant="h6" fontWeight="bold" gutterBottom>Lịch sử nộp bài</Typography>
+            <Typography variant="h6" fontWeight="bold" gutterBottom>{t('assignment_detail.submission_history')}</Typography>
             {mySubmissions.map((sub, idx) => (
               <Paper key={sub.id} sx={{ p: 2, borderRadius: 2, mb: 2, borderLeft: '4px solid', borderColor: sub.gradeStatus === 'GRADED' ? 'success.main' : 'warning.main' }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                  <Typography variant="subtitle2" fontWeight="bold">Lần nộp {sub.attemptNumber}</Typography>
-                  <Typography variant="caption" color="textSecondary">{format(new Date(sub.submittedAt), 'HH:mm dd/MM/yyyy')}</Typography>
+                  <Typography variant="subtitle2" fontWeight="bold">{t('assignment_detail.attempt_no', { count: sub.attemptNumber })}</Typography>
+                  <Typography variant="caption" color="textSecondary">{format(new Date(sub.submittedAt), 'HH:mm dd/MM/yyyy', { locale: currentLocale })}</Typography>
                 </Box>
-                {sub.isLate && <Chip label="Nộp muộn" color="error" size="small" sx={{ mb: 1 }} />}
+                {sub.isLate && <Chip label={t('assignment_detail.late')} color="error" size="small" sx={{ mb: 1 }} />}
                 {sub.gradeStatus === 'GRADED' ? (
                   <Box sx={{ mt: 1, p: 1, bgcolor: 'success.light', color: 'success.contrastText', borderRadius: 1 }}>
-                    <Typography variant="subtitle2">Điểm: {sub.score}/{assignment.maxScore}</Typography>
-                    <Typography variant="caption" sx={{ display: 'block' }}>Góp ý: {sub.feedback}</Typography>
+                    <Typography variant="subtitle2">{t('assignment_detail.score')}: {sub.score}/{assignment.maxScore}</Typography>
+                    <Typography variant="caption" sx={{ display: 'block' }}>{t('assignment_detail.feedback')}: {sub.feedback}</Typography>
                   </Box>
                 ) : (
                     <Box sx={{ mt: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Typography variant="caption" color="textSecondary italic">Đang chờ chấm điểm...</Typography>
+                      <Typography variant="caption" color="textSecondary italic">{t('assignment_detail.awaiting_grade')}</Typography>
                       <Box>
-                        <Button size="small" onClick={() => startEditSubmission(sub)}>Sửa</Button>
-                        <Button size="small" color="error" onClick={() => setConfirmCancel(sub.id)}>Hủy</Button>
+                        <Button size="small" onClick={() => startEditSubmission(sub)}>{t('common.edit')}</Button>
+                        <Button size="small" color="error" onClick={() => setConfirmCancel(sub.id)}>{t('common.delete')}</Button>
                       </Box>
                     </Box>
                   )}
 
-                  {/* Added submission content preview for student */}
                   <Box sx={{ mt: 2, p: 1.5, bgcolor: 'grey.50', borderRadius: 1, border: '1px solid', borderColor: 'grey.200' }}>
                     {sub.textContent && (
                       <Box 
@@ -409,15 +411,15 @@ const AssignmentDetail = () => {
 
       {/* Grading Dialog */}
       <Dialog open={!!gradingSubmission} onClose={() => setGradingSubmission(null)} fullWidth maxWidth="sm">
-        <DialogTitle sx={{ fontWeight: 'bold' }}>Chấm điểm bài nộp</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 'bold' }}>{t('assignment_detail.grading_title')}</DialogTitle>
         <DialogContent dividers>
           {gradingSubmission && (
             <Box>
               <Typography variant="subtitle1" fontWeight="bold">{gradingSubmission.studentName}</Typography>
-              <Typography variant="body2" color="textSecondary" gutterBottom>Lần nộp: {gradingSubmission.attemptNumber} | {gradingSubmission.isLate ? 'NỘP MUỘN' : 'Đúng hạn'}</Typography>
+              <Typography variant="body2" color="textSecondary" gutterBottom>{t('assignment_detail.attempt_no', { count: gradingSubmission.attemptNumber })} | {gradingSubmission.isLate ? t('assignment_detail.late').toUpperCase() : t('assignment_detail.on_time')}</Typography>
 
               <Box sx={{ my: 3, p: 2, bgcolor: 'grey.100', borderRadius: 2 }}>
-                <Typography variant="subtitle2" gutterBottom>Nội dung sinh viên nộp:</Typography>
+                <Typography variant="subtitle2" gutterBottom>{t('assignment_detail.student_submission')}:</Typography>
                 {gradingSubmission.textContent && (
                   <Box 
                     sx={{ mb: 2, color: 'text.primary' }} 
@@ -441,7 +443,7 @@ const AssignmentDetail = () => {
               <Grid container spacing={2}>
                 <Grid item xs={12}>
                   <TextField
-                    label="Điểm"
+                    label={t('assignment_detail.score_label')}
                     type="number"
                     fullWidth
                     value={gradeData.score}
@@ -451,7 +453,7 @@ const AssignmentDetail = () => {
                 </Grid>
                 <Grid item xs={12}>
                   <TextField
-                    label="Nhận xét / Góp ý"
+                    label={t('assignment_detail.feedback_label')}
                     fullWidth
                     multiline
                     rows={4}
@@ -464,27 +466,27 @@ const AssignmentDetail = () => {
           )}
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setGradingSubmission(null)}>Hủy</Button>
+          <Button onClick={() => setGradingSubmission(null)}>{t('common.cancel')}</Button>
           <Button
             variant="contained"
             onClick={handleGrade}
             disabled={grading}
             startIcon={grading && <CircularProgress size={20} />}
           >
-            Lưu điểm
+            {t('common.save')}
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* Confirm Deletion Dialog */}
       <Dialog open={!!confirmCancel} onClose={() => setConfirmCancel(null)}>
-        <DialogTitle>Xác nhận hủy nộp bài</DialogTitle>
+        <DialogTitle>{t('assignment_detail.cancel_dialog_title')}</DialogTitle>
         <DialogContent>
-          <Typography>Bạn có chắc chắn muốn hủy bài nộp này? Hành động này không thể hoàn tác.</Typography>
+          <Typography>{t('assignment_detail.cancel_confirm_message')}</Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setConfirmCancel(null)}>Đóng</Button>
-          <Button variant="contained" color="error" onClick={handleCancelSubmission}>Xác nhận hủy</Button>
+          <Button onClick={() => setConfirmCancel(null)}>{t('common.close')}</Button>
+          <Button variant="contained" color="error" onClick={handleCancelSubmission}>{t('common.confirm')}</Button>
         </DialogActions>
       </Dialog>
     </Box>

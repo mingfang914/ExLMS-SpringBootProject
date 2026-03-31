@@ -1,0 +1,785 @@
+{
+  "common": {
+    "search": "Tìm kiếm...",
+    "save": "Lưu",
+    "save_changes": "Lưu thay đổi",
+    "cancel": "Hủy",
+    "edit": "Chỉnh sửa",
+    "delete": "Xóa",
+    "actions": "Hành động",
+    "loading": "Đang tải...",
+    "no_data": "Không có dữ liệu",
+    "view_all": "Xem tất cả",
+    "retry": "Thử lại",
+    "success": "Thành công",
+    "error": "Lỗi",
+    "student": "Sinh viên",
+    "administrator": "Quản trị viên",
+    "instructor": "Giảng viên",
+    "change_language": "Đổi ngôn ngữ",
+    "language": "Ngôn ngữ",
+    "this_week": "tuần này",
+    "today": "Hôm nay",
+    "tomorrow": "Ngày mai",
+    "next": "Tiếp theo",
+    "confirm": "Xác nhận",
+    "back": "Quay lại",
+    "create": "Tạo mới",
+    "details": "Chi tiết",
+    "close": "Đóng",
+    "confirm_delete": "Bạn có chắc chắn muốn xóa không?",
+    "language_vi": "Tiếng Việt",
+    "language_en": "Tiếng Anh",
+    "copy": "Chép mã"
+  },
+  "nav": {
+    "dashboard": "Bảng điều khiển",
+    "groups": "Nhóm học tập",
+    "courses": "Khóa học",
+    "assignments": "Bài tập",
+    "forum": "Diễn đàn",
+    "calendar": "Lịch biểu",
+    "notifications": "Thông báo",
+    "profile": "Hồ sơ cá nhân",
+    "admin": "Quản trị",
+    "users": "Người dùng",
+    "logout": "Đăng xuất",
+    "sections": {
+      "main": "DANH MỤC CHÍNH",
+      "community": "CỘNG ĐỒNG",
+      "admin": "QUẢN TRỊ VIÊN"
+    }
+  },
+  "auth": {
+    "signin": "Đăng nhập",
+    "signup": "Đăng ký",
+    "email": "Địa chỉ Email",
+    "password": "Mật khẩu",
+    "forgot_password": "Quên mật khẩu?",
+    "no_account": "Chưa có tài khoản?",
+    "has_account": "Đã có tài khoản?",
+    "create_account": "Tạo tài khoản mới",
+    "fullname": "Họ và tên",
+    "confirm_password": "Xác nhận mật khẩu",
+    "terms": "Điều khoản dịch vụ",
+    "signin_title": "Chào mừng trở lại",
+    "signin_subtitle": "Đăng nhập để tiếp tục hành trình học tập của bạn",
+    "signup_title": "Tạo tài khoản",
+    "signup_subtitle": "Bắt đầu hành trình học tập cùng ExLMS",
+    "i_am_a": "Tôi là",
+    "instructor": "Giảng viên",
+    "password_hint": "Tối thiểu 6 ký tự",
+    "repeat_password": "Nhập lại mật khẩu",
+    "already_has_account": "Đã có tài khoản?",
+    "signin_instead": "Đăng nhập ngay",
+    "agreement": "Bằng cách tiếp tục, bạn đồng ý với",
+    "privacy": "Chính sách bảo mật",
+    "and": "và",
+    "placeholder_password": "Nhập mật khẩu của bạn",
+    "placeholder_password_hint": "Tối thiểu 6 ký tự",
+    "placeholder_repeat_password": "Nhập lại mật khẩu để xác nhận",
+    "account_created": "Tài khoản đã được tạo! Vui lòng đăng nhập.",
+    "passwords_not_match": "Mật khẩu xác nhận không khớp.",
+    "password_too_short": "Mật khẩu phải có ít nhất 6 ký tự.",
+    "registration_failed": "Đăng ký thất bại. Vui lòng thử lại.",
+    "login_failed": "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin."
+  },
+  "landing": {
+    "hero_title": "Nâng tầm trải nghiệm học tập & Gặp gỡ trực tuyến",
+    "hero_subtitle": "Giải pháp học thuật chuyên nghiệp dành cho sinh viên và học viên hiện đại.",
+    "get_started": "Khám phá ngay",
+    "explore": "Tính Năng Nổi Bật",
+    "features": {
+      "courses": {
+        "title": "Học tập & Bài giảng",
+        "description": "Hệ thống quản lý khóa học, chương và bài học chi tiết, theo dõi tiến độ học tập thông minh."
+      },
+      "meetings": {
+        "title": "Họp Trực tuyến",
+        "description": "Phòng họp video HD tích hợp sẵn, hỗ trợ học tập và thảo luận nhóm thời gian thực."
+      },
+      "groups": {
+        "title": "Nhóm học tập",
+        "description": "Không gian cộng tác riêng tư cho từng nhóm, chia sẻ tài liệu và feed tin tức nội bộ."
+      },
+      "quizzes": {
+        "title": "Kiểm tra & Quiz",
+        "description": "Tạo và làm các bài kiểm tra trắc nghiệm, nhận kết quả và đánh giá trình độ tức thì."
+      },
+      "forum": {
+        "title": "Diễn đàn Thảo luận",
+        "description": "Cộng đồng học thuật năng động, nơi đặt câu hỏi và giải đáp thắc mắc cùng giảng viên."
+      },
+      "calendar": {
+        "title": "Lịch & Nhắc nhở",
+        "description": "Quản lý thời gian biểu khoa học, nhận thông báo đẩy cho các sự kiện học tập quan trọng."
+      }
+    },
+    "about_title": "Về Dự Án ExLMS",
+    "about_subtitle": "ExLMS (Extended Learning Management System) là nền tảng quản lý học tập thế hệ mới. Với sứ mệnh xóa nhòa khoảng cách giữa sinh viên và kiến thức thông qua các công cụ cộng tác nhóm hiện đại.",
+    "about_description": "Tất cả trong một: Từ Video Meeting, Quản lý tài liệu đến Hệ thống thi cử trực tuyến đều được tích hợp trong một giao diện duy nhất, tinh gọn và dễ sử dụng.",
+    "copyright": "© {{year}} ExLMS - Nâng tầm tri thức. Phát triển bởi Astatine."
+  },
+  "dashboard": {
+    "welcome": "Chào mừng trở lại,",
+    "morning": "Chào buổi sáng",
+    "afternoon": "Chào buổi chiều",
+    "evening": "Chào buổi tối",
+    "description": "Bạn có 4 thông báo mới và 2 bài tập cần hoàn thành.",
+    "learning_hours": "Giờ học tập",
+    "this_week": "Tuần này",
+    "continue_learning": "Tiếp tục học tập",
+    "recent_activity": "Hoạt động gần đây",
+    "upcoming_meetings": "Các cuộc họp sắp tới",
+    "stats": {
+      "groups": "Nhóm tham gia",
+      "courses": "Khóa học",
+      "assignments": "Bài tập",
+      "meetings": "Cuộc họp"
+    },
+    "hero_desc": "Hôm nay bạn muốn học gì?",
+    "total_learning_time": "Tổng cộng: {{count}}h",
+    "completion_status": "Đã hoàn thành {{completed}} / {{total}} bài học",
+    "continue_learning_btn": "Tiếp tục học ngay",
+    "view_all": "Xem tất cả",
+    "activities": {
+      "new_assignment": "Bài tập mới đã được giao trong nhóm của bạn.",
+      "course_updated": "Nội dung khóa học React JS vừa được cập nhật.",
+      "new_replies": "Có 3 phản hồi mới trong bài viết của bạn."
+    }
+  },
+  "header": {
+    "search": "Tìm kiếm...",
+    "notifications": "Thông báo",
+    "mark_all": "Đánh dấu tất cả",
+    "all_caught_up": "Đã xem hết!",
+    "view_all_notifs": "Xem tất cả thông báo",
+    "account": "Tài khoản",
+    "settings": "Cài đặt",
+    "mark_as_read": "Đánh dấu đã đọc"
+  },
+  "profile": {
+    "title": "Hồ sơ của tôi",
+    "subtitle": "Quản lý thông tin cá nhân và cài đặt tài khoản",
+    "full_name": "Họ và Tên",
+    "full_name_placeholder": "Nhập họ tên của bạn",
+    "email": "Email",
+    "email_hint": "Email không thể thay đổi",
+    "bio": "Tiểu sử (Bio)",
+    "bio_placeholder": "Chia sẻ một chút về bản thân, sở thích và những gì bạn đang học...",
+    "bio_limit": "{{count}} / 300 ký tự",
+    "save_changes": "Lưu Thay Đổi",
+    "update_success": "Cập nhật hồ sơ thành công!",
+    "update_failed": "Không thể lưu hồ sơ.",
+    "avatar_upload": "Tải ảnh đại diện mới",
+    "avatar_hint": "JPG, PNG hoặc GIF · Tối đa 1MB",
+    "completion": "Hoàn thiện hồ sơ",
+    "completion_full_name": "Đã thêm họ tên",
+    "completion_bio": "Đã viết giới thiệu",
+    "completion_avatar": "Đã tải ảnh đại diện",
+    "personal_info": "Thông tin cá nhân"
+  },
+  "groups": {
+    "title": "Nhóm học tập",
+    "subtitle": " Kết nối, cộng tác và cùng nhau học tập",
+    "refresh": "Làm mới",
+    "join_by_code": "Tham gia bằng mã",
+    "create_group": "Tạo nhóm",
+    "search_placeholder": "Tìm kiếm theo tên hoặc danh mục...",
+    "tabs": {
+      "all": "Tất cả nhóm",
+      "mine": "Nhóm của tôi"
+    },
+    "count": "{{count}} nhóm",
+    "no_matching": "Không tìm thấy nhóm phù hợp",
+    "no_groups": "Chưa có nhóm nào",
+    "search_no_results": "Không có nhóm nào khớp với \"{{searchTerm}}\". Thử tìm kiếm khác.",
+    "be_first": "Hãy là người đầu tiên tạo nhóm học tập!",
+    "clear_search": "Xóa tìm kiếm",
+    "invite": {
+      "dialog_title": "Tham gia bằng mã mời",
+      "dialog_desc": "Nhập mã mời được quản trị viên chia sẻ để tham gia ngay lập tức.",
+      "input_placeholder": "Ví dụ: ABC123",
+      "join_btn": "Tham gia nhóm"
+    },
+    "errors": {
+      "fetch_failed": "Không thể tải danh sách nhóm. Vui lòng thử lại sau.",
+      "join_failed": "Gửi yêu cầu tham gia thất bại.",
+      "invalid_code": "Mã mời không hợp lệ hoặc bạn đã tham gia nhóm này rồi."
+    },
+    "messages": {
+      "join_default": "Tôi muốn tham gia nhóm này.",
+      "join_sent": "Yêu cầu tham gia đã được gửi!",
+      "join_success": "Tham gia nhóm thành công!"
+    },
+    "create": {
+      "title": "Tạo Nhóm Học Tập",
+      "subtitle": "Nhóm là trung tâm của ExLMS — nơi chia sẻ khóa học, tổ chức họp và cùng nhau học tập.",
+      "back": "Quay lại danh sách nhóm",
+      "name_label": "Tên Nhóm",
+      "name_placeholder": "Ví dụ: Lập trình Java Nâng cao",
+      "desc_label": "Mô tả",
+      "desc_placeholder": "Mô tả về nhóm, mục tiêu và đối tượng tham gia...",
+      "visibility_label": "Chế độ hiển thị",
+      "public_title": "Công khai",
+      "public_desc": "Bất kỳ ai cũng có thể tìm thấy và yêu cầu tham gia",
+      "private_title": "Riêng tư",
+      "private_desc": "Chỉ tham gia qua mã mời",
+      "category_label": "Danh mục / Chủ đề",
+      "category_placeholder": "Chọn một danh mục",
+      "cover_label": "Ảnh bìa",
+      "upload_btn": "Tải ảnh bìa",
+      "upload_success": "✓ Đã tải ảnh bìa thành công",
+      "error_name_required": "Vui lòng nhập tên nhóm.",
+      "error_failed": "Tạo nhóm thất bại. Vui lòng thử lại."
+    }
+  },
+  "group_card": {
+    "public": "Công khai",
+    "private": "Riêng tư",
+    "no_desc": "Không có mô tả.",
+    "members_count": "{{count}} thành viên",
+    "by_owner": "bởi {{owner}}",
+    "view": "Xem",
+    "join": "Tham gia"
+  },
+  "group_detail": {
+    "tabs": {
+      "overview": "Tổng quan",
+      "courses": "Khóa học",
+      "assignments": "Bài tập",
+      "meetings": "Cuộc họp",
+      "feed": "Bản tin",
+      "members": "Thành viên"
+    },
+    "owner": "Quản trị viên",
+    "founder": "Người sáng lập",
+    "details": "Chi tiết nhóm",
+    "visibility": "Chế độ hiển thị",
+    "created": "Ngày tạo",
+    "recently": "Gần đây",
+    "language": "Ngôn ngữ",
+    "manage": "Quản lý",
+    "share": "Chia sẻ nhóm",
+    "invite_dialog": {
+      "title": "Mời thành viên mới",
+      "desc": "Gửi mã mời này cho bạn bè hoặc học viên để họ tham gia nhóm.",
+      "copy": "Chép Mã",
+      "close": "Đóng",
+      "copied": "Đã chép mã!"
+    },
+    "danger_zone": {
+      "title": "Khu vực nguy hiểm (Xóa nhóm)",
+      "desc": "Để xác nhận xóa, vui lòng nhập chính xác tên nhóm: ",
+      "delete_btn": "XÓA NHÓM NÀY VĨNH VIỄN"
+    },
+    "meetings": {
+      "title": "Lịch họp trực tuyến",
+      "schedule": "Lên lịch họp",
+      "no_meetings": "Chưa có lịch họp nào.",
+      "live": "TRỰC TIẾP",
+      "view_report": "Xem báo cáo",
+      "join": "Tham gia",
+      "edit": "Chỉnh sửa lịch họp",
+      "delete": "Xóa lịch họp",
+      "update_success": "Đã cập nhật lịch họp thành công!",
+      "update_failed": "Cập nhật lịch họp thất bại!",
+      "delete_confirm": "Bạn có chắc chắn muốn xóa buổi họp này?",
+      "delete_success": "Đã xóa buổi họp thành công!",
+      "delete_failed": "Xóa buổi họp thất bại!",
+      "schedule_success": "Đã lên lịch họp thành công!",
+      "schedule_failed": "Lên lịch họp thất bại!",
+      "description": "Mô tả",
+      "start_time": "Thời gian bắt đầu",
+      "duration": "Thời lượng (phút)"
+    },
+    "actions": {
+      "create_course": "Tạo khóa học",
+      "learn_now": "Học ngay",
+      "view_all": "Xem tất cả",
+      "details": "Chi tiết",
+      "see_all_assignments": "Xem tất cả {{count}} bài tập"
+    },
+    "messages": {
+      "update_success": "Cập nhật thông tin thành công!"
+    },
+    "errors": {
+      "update_failed": "Cập nhật thất bại!"
+    }
+  },
+  "course_editor": {
+    "title_edit": "Chỉnh sửa khóa học",
+    "title_new": "Tạo khóa học mới",
+    "create_subtitle": "Thêm một khóa học mới vào nhóm học tập để bắt đầu giảng dạy.",
+    "course_info": "Thông tin khóa học",
+    "course_name_label": "Tên khóa học *",
+    "course_name_placeholder": "Ví dụ: Nhập môn Spring Boot",
+    "course_desc_label": "Mô tả",
+    "course_desc_placeholder": "Mô tả những gì sinh viên sẽ được học...",
+    "thumbnail_label": "Ảnh minh họa khóa học",
+    "select_thumbnail": "Chọn ảnh minh họa",
+    "start_date_label": "Ngày bắt đầu",
+    "end_date_label": "Ngày kết thúc",
+    "status_label": "Trạng thái",
+    "status": {
+      "draft": "Nháp",
+      "published": "Công khai",
+      "archived": "Lưu trữ"
+    },
+    "status_draft_hint": "Bản nháp (Chỉ bạn mới có thể thấy)",
+    "status_published_hint": "Công khai (Dành cho tất cả thành viên)",
+    "save_course": "Lưu khóa học",
+    "creating": "Đang tạo...",
+    "chapter_list": "Danh sách chương ({{count}})",
+    "add_chapter": "Thêm chương",
+    "chapter_new_title": "Chương mới",
+    "chapter_name_label": "Tên chương",
+    "lessons_in_chapter": "Bài học trong chương",
+    "lesson_new_title": "Bài học mới",
+    "lesson_name_label": "Tên bài học",
+    "add_lesson": "Thêm bài học",
+    "add_quiz": "Tạo Bài Kiểm Tra",
+    "quiz_label": "Bài kiểm tra",
+    "quiz_desc": "{{time}} • {{count}} lần làm",
+    "no_limit": "Không giới hạn",
+    "seconds": "giây",
+    "no_content": "Chưa có nội dung nào. Hãy bắt đầu bằng cách thêm chương hoặc bài kiểm tra đầu tiên!",
+    "loading_editor": "Đang tải bộ soạn thảo...",
+    "editor_placeholder": "Nhập nội dung bài học (Hỗ trợ định dạng, Video, Ảnh)...",
+    "messages": {
+      "course_saved": "Đã lưu khóa học thành công!",
+      "chapter_deleted": "Đã xóa chương thành công!",
+      "chapter_saved": "Đã lưu chương thành công!",
+      "lesson_deleted": "Đã xóa bài học thành công!",
+      "lesson_saved": "Đã lưu bài học thành công!",
+      "save_course_before_chapter": "Vui lòng lưu khóa học trước khi thêm chương!"
+    },
+    "errors": {
+      "save_course_failed": "Lỗi khi lưu khóa học",
+      "create_chapter_failed": "Lỗi khi tạo chương",
+      "delete_chapter_failed": "Lỗi khi xóa chương",
+      "save_chapter_failed": "Lỗi khi lưu chương",
+      "create_lesson_failed": "Lỗi khi tạo bài học",
+      "delete_lesson_failed": "Lỗi khi xóa bài học",
+      "save_lesson_failed": "Lỗi khi lưu bài học"
+    }
+  },
+  "group_course_detail": {
+    "enroll_success": "Đăng ký khóa học thành công!",
+    "enroll_failed": "Không thể đăng ký khóa học.",
+    "enroll_btn": "Đăng ký học",
+    "mark_complete_btn": "Hoàn thành",
+    "mark_complete_failed": "Lỗi khi đánh dấu hoàn thành bài học.",
+    "download_file": "Tải xuống tệp",
+    "no_content": "Không có nội dung.",
+    "not_found": "Không tìm thấy khóa học.",
+    "progress": "Tiến độ: {{percent}}%",
+    "take_quiz": "Bắt đầu làm bài →",
+    "quiz_requirement": "Bạn cần <strong>đăng ký khóa học</strong> để tham gia bài kiểm tra này.",
+    "enroll_to_take": "Đăng ký học ngay",
+    "chapter_title": "Chương {{idx}}: {{title}}",
+    "lessons_list_placeholder": "Chọn một bài học từ danh sách bên trái để bắt đầu học"
+  },
+  "forum": {
+    "title": "Diễn đàn cộng đồng",
+    "subtitle": "Đặt câu hỏi, chia sẻ ý tưởng, giúp đỡ lẫn nhau",
+    "new_post": "Bài viết mới",
+    "placeholder_search": "Tìm bài viết theo tiêu đề hoặc nội dung...",
+    "filtered_by": "Lọc bởi:",
+    "no_posts_found": "Không tìm thấy bài viết",
+    "no_posts_desc": "Hãy là người đầu tiên bắt đầu thảo luận!",
+    "views": "lượt xem",
+    "browse_tags": "Tìm theo thẻ",
+    "guidelines_title": "Quy tắc cộng đồng",
+    "accepted": "Đã chấp nhận",
+    "reply": "Trả lời",
+    "accept": "Chấp nhận",
+    "comments": "Bình luận",
+    "replying_to": "Đang trả lời",
+    "placeholder_comment": "Chia sẻ ý kiến của bạn...",
+    "send_comment": "Gửi bình luận",
+    "no_comments_yet": "Chưa có bình luận nào. Hãy là người đầu tiên!",
+    "delete_post": "Xóa bài viết",
+    "confirm_delete": "Bạn có chắc chắn muốn xóa bài viết này?",
+    "guidelines": {
+      "rule1": "Tôn trọng và giúp đỡ lẫn nhau",
+      "rule2": "Không spam hoặc quảng cáo trái phép",
+      "rule3": "Sử dụng tag chính xác để dễ tìm kiếm",
+      "rule4": "Thảo luận mang tính xây dựng và liên quan"
+    },
+    "back_to_forum": "Quay lại Diễn đàn",
+    "new_discussion": "Bài Thảo Luận Mới",
+    "edit_post": "Chỉnh Sửa Bài Viết",
+    "create_subtitle": "Đặt câu hỏi hoặc chia sẻ kiến thức với cộng đồng",
+    "edit_subtitle": "Cập nhật nội dung bài viết và các thẻ",
+    "post_title_label": "Tiêu Đề Bài Viết *",
+    "post_title_placeholder": "Ví dụ: Làm thế nào để cấu hình Spring Security với JWT?",
+    "tags_label": "Thẻ (Tags)",
+    "tags_hint": "Nhấn Enter hoặc dấu phẩy để thêm (tối đa 5)",
+    "tags_placeholder": "java, spring-boot, security…",
+    "tags_max_reached": "Đã đạt giới hạn 5 thẻ",
+    "post_content_label": "Nội Dung Bài Viết *",
+    "post_content_placeholder": "Viết câu hỏi hoặc nội dung thảo luận chi tiết của bạn...",
+    "publish_post": "Đăng Bài Viết",
+    "errors": {
+      "load_failed": "Không thể tải danh sách bài viết",
+      "load_post_failed": "Không thể tải bài viết.",
+      "post_not_found": "Bài viết không tồn tại.",
+      "title_content_required": "Vui lòng nhập tiêu đề và nội dung.",
+      "save_failed": "Có lỗi xảy ra khi lưu bài viết."
+    }
+  },
+  "calendar": {
+    "title": "Lịch biểu",
+    "subtitle": "Quản lý lịch học, bài tập và các cuộc họp.",
+    "event_types": {
+      "meeting": "Cuộc họp",
+      "assignment": "Hạn bài tập",
+      "quiz": "Bài kiểm tra",
+      "course_start": "Bắt đầu khóa học",
+      "course_end": "Kết thúc khóa học",
+      "course_session": "Buổi học",
+      "personal": "Cá nhân",
+      "system": "Hệ thống",
+      "group_event": "Sự kiện nhóm"
+    },
+    "sync_text": "Đồng bộ",
+    "syncing_text": "Đang đồng bộ...",
+    "sync_desc": "Đồng bộ tất cả bài tập vào lịch",
+    "views": {
+      "month": "Tháng",
+      "week": "Tuần",
+      "day": "Ngày",
+      "list": "Danh sách"
+    },
+    "event_dialog": {
+      "time_details": "Chi tiết thời gian",
+      "starts": "Bắt đầu",
+      "ends": "Kết thúc",
+      "goto_event": "Đi tới sự kiện"
+    }
+  },
+  "course_detail": {
+    "content": "Nội dung khóa học",
+    "lessons_count": "{{count}} / {{total}} bài học",
+    "quiz_ready": "Sẵn sàng kiểm tra kiến thức của bạn?",
+    "start_quiz": "Bắt đầu Quiz",
+    "video_content": "Nội dung Video",
+    "doc_content": "Nội dung tài liệu",
+    "select_to_begin": "Chọn một bài học để bắt đầu",
+    "focus_mode": "Chế độ tập trung",
+    "no_desc": "Không có mô tả cho bài học này.",
+    "errors": {
+      "load_failed": "Không thể tải dữ liệu khóa học."
+    }
+  },
+  "assignments": {
+    "due": "Hạn",
+    "type": "Loại",
+    "type_file": "Nộp tệp",
+    "type_text": "Văn bản",
+    "max_score": "Điểm tối đa",
+    "status": {
+      "closed": "Đã đóng",
+      "draft": "Nháp",
+      "expired": "Hết hạn",
+      "open": "Đang mở"
+    },
+    "no_assignments_instructor": "Chưa có bài tập nào. Hãy tạo bài tập đầu tiên!",
+    "no_assignments_student": "Hiện chưa có bài tập nào được giao.",
+    "actions": {
+      "grade": "Xem & Chấm điểm"
+    },
+    "errors": {
+      "fetch_failed": "Không thể tải danh sách bài tập",
+      "load_failed": "Không thể tải chi tiết bài tập",
+      "not_found": "Không tìm thấy thông tin bài tập"
+    }
+  },
+  "assignment_detail": {
+    "allow_late": "Cho phép nộp muộn",
+    "penalty": "Trừ",
+    "export_excel": "Xuất Excel",
+    "instructions": "Hướng dẫn",
+    "submission_list": "Danh sách nộp bài",
+    "student": "Sinh viên",
+    "submitted_at": "Thời gian nộp",
+    "attempt": "Lần nộp",
+    "attempt_no": "Lần nộp {{count}}",
+    "status": "Trạng thái",
+    "score": "Điểm",
+    "late": "Nộp muộn",
+    "on_time": "Đúng hạn",
+    "graded": "Đã chấm",
+    "awaiting_grade": "Đang chờ chấm điểm",
+    "your_submission": "Nộp bài của bạn",
+    "text_content": "Nội dung văn bản",
+    "enter_answer": "Nhập câu trả lời của bạn...",
+    "attachments": "Tệp đính kèm",
+    "choose_file": "Chọn tệp nộp",
+    "file_size": "Dung lượng",
+    "submitting": "Đang nộp...",
+    "update_btn": "Cập nhật bài nộp",
+    "submit_btn": "Bắt đầu nộp bài",
+    "submission_history": "Lịch sử nộp bài",
+    "feedback": "Góp ý",
+    "grading_title": "Chấm điểm bài nộp",
+    "student_submission": "Nội dung sinh viên nộp",
+    "score_label": "Điểm",
+    "feedback_label": "Nhận xét / Góp ý",
+    "cancel_dialog_title": "Xác nhận hủy nộp bài",
+    "cancel_confirm_message": "Bạn có chắc chắn muốn hủy bài nộp này? Hành động này không thể hoàn tác.",
+    "actions": {
+      "grade": "Chấm điểm",
+      "download_file": "Tải tệp nộp"
+    },
+    "messages": {
+      "update_success": "Cập nhật bài nộp thành công!",
+      "submit_success": "Nộp bài thành công!",
+      "cancel_success": "Đã hủy nộp bài!",
+      "grade_success": "Đã lưu điểm thành công!"
+    },
+    "errors": {
+      "submit_failed": "Lỗi khi nộp bài",
+      "cancel_failed": "Không thể hủy bài nộp",
+      "grade_failed": "Lỗi khi chấm điểm",
+      "export_failed": "Lỗi khi xuất tệp Excel"
+    },
+    "both": "Cả hai"
+  },
+  "assignment_form": {
+    "title_new": "Tạo bài tập mới",
+    "title_edit": "Chỉnh sửa bài tập",
+    "title_label": "Tiêu đề bài tập",
+    "desc_placeholder": "Nhập hướng dẫn chi tiết cho bài tập...",
+    "assigned_at_label": "Ngày giao bài",
+    "advanced_config": "Cấu hình nâng cao",
+    "file_types_label": "Định dạng cho phép",
+    "max_file_size_label": "Dung lượng tối đa (MB)",
+    "penalty_label": "Phần trăm trừ điểm (nộp muộn)",
+    "saving": "Đang lưu...",
+    "example": "Ví dụ",
+    "errors": {
+      "load_failed": "Không thể tải thông tin bài tập",
+      "invalid_dates": "Hạn nộp phải sau ngày giao bài",
+      "save_failed": "Có lỗi xảy ra khi lưu bài tập"
+    },
+    "messages": {
+      "update_success": "Cập nhật bài tập thành công!",
+      "create_success": "Tạo bài tập thành công!"
+    }
+  },
+  "admin": {
+    "dashboard_title": "Bảng quản trị",
+    "dashboard_subtitle": "Tổng quan hệ thống và các công cụ quản lý",
+    "manage": "Quản lý",
+    "quick_actions": "Thao tác nhanh",
+    "stats": {
+      "total_users": "Người dùng",
+      "total_groups": "Nhóm học tập",
+      "total_courses": "Khóa học",
+      "total_assignments": "Bài tập sắp tới"
+    },
+    "actions": {
+      "manage_users": "Quản lý người dùng"
+    },
+    "users": {
+      "title": "Quản lý người dùng",
+      "count": "{{count}} người dùng đã đăng ký",
+      "export_excel": "Xuất Excel",
+      "search_placeholder": "Tìm kiếm theo tên hoặc email...",
+      "table": {
+        "user": "Người dùng",
+        "email": "Email",
+        "role": "Vai trò",
+        "status": "Trạng thái",
+        "joined": "Ngày tham gia"
+      },
+      "roles": {
+        "admin": "Quản trị viên",
+        "instructor": "Giảng viên",
+        "student": "Học viên"
+      },
+      "status": {
+        "active": "Đang hoạt động",
+        "pending": "Chờ duyệt",
+        "suspended": "Đã khóa"
+      },
+      "actions": {
+        "activate": "Kích hoạt",
+        "suspend": "Khóa tài khoản",
+        "change_role": "Thay đổi vai trò"
+      },
+      "dialogs": {
+        "role_title": "Thay đổi vai trò người dùng",
+        "role_desc": "Chọn vai trò mới cho",
+        "status_title": "Xác nhận thay đổi trạng thái",
+        "status_desc1": "Bạn có chắc chắn muốn thay đổi trạng thái của",
+        "status_desc2": "thành"
+      },
+      "messages": {
+        "status_success": "Cập nhật trạng thái thành công!",
+        "role_success": "Cập nhật vai trò thành công!"
+      },
+      "errors": {
+        "load_failed": "Không thể tải danh sách người dùng",
+        "update_failed": "Cập nhật thất bại",
+        "export_failed": "Lỗi khi xuất tệp",
+        "no_users_found": "Không tìm thấy người dùng nào"
+      }
+    }
+  },
+  "notifications": {
+    "just_now": "vừa xong",
+    "mins_ago": "{{count}} phút trước",
+    "hrs_ago": "{{count}} giờ trước",
+    "days_ago": "{{count}} ngày trước"
+  },
+  "quizzes": {
+    "list_title": "Danh sách bài kiểm tra",
+    "create_title": "Tạo bài kiểm tra",
+    "edit_title": "Chỉnh sửa bài kiểm tra",
+    "create_btn": "Tạo bài kiểm tra",
+    "update_btn": "Cập nhật bài kiểm tra",
+    "take_quiz": "Làm bài",
+    "submit_btn": "Nộp Bài",
+    "question": "Câu",
+    "question_no": "Câu {{count}}",
+    "no_quizzes": "Không có bài kiểm tra nào.",
+    "no_limit": "Không giới hạn",
+    "config": "Cấu hình bài kiểm tra",
+    "title_label": "Tên bài kiểm tra *",
+    "desc_label": "Mô tả",
+    "time_limit_label": "Thời gian làm bài (giây, bỏ trống = không giới hạn)",
+    "max_attempts_label": "Số lần làm lại tối đa",
+    "passing_score_label": "Điểm qua môn (%)",
+    "shuffle_questions_label": "Xáo trộn thứ tự câu hỏi",
+    "visibility_label": "Hiển thị kết quả",
+    "visibility": {
+      "immediate": "Ngay sau khi nộp",
+      "after_deadline": "Sau hạn chót",
+      "manual": "Thủ công (Giảng viên mở)"
+    },
+    "add_question": "Thêm câu hỏi",
+    "question_content_label": "Nội dung câu hỏi *",
+    "question_type_label": "Loại câu hỏi",
+    "points_label": "Điểm",
+    "delete_question": "Xóa câu hỏi",
+    "answers_label": "Đáp án (chọn đáp án đúng bằng cách click ✓):",
+    "placeholder_answer": "Đáp án {{count}}",
+    "enter_question_placeholder": "Nhập nội dung câu hỏi...",
+    "add_answer": "Thêm đáp án",
+    "explanation_label": "Giải thích đáp án (hiển thị sau khi nộp)",
+    "types": {
+      "single": "Trắc nghiệm 1 đáp án",
+      "multiple": "Trắc nghiệm nhiều đáp án",
+      "true_false": "Đúng / Sai",
+      "fill_blank": "Điền vào chỗ trống",
+      "short_answer": "Tự luận ngắn",
+      "correct_answer": "Đáp án chuẩn",
+      "true": "Đúng",
+      "false": "Sai",
+      "enter_correct": "Nhập đáp án đúng..."
+    },
+    "short_answer_hint": "Câu tự luận ngắn — giảng viên chấm thủ công. Không cần nhập đáp án mẫu.",
+    "player": {
+      "points": "{{count}} điểm",
+      "current_question": "Câu {{current}} / {{total}}",
+      "answered": "Đã trả lời: {{answered}}/{{total}}",
+      "prev_btn": "Câu trước",
+      "next_btn": "Câu tiếp theo",
+      "submit_btn": "Nộp bài ({{answered}}/{{total}})",
+      "finish_btn": "Hoàn tất & Nộp",
+      "confirm_title": "Xác nhận nộp bài",
+      "confirm_desc": "Bạn đã trả lời <strong>{{count}}/{{total}}</strong> câu.",
+      "warning_unanswered": "Còn {{count}} câu chưa được trả lời. Sau khi nộp bạn không thể chỉnh sửa.",
+      "back_to_quiz": "Quay lại làm tiếp",
+      "confirm_submit_btn": "Xác nhận nộp bài",
+      "submitting": "Đang nộp...",
+      "no_questions": "Bài kiểm tra này chưa có câu hỏi nào.",
+      "start_failed": "Không thể bắt đầu bài kiểm tra.",
+      "fill_blank_placeholder": "Điền vào chỗ trống...",
+      "short_answer_placeholder": "Viết câu trả lời của bạn..."
+    },
+    "result": {
+      "title_passed": "Chúc mừng! Bạn đã đạt",
+      "title_failed": "Rất tiếc! Bạn chưa đạt",
+      "score_needed": "Điểm cần đạt: {{score}}%",
+      "details_title": "Chi tiết bài làm",
+      "question_no": "Câu {{count}}: {{content}}",
+      "your_answer": "Câu trả lời của bạn:",
+      "empty_answer": "(Bỏ trống)",
+      "explanation_title": "Giải thích:",
+      "back_to_course": "Quay lại khóa học",
+      "exit": "Thoát",
+      "not_found": "Không tìm thấy kết quả.",
+      "load_failed": "Không thể tải kết quả bài kiểm tra"
+    },
+    "stats": {
+      "breadcrumb_edit": "Chỉnh sửa",
+      "title": "Thống kê bài kiểm tra: {{title}}",
+      "total_attempts": "Tổng lượt làm bài",
+      "avg_score": "Điểm trung bình",
+      "pass_rate": "Tỷ lệ đạt",
+      "avg_time": "Thời gian TB",
+      "distribution_title": "Phân phối điểm",
+      "attempts_unit": "lượt",
+      "wrong_questions_title": "Câu hỏi hay sai nhất",
+      "wrong_unit": "{{count}} lượt sai ({{percent}}%)",
+      "updating": "Thông tin đang được cập nhật...",
+      "no_attempts": "Chưa có lượt làm bài nào.",
+      "load_failed": "Không thể tải thống kê bài kiểm tra."
+    },
+    "messages": {
+      "create_success": "Tạo bài kiểm tra thành công!",
+      "update_success": "Cập nhật bài kiểm tra thành công!",
+      "load_failed": "Lỗi tải dữ liệu bài kiểm tra",
+      "enter_title": "Vui lòng nhập tên bài kiểm tra",
+      "submit_failed": "Lỗi nộp bài"
+    },
+    "errors": {
+      "save_failed": "Lỗi {{action}} bài kiểm tra",
+      "create_action": "tạo",
+      "update_action": "cập nhật"
+    },
+    "table": {
+      "title": "Tiêu đề",
+      "time_limit": "Thời gian làm bài",
+      "passing_score": "Điểm qua môn",
+      "actions": "Hành động"
+    }
+  },
+  "meetings": {
+    "leave_room": "Rời phòng",
+    "live": "TRỰC TIẾP",
+    "end_meeting": "Kết thúc buổi họp",
+    "connecting": "Đang kết nối tới phòng họp...",
+    "ended_by_instructor": "Buổi họp đã kết thúc bởi giảng viên.",
+    "already_voted": "Bạn đã bình chọn rồi!",
+    "poll_form_error": "Vui lòng điền đầy đủ câu hỏi và các lựa chọn.",
+    "joined_at": "Vào lúc:",
+    "left": "Đã rời ({{count}} phút)",
+    "joining": "Đang tham gia",
+    "instructor_only_attendance": "Chỉ giảng viên có thể xem danh sách điểm danh chi tiết.",
+    "you": "Bạn",
+    "answered_by": "Trả lời bởi {{name}}:",
+    "answer": "Trả lời",
+    "no_questions": "Chưa có câu hỏi nào. Hãy đặt câu hỏi đầu tiên!",
+    "ask_question": "Đặt câu hỏi...",
+    "create_poll": "Tạo bình chọn mới",
+    "answer_question_dialog": "Trả lời câu hỏi",
+    "answer_label": "Câu trả lời",
+    "send_answer": "Gửi trả lời",
+    "create_poll_dialog": "Tạo bình chọn mới",
+    "poll_question_label": "Câu hỏi bình chọn",
+    "options_label": "Các lựa chọn:",
+    "option_placeholder": "Lựa chọn {{count}}",
+    "add_option": "Thêm lựa chọn",
+    "create_poll_btn": "Tạo bình chọn",
+    "tabs": {
+      "members": "Thành viên",
+      "qa": "Hỏi đáp",
+      "polls": "Bình chọn"
+    }
+  }
+}

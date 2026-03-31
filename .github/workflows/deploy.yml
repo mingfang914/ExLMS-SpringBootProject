@@ -29,5 +29,12 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             cd /home/ubuntu/ExLMS/ExLMS-SpringBootProject
+            
+            # Tạo file .env từ secrets
+            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" > .env
+            echo "MINIO_ROOT_USER=${{ secrets.MINIO_ROOT_USER }}" >> .env
+            echo "MINIO_ROOT_PASSWORD=${{ secrets.MINIO_ROOT_PASSWORD }}" >> .env
+            echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" >> .env
+            
             # Chỉ build lại backend và frontend, không đụng tới database để tránh mất dữ liệu
             docker compose up -d --build lms-backend lms-frontend

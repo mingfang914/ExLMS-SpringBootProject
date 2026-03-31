@@ -32,9 +32,11 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import forumService from '../../services/forumService'
 import { formatDistanceToNow } from 'date-fns'
-import { vi } from 'date-fns/locale'
+import { vi, enUS } from 'date-fns/locale'
+import { useTranslation } from 'react-i18next'
 
 const ForumPostDetail = () => {
+  const { t, i18n } = useTranslation()
   const { id } = useParams()
   const navigate = useNavigate()
   const { user } = useSelector((state) => state.auth)
@@ -56,7 +58,7 @@ const ForumPostDetail = () => {
       const commentData = await forumService.getCommentsByPostId(id)
       setComments(commentData)
     } catch (err) {
-      setError('Không thể tải bài viết.')
+      setError(t('forum.errors.load_post_failed'))
     } finally {
       setLoading(false)
     }
@@ -92,6 +94,12 @@ const ForumPostDetail = () => {
     }
   }
 
+  const timeSince = (date) => {
+    const locale = i18n.language === 'vi' ? vi : enUS
+    try { return formatDistanceToNow(new Date(date), { addSuffix: true, locale }) }
+    catch { return '' }
+  }
+
   const CommentItem = ({ comment, depth = 0 }) => (
     <Box sx={{ ml: depth * 4, mt: 2 }}>
       <Paper elevation={0} sx={{ p: 2, borderLeft: '3px solid', borderColor: comment.accepted ? 'success.main' : 'divider', bgcolor: 'grey.50' }}>
@@ -107,11 +115,11 @@ const ForumPostDetail = () => {
               <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
                 {comment.authorName}
                 {comment.accepted && (
-                  <Chip label="Đã chấp nhận" color="success" size="small" icon={<AcceptedIcon />} sx={{ ml: 1, height: 20, fontSize: '0.7rem' }} />
+                  <Chip label={t('forum.accepted')} color="success" size="small" icon={<AcceptedIcon />} sx={{ ml: 1, height: 20, fontSize: '0.7rem' }} />
                 )}
               </Typography>
               <Typography variant="caption" color="text.secondary">
-                {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true, locale: vi })}
+                {timeSince(comment.createdAt)}
               </Typography>
             </Box>
             <Typography variant="body2" sx={{ my: 1 }}>{comment.content}</Typography>
@@ -127,7 +135,7 @@ const ForumPostDetail = () => {
               </Box>
               {depth < 2 && (
                 <Button size="small" startIcon={<ReplyIcon />} onClick={() => setReplyTo(comment)}>
-                  Trả lời
+                  {t('forum.reply')}
                 </Button>
               )}
               {((post.authorId === user?.id) || user?.role === 'ADMIN') && !comment.accepted && (
@@ -137,7 +145,7 @@ const ForumPostDetail = () => {
                   startIcon={<AcceptedIcon />} 
                   onClick={() => forumService.acceptComment(comment.id).then(fetchPostData)}
                 >
-                  Chấp nhận
+                  {t('forum.accept')}
                 </Button>
               )}
             </Box>
@@ -152,7 +160,7 @@ const ForumPostDetail = () => {
 
   if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', p: 10 }}><CircularProgress /></Box>
   if (error) return <Alert severity="error">{error}</Alert>
-  if (!post) return <Alert severity="info">Bài viết không tồn tại.</Alert>
+  if (!post) return <Alert severity="info">{t('forum.errors.post_not_found')}</Alert>
 
   return (
     <Box sx={{ maxWidth: 900, mx: 'auto', py: 4 }}>
@@ -181,7 +189,7 @@ const ForumPostDetail = () => {
                       {post.authorName}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                      {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true, locale: vi })}
+                      {timeSince(post.createdAt)}
                     </Typography>
                   </Box>
                 </Box>
@@ -190,7 +198,7 @@ const ForumPostDetail = () => {
                 
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                   <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>
-                    {post.viewCount} lượt xem
+                    {post.viewCount} {t('forum.views')}
                   </Typography>
                 </Box>
 
@@ -230,12 +238,12 @@ const ForumPostDetail = () => {
                   >
                     <MenuItem onClick={() => { handleCloseMenu(); navigate(`/forum/edit/${post.id}`); }}>
                       <ListItemIcon><EditIcon fontSize="small" /></ListItemIcon>
-                      <ListItemText primary="Chỉnh sửa" primaryTypographyProps={{ variant: 'body2' }} />
+                      <ListItemText primary={t('common.edit')} primaryTypographyProps={{ variant: 'body2' }} />
                     </MenuItem>
                     <MenuItem 
                       onClick={async () => {
                         handleCloseMenu();
-                        if (window.confirm('Bạn có chắc chắn muốn xóa bài viết này?')) {
+                        if (window.confirm(t('forum.confirm_delete'))) {
                           try {
                             await forumService.deletePost(post.id)
                             navigate('/forum')
@@ -247,7 +255,7 @@ const ForumPostDetail = () => {
                       sx={{ color: 'error.main' }}
                     >
                       <ListItemIcon><DeleteIcon fontSize="small" color="error" /></ListItemIcon>
-                      <ListItemText primary="Xóa bài viết" primaryTypographyProps={{ variant: 'body2' }} />
+                      <ListItemText primary={t('forum.delete_post')} primaryTypographyProps={{ variant: 'body2' }} />
                     </MenuItem>
                   </Menu>
                 </>
@@ -300,7 +308,7 @@ const ForumPostDetail = () => {
             {/* Comments Section */}
             <Box>
               <Typography variant="h6" sx={{ mb: 3, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 1 }}>
-                Bình luận
+                {t('forum.comments')}
                 <Chip label={comments.length} size="small" sx={{ fontWeight: 800 }} />
               </Typography>
               
@@ -312,7 +320,7 @@ const ForumPostDetail = () => {
                     onClose={() => setReplyTo(null)}
                     icon={<ReplyIcon fontSize="small" />}
                   >
-                    Đang trả lời <strong>{replyTo.authorName}</strong>
+                    {t('forum.replying_to')} <strong>{replyTo.authorName}</strong>
                   </Alert>
                 )}
                 <form onSubmit={handleCommentSubmit}>
@@ -320,7 +328,7 @@ const ForumPostDetail = () => {
                     fullWidth
                     multiline
                     rows={3}
-                    placeholder="Chia sẻ ý kiến của bạn..."
+                    placeholder={t('forum.placeholder_comment')}
                     variant="outlined"
                     value={commentText}
                     onChange={(e) => setCommentText(e.target.value)}
@@ -339,7 +347,7 @@ const ForumPostDetail = () => {
                       disabled={!commentText.trim()}
                       sx={{ borderRadius: 2, px: 4, fontWeight: 700 }}
                     >
-                      Gửi bình luận
+                      {t('forum.send_comment')}
                     </Button>
                   </Box>
                 </form>
@@ -348,7 +356,7 @@ const ForumPostDetail = () => {
               <List sx={{ pt: 0 }}>
                 {comments.length === 0 ? (
                   <Box sx={{ py: 4, textAlign: 'center', color: 'text.secondary' }}>
-                    <Typography variant="body2 italic">Chưa có bình luận nào. Hãy là người đầu tiên!</Typography>
+                    <Typography variant="body2 italic">{t('forum.no_comments_yet')}</Typography>
                   </Box>
                 ) : (
                   comments.map(comment => (

@@ -28,6 +28,9 @@ import { useNavigate } from 'react-router-dom'
 import authService from '../../services/authService'
 import { motion, AnimatePresence } from 'framer-motion'
 import { alpha } from '@mui/material/styles'
+import ThemeToggle from '../Common/ThemeToggle'
+import LanguageToggle from '../Common/LanguageToggle'
+import { useTranslation } from 'react-i18next'
 
 // ── Inline SVG icons ───────────────────────────────────────────────
 const SearchIcon = () => (
@@ -71,6 +74,7 @@ const Header = () => {
   const [anchorElNotif, setAnchorElNotif] = useState(null)
   const [searchFocused, setSearchFocused] = useState(false)
 
+  const { t }     = useTranslation()
   const dispatch  = useDispatch()
   const navigate  = useNavigate()
   const { user }  = useSelector((state) => state.auth)
@@ -89,11 +93,12 @@ const Header = () => {
     try {
       const diff = Date.now() - new Date(dateStr).getTime()
       const mins  = Math.floor(diff / 60000)
-      if (mins < 1)  return 'just now'
-      if (mins < 60) return `${mins}m ago`
+      if (mins < 1)  return t('notifications.just_now')
+      if (mins < 60) return t('notifications.mins_ago', { count: mins })
       const hrs = Math.floor(mins / 60)
-      if (hrs < 24)  return `${hrs}h ago`
-      return `${Math.floor(hrs / 24)}d ago`
+      if (hrs < 24)  return t('notifications.hrs_ago', { count: hrs })
+      const days = Math.floor(hrs / 24)
+      return t('notifications.days_ago', { count: days })
     } catch { return '' }
   }
 
@@ -106,7 +111,7 @@ const Header = () => {
         ml: { sm: `${DRAWER_WIDTH}px` },
         boxShadow: 'none',
         borderBottom: '1px solid var(--color-border)',
-        backgroundColor: 'rgba(13, 17, 23, 0.88)',
+        backgroundColor: 'var(--color-surface)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
       }}
@@ -125,8 +130,8 @@ const Header = () => {
             border: '1px solid',
             borderColor: searchFocused ? 'var(--color-primary)' : 'var(--color-border)',
             backgroundColor: searchFocused
-              ? 'rgba(99,102,241,0.05)'
-              : 'rgba(33,38,45,0.5)',
+              ? 'rgba(99, 102, 241, 0.15)'
+              : 'var(--color-surface-3)',
             boxShadow: searchFocused ? '0 0 0 3px rgba(99,102,241,0.12)' : 'none',
             transition: 'all 0.2s ease',
             width: { xs: 160, sm: 260, md: 340 },
@@ -136,14 +141,14 @@ const Header = () => {
             <SearchIcon />
           </Box>
           <InputBase
-            placeholder="Search anything…"
+            placeholder={t('header.search')}
             onFocus={() => setSearchFocused(true)}
             onBlur={() => setSearchFocused(false)}
             sx={{
               flex: 1,
               fontSize: '0.875rem',
               color: 'var(--color-text)',
-              '& input::placeholder': { color: 'var(--color-text-muted)', opacity: 1 },
+              '& input::placeholder': { color: 'var(--color-text-sec)', opacity: 0.9 },
             }}
           />
           <Box
@@ -165,7 +170,7 @@ const Header = () => {
                   fontSize: '0.625rem',
                   fontWeight: 600,
                   color: 'var(--color-text-muted)',
-                  bgcolor: 'rgba(33,38,45,0.7)',
+                  bgcolor: 'var(--color-surface-2)',
                   lineHeight: 1.4,
                 }}
               >
@@ -176,16 +181,18 @@ const Header = () => {
         </Box>
 
         {/* ── Right actions ────────────────────────────────────────── */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <LanguageToggle />
+          <ThemeToggle />
 
           {/* Notification bell */}
-          <Tooltip title="Notifications">
+          <Tooltip title={t('header.notifications')}>
             <IconButton
               onClick={(e) => setAnchorElNotif(e.currentTarget)}
               sx={{
                 width: 38, height: 38,
                 color: 'var(--color-text-sec)',
-                bgcolor: 'rgba(33,38,45,0.7)',
+                bgcolor: 'var(--color-surface-2)',
                 border: '1px solid var(--color-border)',
                 borderRadius: '9px',
                 cursor: 'pointer',
@@ -215,7 +222,7 @@ const Header = () => {
           </Tooltip>
 
           {/* User menu */}
-          <Tooltip title="Account">
+          <Tooltip title={t('header.account')}>
             <motion.div whileTap={{ scale: 0.95 }}>
               <IconButton
                 onClick={(e) => setAnchorElUser(e.currentTarget)}
@@ -230,9 +237,9 @@ const Header = () => {
                     py: '4px',
                     borderRadius: '10px',
                     border: '1px solid var(--color-border)',
-                    bgcolor: 'rgba(33,38,45,0.7)',
+                    bgcolor: 'var(--color-surface-2)',
                     transition: 'all 0.2s',
-                    '&:hover': { bgcolor: 'rgba(99,102,241,0.08)', borderColor: 'var(--color-border-lt)' },
+                    '&:hover': { bgcolor: 'var(--color-surface-3)', borderColor: 'var(--color-border-lt)' },
                   }}
                 >
                   <Avatar
@@ -283,7 +290,7 @@ const Header = () => {
         <Box sx={{ px: 2.5, py: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--color-border)' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Typography sx={{ fontWeight: 700, fontSize: '0.9375rem', color: 'var(--color-text)' }}>
-              Notifications
+              {t('header.notifications')}
             </Typography>
             {unreadCount > 0 && (
               <Chip
@@ -313,7 +320,7 @@ const Header = () => {
                 '&:hover': { bgcolor: 'rgba(99,102,241,0.1)' },
               }}
             >
-              Mark all
+              {t('header.mark_all')}
             </Button>
           )}
         </Box>
@@ -326,7 +333,7 @@ const Header = () => {
                 <BellIcon />
               </Box>
               <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
-                All caught up!
+                {t('header.all_caught_up')}
               </Typography>
             </Box>
           ) : (
@@ -395,7 +402,7 @@ const Header = () => {
               '&:hover': { bgcolor: 'rgba(99,102,241,0.08)', color: 'var(--color-text)' },
             }}
           >
-            View all notifications
+            {t('header.view_all_notifs')}
           </Button>
         </Box>
       </Popover>
@@ -463,11 +470,11 @@ const Header = () => {
         <Box sx={{ p: '6px' }}>
           <MenuItem onClick={() => { setAnchorElUser(null); navigate('/profile') }}>
             <ListItemIcon sx={{ color: 'var(--color-text-muted)', minWidth: 32 }}><UserIcon /></ListItemIcon>
-            <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text)' }}>My Profile</Typography>
+            <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text)' }}>{t('nav.profile')}</Typography>
           </MenuItem>
           <MenuItem onClick={() => setAnchorElUser(null)}>
             <ListItemIcon sx={{ color: 'var(--color-text-muted)', minWidth: 32 }}><SettingsIcon /></ListItemIcon>
-            <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text)' }}>Settings</Typography>
+            <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text)' }}>{t('header.settings')}</Typography>
           </MenuItem>
         </Box>
 
@@ -482,7 +489,7 @@ const Header = () => {
             }}
           >
             <ListItemIcon sx={{ color: '#EF4444', minWidth: 32 }}><LogoutIcon /></ListItemIcon>
-            <Typography sx={{ fontSize: '0.875rem', color: '#FCA5A5' }}>Sign Out</Typography>
+            <Typography sx={{ fontSize: '0.875rem', color: '#FCA5A5' }}>{t('nav.logout')}</Typography>
           </MenuItem>
         </Box>
       </Menu>

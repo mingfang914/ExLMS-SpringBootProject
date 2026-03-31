@@ -11,6 +11,7 @@ import {
 } from '@mui/material'
 import { useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import forumService from '../../services/forumService'
 import CKEditorWrapper from '../../components/Common/CKEditorWrapper'
 
@@ -69,6 +70,7 @@ const inputSx = {
 }
 
 const CreateForumPost = () => {
+  const { t } = useTranslation()
   const [title,    setTitle]    = useState('')
   const [content,  setContent]  = useState('')
   const [tagInput, setTagInput] = useState('')
@@ -88,8 +90,8 @@ const CreateForumPost = () => {
         setContent(post.content)
         setTags(post.tags.map(t => t.name))
       })
-      .catch(() => setError('Could not load post data for editing.'))
-  }, [id, isEdit])
+      .catch(() => setError(t('forum.errors.load_post_failed')))
+  }, [id, isEdit, t])
 
   const handleAddTag = (e) => {
     if (e.key === 'Enter' || e.key === ',') {
@@ -107,7 +109,7 @@ const CreateForumPost = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!title.trim() || !content.trim()) {
-      setError('Title and content are required.')
+      setError(t('forum.errors.title_content_required'))
       return
     }
     setLoading(true)
@@ -122,7 +124,7 @@ const CreateForumPost = () => {
         navigate('/forum')
       }
     } catch (err) {
-      setError(err.response?.data?.message || `Failed to ${isEdit ? 'update' : 'publish'} post.`)
+      setError(err.response?.data?.message || t('forum.errors.save_failed'))
     } finally {
       setLoading(false)
     }
@@ -139,7 +141,7 @@ const CreateForumPost = () => {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1, cursor: 'pointer' }} onClick={() => navigate('/forum')}>
           <Box sx={{ color: 'var(--color-text-muted)' }}><ArrowLeft /></Box>
           <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', '&:hover': { color: 'var(--color-text)' } }}>
-            Back to Forum
+            {t('forum.back_to_forum')}
           </Typography>
         </Box>
         <Box sx={{ mb: 4, mt: 1.5 }}>
@@ -148,10 +150,10 @@ const CreateForumPost = () => {
             fontSize: { xs: '1.75rem', sm: '2rem' },
             color: 'var(--color-text)', letterSpacing: '-0.03em', mb: 0.5,
           }}>
-            {isEdit ? 'Edit Post' : 'New Discussion Post'}
+            {isEdit ? t('forum.edit_post') : t('forum.new_discussion')}
           </Typography>
           <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
-            {isEdit ? 'Update your post content and tags' : 'Ask a question or share knowledge with the community'}
+            {isEdit ? t('forum.edit_subtitle') : t('forum.create_subtitle')}
           </Typography>
         </Box>
       </motion.div>
@@ -183,12 +185,12 @@ const CreateForumPost = () => {
         {/* Title */}
         <motion.div variants={item}>
           <Box sx={{ mb: 3 }}>
-            <FieldLabel hint={`${title.length}/150`}>Post Title *</FieldLabel>
+            <FieldLabel hint={`${title.length}/150`}>{t('forum.post_title_label')}</FieldLabel>
             <TextField
               fullWidth
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. How to configure Spring Security with JWT?"
+              placeholder={t('forum.post_title_placeholder')}
               inputProps={{ maxLength: 150 }}
               sx={inputSx}
             />
@@ -201,10 +203,10 @@ const CreateForumPost = () => {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.75 }}>
               <Box sx={{ color: 'var(--color-text-muted)' }}><TagIcon /></Box>
               <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text-sec)' }}>
-                Tags
+                {t('forum.tags_label')}
               </Typography>
               <Typography sx={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                Press Enter or comma to add (max 5)
+                {t('forum.tags_hint')}
               </Typography>
             </Box>
 
@@ -242,7 +244,7 @@ const CreateForumPost = () => {
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
                 onKeyDown={handleAddTag}
-                placeholder={tags.length < 5 ? 'java, spring-boot, security…' : 'Maximum 5 tags reached'}
+                placeholder={tags.length < 5 ? t('forum.tags_placeholder') : t('forum.tags_max_reached')}
                 disabled={tags.length >= 5}
                 style={{
                   flex: 1, background: 'none', border: 'none', outline: 'none',
@@ -256,7 +258,7 @@ const CreateForumPost = () => {
         {/* Content CKEditor */}
         <motion.div variants={item}>
           <Box sx={{ mb: 3.5 }}>
-            <FieldLabel>Post Content *</FieldLabel>
+            <FieldLabel>{t('forum.post_content_label')}</FieldLabel>
             <Box
               sx={{
                 borderRadius: '10px',
@@ -281,7 +283,7 @@ const CreateForumPost = () => {
               <CKEditorWrapper
                 value={content}
                 onChange={(data) => setContent(data)}
-                placeholder="Write your question or discussion in detail…"
+                placeholder={t('forum.post_content_placeholder')}
                 minHeight="320px"
               />
             </Box>
@@ -304,7 +306,7 @@ const CreateForumPost = () => {
                 '&:hover': { borderColor: 'var(--color-border-lt)', bgcolor: 'rgba(240,246,252,0.04)' },
               }}
             >
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button
               type="submit"
@@ -322,7 +324,7 @@ const CreateForumPost = () => {
             >
               {loading
                 ? <CircularProgress size={20} sx={{ color: 'rgba(255,255,255,0.7)' }} />
-                : isEdit ? 'Save Changes' : 'Publish Post'}
+                : isEdit ? t('common.save_changes') : t('forum.publish_post')}
             </Button>
           </Box>
         </motion.div>

@@ -8,8 +8,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 import assignmentService from '../../services/assignmentService';
 import { ArrowBack as BackIcon, Save as SaveIcon } from '@mui/icons-material';
 import CKEditorWrapper from '../../components/Common/CKEditorWrapper';
+import { useTranslation } from 'react-i18next';
 
 const AssignmentForm = () => {
+  const { t } = useTranslation();
   const { groupId, id } = useParams();
   const navigate = useNavigate();
   const isEdit = !!id;
@@ -44,14 +46,14 @@ const AssignmentForm = () => {
             dueAt: new Date(data.dueAt).toISOString().slice(0, 16),
           });
         } catch (err) {
-          setError('Không thể tải thông tin bài tập');
+          setError(t('assignment_form.errors.load_failed'));
         } finally {
           setFetching(false);
         }
       };
       fetchAssignment();
     }
-  }, [id, isEdit]);
+  }, [id, isEdit, t]);
 
   const handleChange = (e) => {
     const { name, value, checked, type } = e.target;
@@ -68,7 +70,7 @@ const AssignmentForm = () => {
 
     // Basic validation
     if (new Date(formData.dueAt) <= new Date(formData.assignedAt)) {
-      setError('Hạn nộp phải sau ngày giao bài');
+      setError(t('assignment_form.errors.invalid_dates'));
       setLoading(false);
       return;
     }
@@ -76,14 +78,14 @@ const AssignmentForm = () => {
     try {
       if (isEdit) {
         await assignmentService.updateAssignment(id, formData);
-        alert('Cập nhật bài tập thành công!');
+        alert(t('assignment_form.messages.update_success'));
       } else {
         await assignmentService.createAssignment(groupId, formData);
-        alert('Tạo bài tập thành công!');
+        alert(t('assignment_form.messages.create_success'));
       }
       navigate(-1);
     } catch (err) {
-      setError(err.response?.data?.message || 'Có lỗi xảy ra khi lưu bài tập');
+      setError(err.response?.data?.message || t('assignment_form.errors.save_failed'));
     } finally {
       setLoading(false);
     }
@@ -98,12 +100,12 @@ const AssignmentForm = () => {
         onClick={() => navigate(-1)}
         sx={{ mb: 2 }}
       >
-        Quay lại
+        {t('common.back')}
       </Button>
 
       <Paper sx={{ p: 4, borderRadius: 3 }}>
         <Typography variant="h5" fontWeight="bold" gutterBottom>
-          {isEdit ? 'Chỉnh sửa bài tập' : 'Tạo bài tập mới'}
+          {isEdit ? t('assignment_form.title_edit') : t('assignment_form.title_new')}
         </Typography>
         <Divider sx={{ my: 2 }} />
 
@@ -114,7 +116,7 @@ const AssignmentForm = () => {
             <Grid item xs={12}>
               <TextField
                 name="title"
-                label="Tiêu đề bài tập"
+                label={t('assignment_form.title_label')}
                 fullWidth
                 required
                 value={formData.title}
@@ -122,18 +124,18 @@ const AssignmentForm = () => {
               />
             </Grid>
             <Grid item xs={12}>
-              <Typography variant="subtitle2" gutterBottom>Mô tả / Hướng dẫn</Typography>
+              <Typography variant="subtitle2" gutterBottom>{t('assignment_detail.instructions')}</Typography>
               <CKEditorWrapper
                 value={formData.description}
                 onChange={(val) => setFormData(prev => ({ ...prev, description: val }))}
-                placeholder="Nhập hướng dẫn chi tiết cho bài tập..."
+                placeholder={t('assignment_form.desc_placeholder')}
               />
             </Grid>
             
             <Grid item xs={12} sm={6}>
               <TextField
                 name="assignedAt"
-                label="Ngày giao bài"
+                label={t('assignment_form.assigned_at_label')}
                 type="datetime-local"
                 fullWidth
                 required
@@ -145,7 +147,7 @@ const AssignmentForm = () => {
             <Grid item xs={12} sm={6}>
               <TextField
                 name="dueAt"
-                label="Hạn nộp"
+                label={t('assignments.due')}
                 type="datetime-local"
                 fullWidth
                 required
@@ -158,21 +160,21 @@ const AssignmentForm = () => {
             <Grid item xs={12} sm={6}>
               <TextField
                 name="submissionType"
-                label="Loại bài nộp"
+                label={t('assignments.type')}
                 select
                 fullWidth
                 value={formData.submissionType}
                 onChange={handleChange}
               >
-                <MenuItem value="FILE">Tệp đính kèm</MenuItem>
-                <MenuItem value="TEXT">Văn bản trực tiếp</MenuItem>
-                <MenuItem value="MIXED">Cả hai</MenuItem>
+                <MenuItem value="FILE">{t('assignments.type_file')}</MenuItem>
+                <MenuItem value="TEXT">{t('assignments.type_text')}</MenuItem>
+                <MenuItem value="MIXED">{t('assignment_detail.both') || 'Both'}</MenuItem>
               </TextField>
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
                 name="maxScore"
-                label="Điểm tối đa"
+                label={t('assignments.max_score')}
                 type="number"
                 fullWidth
                 value={formData.maxScore}
@@ -180,23 +182,23 @@ const AssignmentForm = () => {
               />
             </Grid>
 
-            <Grid item xs={12}><Divider>Cấu hình nâng cao</Divider></Grid>
+            <Grid item xs={12}><Divider>{t('assignment_form.advanced_config')}</Divider></Grid>
 
             <Grid item xs={12} sm={6}>
               <TextField
                 name="allowedFileTypes"
-                label="Định dạng cho phép"
+                label={t('assignment_form.file_types_label')}
                 fullWidth
                 value={formData.allowedFileTypes}
                 onChange={handleChange}
                 disabled={formData.submissionType === 'TEXT'}
-                helperText="Ví dụ: .pdf,.docx,.zip"
+                helperText={`${t('assignment_form.example')}: .pdf,.docx,.zip`}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
                 name="maxFileSizeMb"
-                label="Dung lượng tối đa (MB)"
+                label={t('assignment_form.max_file_size_label')}
                 type="number"
                 fullWidth
                 value={formData.maxFileSizeMb}
@@ -214,14 +216,14 @@ const AssignmentForm = () => {
                     onChange={handleChange} 
                   />
                 }
-                label="Cho phép nộp muộn"
+                label={t('assignment_detail.allow_late')}
               />
             </Grid>
             {formData.allowLate && (
               <Grid item xs={12} sm={6}>
                 <TextField
                   name="latePenaltyPercent"
-                  label="Phần trăm trừ điểm (nộp muộn)"
+                  label={t('assignment_form.penalty_label')}
                   type="number"
                   fullWidth
                   value={formData.latePenaltyPercent}
@@ -232,14 +234,14 @@ const AssignmentForm = () => {
             )}
 
             <Grid item xs={12} sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-              <Button onClick={() => navigate(-1)}>Hủy</Button>
+              <Button onClick={() => navigate(-1)}>{t('common.cancel')}</Button>
               <Button 
                 type="submit" 
                 variant="contained" 
                 startIcon={loading ? <CircularProgress size={20} /> : <SaveIcon />}
                 disabled={loading}
               >
-                {loading ? 'Đang lưu...' : (isEdit ? 'Cập nhật' : 'Tạo bài tập')}
+                {loading ? t('assignment_form.saving') : (isEdit ? t('common.edit') : t('common.create'))}
               </Button>
             </Grid>
           </Grid>

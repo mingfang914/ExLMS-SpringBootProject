@@ -15,6 +15,9 @@ import { useDispatch } from 'react-redux'
 import { loginStart, loginSuccess, loginFailure, setUser } from '../store/authSlice'
 import authService from '../services/authService'
 import { motion } from 'framer-motion'
+import ThemeToggle from '../components/Common/ThemeToggle'
+import LanguageToggle from '../components/Common/LanguageToggle'
+import { useTranslation } from 'react-i18next'
 
 // ── SVG Icons ──────────────────────────────────────────────────────
 const EmailIcon = () => (
@@ -63,6 +66,7 @@ const Login = () => {
   const [error,    setError]    = useState(null)
   const [loading,  setLoading]  = useState(false)
 
+  const { t }    = useTranslation()
   const dispatch = useDispatch()
   const navigate = useNavigate()
 
@@ -81,7 +85,7 @@ const Login = () => {
       } catch (_) {}
       navigate('/')
     } catch (err) {
-      const message = err.response?.data?.message || 'Đăng nhập thất bại. Vui lòng kiểm tra thông tin'
+      const message = err.response?.data?.message || t('auth.login_failed')
       setError(message)
       dispatch(loginFailure(message))
     } finally {
@@ -102,6 +106,12 @@ const Login = () => {
         px: 2,
       }}
     >
+      {/* Language & Theme Toggle Corner */}
+      <Box sx={{ position: 'fixed', top: 24, right: 24, zIndex: 100, display: 'flex', gap: 1 }}>
+        <LanguageToggle />
+        <ThemeToggle />
+      </Box>
+
       {/* Animated background blobs */}
       <Box className="auth-bg" />
 
@@ -178,10 +188,10 @@ const Login = () => {
                 mb: 0.5,
               }}
             >
-              Welcome back
+              {t('auth.signin_title')}
             </Typography>
             <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', mb: 3 }}>
-              Sign in to continue your learning journey
+              {t('auth.signin_subtitle')}
             </Typography>
           </motion.div>
 
@@ -215,7 +225,7 @@ const Login = () => {
             <motion.div custom={2} variants={fadeUp} initial="hidden" animate="visible">
               <Box sx={{ mb: 0.5 }}>
                 <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text-sec)', mb: 0.75 }}>
-                  Email address
+                  {t('auth.email')}
                 </Typography>
                 <TextField
                   fullWidth
@@ -248,7 +258,7 @@ const Login = () => {
               <Box sx={{ mt: 2, mb: 0.5 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.75 }}>
                   <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text-sec)' }}>
-                    Password
+                    {t('auth.password')}
                   </Typography>
                   <Typography
                     component="a"
@@ -261,7 +271,7 @@ const Login = () => {
                       transition: 'color 0.2s',
                     }}
                   >
-                    Forgot password?
+                    {t('auth.forgot_password')}
                   </Typography>
                 </Box>
                 <TextField
@@ -270,7 +280,7 @@ const Login = () => {
                   name="password"
                   type={showPwd ? 'text' : 'password'}
                   autoComplete="current-password"
-                  placeholder="Enter your password"
+                  placeholder={t('auth.placeholder_password')}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   InputProps={{
@@ -331,7 +341,7 @@ const Login = () => {
               >
                 {loading
                   ? <CircularProgress size={20} sx={{ color: 'rgba(255,255,255,0.7)' }} />
-                  : 'Sign In'}
+                  : t('auth.signin')}
               </Button>
             </motion.div>
           </Box>
@@ -340,7 +350,7 @@ const Login = () => {
           <motion.div custom={5} variants={fadeUp} initial="hidden" animate="visible">
             <Divider sx={{ borderColor: 'var(--color-border)', my: 0.5 }}>
               <Typography sx={{ px: 1.5, fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                New to ExLMS?
+                {t('auth.no_account')}
               </Typography>
             </Divider>
 
@@ -365,7 +375,7 @@ const Login = () => {
                 transition: 'all 0.2s',
               }}
             >
-              Create a free account
+              {t('auth.create_account')}
             </Button>
           </motion.div>
         </Box>
@@ -373,10 +383,10 @@ const Login = () => {
         {/* Footer note */}
         <motion.div custom={6} variants={fadeUp} initial="hidden" animate="visible">
           <Typography sx={{ textAlign: 'center', mt: 3, fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-            By continuing, you agree to our{' '}
-            <Typography component="span" sx={{ color: 'var(--color-primary-lt)', cursor: 'pointer', fontSize: 'inherit' }}>Terms of Service</Typography>
-            {' '}and{' '}
-            <Typography component="span" sx={{ color: 'var(--color-primary-lt)', cursor: 'pointer', fontSize: 'inherit' }}>Privacy Policy</Typography>
+            {t('auth.agreement')}{' '}
+            <Typography component="span" sx={{ color: 'var(--color-primary-lt)', cursor: 'pointer', fontSize: 'inherit' }}>{t('auth.terms')}</Typography>
+            {' '}{t('auth.and')}{' '}
+            <Typography component="span" sx={{ color: 'var(--color-primary-lt)', cursor: 'pointer', fontSize: 'inherit' }}>{t('auth.privacy')}</Typography>
           </Typography>
         </motion.div>
       </motion.div>

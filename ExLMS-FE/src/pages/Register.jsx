@@ -15,6 +15,9 @@ import {
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import authService from '../services/authService'
 import { motion } from 'framer-motion'
+import ThemeToggle from '../components/Common/ThemeToggle'
+import LanguageToggle from '../components/Common/LanguageToggle'
+import { useTranslation } from 'react-i18next'
 
 // ── Icons ─────────────────────────────────────────────────────────
 const UserIcon = () => (
@@ -83,6 +86,7 @@ const Register = () => {
   const [error,            setError]            = useState(null)
   const [loading,          setLoading]          = useState(false)
 
+  const { t } = useTranslation()
   const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
@@ -90,20 +94,20 @@ const Register = () => {
     setError(null)
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match.')
+      setError(t('auth.passwords_not_match'))
       return
     }
     if (password.length < 6) {
-      setError('Password must be at least 6 characters.')
+      setError(t('auth.password_too_short'))
       return
     }
 
     setLoading(true)
     try {
       await authService.register(fullName, email, password, desiredRole)
-      navigate('/login', { state: { message: 'Account created! Please sign in.' } })
+      navigate('/login', { state: { message: t('auth.account_created') } })
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed. Please try again.')
+      setError(err.response?.data?.message || t('auth.registration_failed'))
     } finally {
       setLoading(false)
     }
@@ -126,10 +130,15 @@ const Register = () => {
         bgcolor: 'var(--color-bg)',
         position: 'relative',
         overflow: 'hidden',
-        px: 2,
-        py: 4,
+        py: 4, px: 2,
       }}
     >
+      {/* Language & Theme Toggle Corner */}
+      <Box sx={{ position: 'fixed', top: 24, right: 24, zIndex: 100, display: 'flex', gap: 1 }}>
+        <LanguageToggle />
+        <ThemeToggle />
+      </Box>
+
       {/* Background */}
       <Box className="auth-bg" />
       <Box
@@ -193,10 +202,10 @@ const Register = () => {
           {/* Heading */}
           <motion.div custom={1} variants={fadeUp} initial="hidden" animate="visible">
             <Typography sx={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '1.5rem', color: 'var(--color-text)', letterSpacing: '-0.02em', mb: 0.5 }}>
-              Create your account
+              {t('auth.signup_title')}
             </Typography>
             <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', mb: 3 }}>
-              Start your learning journey with ExLMS
+              {t('auth.signup_subtitle')}
             </Typography>
           </motion.div>
 
@@ -222,7 +231,7 @@ const Register = () => {
           <Box component="form" onSubmit={handleSubmit} noValidate>
             {/* Role selector */}
             <motion.div custom={2} variants={fadeUp} initial="hidden" animate="visible">
-              <FieldLabel>I am a</FieldLabel>
+              <FieldLabel>{t('auth.i_am_a')}</FieldLabel>
               <ToggleButtonGroup
                 value={desiredRole}
                 exclusive
@@ -255,10 +264,10 @@ const Register = () => {
                 }}
               >
                 <ToggleButton value="STUDENT" id="role-student">
-                  <StudentIcon /> Student
+                  <StudentIcon /> {t('common.student')}
                 </ToggleButton>
                 <ToggleButton value="INSTRUCTOR" id="role-instructor">
-                  <InstructorIcon /> Instructor
+                  <InstructorIcon /> {t('auth.instructor')}
                 </ToggleButton>
               </ToggleButtonGroup>
             </motion.div>
@@ -266,7 +275,7 @@ const Register = () => {
             {/* Full name */}
             <motion.div custom={3} variants={fadeUp} initial="hidden" animate="visible">
               <Box sx={{ mb: 2 }}>
-                <FieldLabel>Full name</FieldLabel>
+                <FieldLabel>{t('auth.fullname')}</FieldLabel>
                 <TextField
                   fullWidth id="fullName" name="fullName" autoComplete="name" autoFocus
                   placeholder="John Doe"
@@ -281,7 +290,7 @@ const Register = () => {
             {/* Email */}
             <motion.div custom={4} variants={fadeUp} initial="hidden" animate="visible">
               <Box sx={{ mb: 2 }}>
-                <FieldLabel>Email address</FieldLabel>
+                <FieldLabel>{t('auth.email')}</FieldLabel>
                 <TextField
                   fullWidth id="email" name="email" type="email" autoComplete="email"
                   placeholder="you@example.com"
@@ -296,12 +305,12 @@ const Register = () => {
             {/* Password */}
             <motion.div custom={5} variants={fadeUp} initial="hidden" animate="visible">
               <Box sx={{ mb: 2 }}>
-                <FieldLabel>Password</FieldLabel>
+                <FieldLabel>{t('auth.password')}</FieldLabel>
                 <TextField
                   fullWidth id="password" name="password"
                   type={showPwd ? 'text' : 'password'}
                   autoComplete="new-password"
-                  placeholder="Min. 6 characters"
+                  placeholder={t('auth.placeholder_password_hint')}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   InputProps={{
@@ -322,16 +331,16 @@ const Register = () => {
             {/* Confirm Password */}
             <motion.div custom={6} variants={fadeUp} initial="hidden" animate="visible">
               <Box sx={{ mb: 0 }}>
-                <FieldLabel>Confirm password</FieldLabel>
+                <FieldLabel>{t('auth.confirm_password')}</FieldLabel>
                 <TextField
                   fullWidth id="confirmPassword" name="confirmPassword"
                   type={showConfirmPwd ? 'text' : 'password'}
                   autoComplete="new-password"
-                  placeholder="Repeat your password"
+                  placeholder={t('auth.placeholder_repeat_password')}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   error={confirmPassword.length > 0 && confirmPassword !== password}
-                  helperText={confirmPassword.length > 0 && confirmPassword !== password ? "Passwords don't match" : ''}
+                  helperText={confirmPassword.length > 0 && confirmPassword !== password ? t('auth.passwords_not_match') : ''}
                   InputProps={{
                     startAdornment: <InputAdornment position="start" sx={{ color: 'var(--color-text-muted)' }}><LockIcon /></InputAdornment>,
                     endAdornment: (
@@ -372,7 +381,7 @@ const Register = () => {
                   transition: 'all 0.2s ease',
                 }}
               >
-                {loading ? <CircularProgress size={20} sx={{ color: 'rgba(255,255,255,0.7)' }} /> : 'Create Account'}
+                {loading ? <CircularProgress size={20} sx={{ color: 'rgba(255,255,255,0.7)' }} /> : t('auth.signup')}
               </Button>
             </motion.div>
           </Box>
@@ -380,7 +389,7 @@ const Register = () => {
           <motion.div custom={8} variants={fadeUp} initial="hidden" animate="visible">
             <Divider sx={{ borderColor: 'var(--color-border)', my: 0.5 }}>
               <Typography sx={{ px: 1.5, fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                Already have an account?
+                {t('auth.already_has_account')}
               </Typography>
             </Divider>
 
@@ -402,7 +411,7 @@ const Register = () => {
                 transition: 'all 0.2s',
               }}
             >
-              Sign In Instead
+              {t('auth.signin_instead')}
             </Button>
           </motion.div>
         </Box>

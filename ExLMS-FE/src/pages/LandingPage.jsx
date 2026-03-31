@@ -22,6 +22,9 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Logo from '../components/Common/Logo';
+import ThemeToggle from '../components/Common/ThemeToggle';
+import LanguageToggle from '../components/Common/LanguageToggle';
+import { useTranslation } from 'react-i18next';
 
 const FeatureCard = ({ icon: Icon, title, description, delay }) => (
   <Grid item xs={12} sm={6} md={4}>
@@ -34,13 +37,15 @@ const FeatureCard = ({ icon: Icon, title, description, delay }) => (
       <Card
         sx={{
           height: '100%',
-          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+          backgroundColor: 'var(--color-surface-2)',
           backdropFilter: 'blur(8px)',
           borderRadius: 4,
-          transition: 'transform 0.3s ease',
+          transition: 'all 0.3s ease',
+          border: '1px solid var(--color-border)',
           '&:hover': {
             transform: 'translateY(-10px)',
-            boxShadow: 6
+            borderColor: 'var(--color-primary)',
+            boxShadow: '0 12px 32px rgba(0,0,0,0.1)'
           }
         }}
       >
@@ -61,6 +66,7 @@ const FeatureCard = ({ icon: Icon, title, description, delay }) => (
 );
 
 const LandingPage = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const trigger = useScrollTrigger({
     disableHysteresis: true,
@@ -68,77 +74,51 @@ const LandingPage = () => {
   });
 
   const features = [
-    {
-      icon: AutoStories,
-      title: 'Học tập & Bài giảng',
-      description: 'Hệ thống quản lý khóa học, chương và bài học chi tiết, theo dõi tiến độ học tập thông minh.',
-      delay: 0.1
-    },
-    {
-      icon: VideoCall,
-      title: 'Họp Trực tuyến',
-      description: 'Phòng họp video HD tích hợp sẵn, hỗ trợ học tập và thảo luận nhóm thời gian thực.',
-      delay: 0.2
-    },
-    {
-      icon: Groups,
-      title: 'Nhóm học tập',
-      description: 'Không gian cộng tác riêng tư cho từng nhóm, chia sẻ tài liệu và feed tin tức nội bộ.',
-      delay: 0.3
-    },
-    {
-      icon: Quiz,
-      title: 'Kiểm tra & Quiz',
-      description: 'Tạo và làm các bài kiểm tra trắc nghiệm, nhận kết quả và đánh giá trình độ tức thì.',
-      delay: 0.4
-    },
-    {
-      icon: Forum,
-      title: 'Diễn đàn Thảo luận',
-      description: 'Cộng đồng học thuật năng động, nơi đặt câu hỏi và giải đáp thắc mắc cùng giảng viên.',
-      delay: 0.5
-    },
-    {
-      icon: CalendarMonth,
-      title: 'Lịch & Nhắc nhở',
-      description: 'Quản lý thời gian biểu khoa học, nhận thông báo đẩy cho các sự kiện học tập quan trọng.',
-      delay: 0.6
-    }
+    { icon: AutoStories, title: t('landing.features.courses.title'), description: t('landing.features.courses.description'), delay: 0.1 },
+    { icon: VideoCall, title: t('landing.features.meetings.title'), description: t('landing.features.meetings.description'), delay: 0.2 },
+    { icon: Groups, title: t('landing.features.groups.title'), description: t('landing.features.groups.description'), delay: 0.3 },
+    { icon: Quiz, title: t('landing.features.quizzes.title'), description: t('landing.features.quizzes.description'), delay: 0.4 },
+    { icon: Forum, title: t('landing.features.forum.title'), description: t('landing.features.forum.description'), delay: 0.5 },
+    { icon: CalendarMonth, title: t('landing.features.calendar.title'), description: t('landing.features.calendar.description'), delay: 0.6 }
   ];
 
   return (
-    <Box sx={{ overflowX: 'hidden', bgcolor: '#f8fafc' }}>
+    <Box sx={{ overflowX: 'hidden', bgcolor: 'var(--color-bg)', minHeight: '100vh' }}>
       {/* Navbar */}
       <AppBar
         position="fixed"
         sx={{
-          bgcolor: trigger ? 'rgba(255, 255, 255, 0.8)' : 'transparent',
+          bgcolor: trigger ? 'var(--color-surface)' : 'transparent',
           backdropFilter: 'blur(10px)',
           boxShadow: trigger ? 1 : 0,
-          transition: 'all 0.3s ease'
+          transition: 'all 0.3s ease',
+          borderBottom: trigger ? '1px solid var(--color-border)' : 'none'
         }}
       >
         <Container maxWidth="lg">
           <Toolbar sx={{ justifyContent: 'space-between' }}>
-            <Logo 
-              variant={trigger ? 'colored' : 'white'} 
+            <Logo
+              variant={trigger ? 'colored' : 'white'}
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             />
 
-            <Button
-              variant={trigger ? "contained" : "outlined"}
-              color={trigger ? "primary" : "inherit"}
-              onClick={() => navigate('/login')}
-              sx={{
-                borderRadius: 2,
-                px: 3,
-                fontWeight: 'bold',
-                color: trigger ? 'white' : 'white',
-                borderColor: trigger ? 'transparent' : 'white'
-              }}
-            >
-              Đăng nhập
-            </Button>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <LanguageToggle />
+              <ThemeToggle />
+              <Button
+                variant={trigger ? "contained" : "outlined"}
+                color={trigger ? "primary" : "inherit"}
+                onClick={() => navigate('/login')}
+                sx={{
+                  borderRadius: 2,
+                  px: 3,
+                  fontWeight: 'bold',
+                  borderColor: trigger ? 'transparent' : 'white'
+                }}
+              >
+                {t('auth.signin')}
+              </Button>
+            </Box>
           </Toolbar>
         </Container>
       </AppBar>
@@ -193,10 +173,10 @@ const LandingPage = () => {
             transition={{ duration: 0.8 }}
           >
             <Typography variant="h2" component="h1" sx={{ fontWeight: 800, mb: 2, textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}>
-              Nâng tầm trải nghiệm học tập & Gặp gỡ trực tuyến
+              {t('landing.hero_title')}
             </Typography>
             <Typography variant="h5" sx={{ mb: 4, opacity: 0.9, textShadow: '1px 1px 2px rgba(0,0,0,0.5)' }}>
-              Giải pháp học thuật chuyên nghiệp dành cho sinh viên và học viên hiện đại.
+              {t('landing.hero_subtitle')}
             </Typography>
             <Button
               variant="contained"
@@ -213,7 +193,7 @@ const LandingPage = () => {
                 fontWeight: 'bold',
               }}
             >
-              Khám phá ngay
+              {t('landing.get_started')}
             </Button>
           </motion.div>
         </Container>
@@ -223,10 +203,10 @@ const LandingPage = () => {
       <Container id="features" sx={{ py: 10 }}>
         <Box sx={{ textAlign: 'center', mb: 8 }}>
           <Typography variant="h3" component="h2" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.dark' }}>
-            Tính Năng Nổi Bật
+            {t('landing.explore')}
           </Typography>
           <Typography variant="h6" color="text.secondary" maxWidth="md" sx={{ mx: 'auto' }}>
-            ExLMS được xây dựng với đầy đủ bộ công cụ hỗ trợ việc học tập và cộng tác từ xa hiệu quả nhất.
+            {t('landing.hero_subtitle')}
           </Typography>
         </Box>
 
@@ -238,7 +218,7 @@ const LandingPage = () => {
       </Container>
 
       {/* About Section */}
-      <Box sx={{ bgcolor: 'primary.main', color: 'white', py: 10 }}>
+      <Box sx={{ bgcolor: 'var(--color-primary)', color: 'white', py: 10 }}>
         <Container maxWidth="lg">
           <Grid container spacing={6} alignItems="center">
             <Grid item xs={12} md={6}>
@@ -249,14 +229,13 @@ const LandingPage = () => {
                 viewport={{ once: true }}
               >
                 <Typography variant="h3" gutterBottom sx={{ fontWeight: 'bold' }}>
-                  Về Dự Án ExLMS
+                  {t('landing.about_title')}
                 </Typography>
                 <Typography variant="h6" sx={{ opacity: 0.9, lineHeight: 1.6, mb: 3 }}>
-                  ExLMS (Extended Learning Management System) là nền tảng quản lý học tập thế hệ mới.
-                  Với sứ mệnh xóa nhòa khoảng cách giữa sinh viên và kiến thức thông qua các công cụ cộng tác nhóm hiện đại.
+                  {t('landing.about_subtitle')}
                 </Typography>
                 <Typography variant="body1" sx={{ opacity: 0.8 }}>
-                  Tất cả trong một: Từ Video Meeting, Quản lý tài liệu đến Hệ thống thi cử trực tuyến đều được tích hợp trong một giao diện duy nhất, tinh gọn và dễ sử dụng.
+                  {t('landing.about_description')}
                 </Typography>
               </motion.div>
             </Grid>
@@ -270,7 +249,7 @@ const LandingPage = () => {
               >
                 <Box
                   component="img"
-                  src="/api/files/download/landingpagePicture.png" // Dùng video cho preview nếu không có ảnh khác, nhưng thường là Img
+                  src="/api/files/download/landingpagePicture.png"
                   sx={{
                     width: '100%',
                     borderRadius: 4,
@@ -279,7 +258,6 @@ const LandingPage = () => {
                     p: 1
                   }}
                 />
-                {/* Note: In real app, we would use a meaningful static image for About block */}
               </motion.div>
             </Grid>
           </Grid>
@@ -287,9 +265,9 @@ const LandingPage = () => {
       </Box>
 
       {/* Footer */}
-      <Box sx={{ py: 6, textAlign: 'center', borderTop: '1px solid #e2e8f0' }}>
+      <Box sx={{ py: 6, textAlign: 'center', borderTop: '1px solid var(--color-border)' }}>
         <Typography variant="body1" color="text.secondary">
-          © {new Date().getFullYear()} ExLMS - Nâng tầm tri thức. Phát triển bởi Astatine.
+          {t('landing.copyright', { year: new Date().getFullYear() })}
         </Typography>
       </Box>
     </Box>

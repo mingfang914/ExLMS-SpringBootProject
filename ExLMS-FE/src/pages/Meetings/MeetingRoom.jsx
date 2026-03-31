@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import SockJS from 'sockjs-client'
 import { Client } from '@stomp/stompjs'
+import { useTranslation } from 'react-i18next'
 import { 
   Box, Typography, Paper, Button, Container, Grid, 
   Tabs, Tab, List, ListItem, ListItemText, ListItemAvatar,
@@ -23,6 +24,7 @@ import {
 import meetingService from '../../services/meetingService'
 
 const MeetingRoom = () => {
+  const { t } = useTranslation()
   const { groupId, id } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
@@ -49,7 +51,7 @@ const MeetingRoom = () => {
   }
 
   const roomName = location.state?.roomName || meeting?.joinUrl?.split('/').pop() || `exlms-meeting-${id}`
-  const meetingTitle = meeting?.title || location.state?.title || 'Online Meeting'
+  const meetingTitle = meeting?.title || location.state?.title || t('common.loading')
   
   const isInstructor = user?.role === 'ADMIN' || user?.role === 'INSTRUCTOR' || 
                        meeting?.currentUserRole === 'OWNER' || meeting?.currentUserRole === 'EDITOR'
@@ -120,14 +122,14 @@ const MeetingRoom = () => {
         break
       case 'MEETING_ENDED':
         if (!isInstructor) {
-          alert('Buổi họp đã kết thúc bởi giảng viên.')
+          alert(t('meetings.ended_by_instructor'))
         }
         handleMeetingEnd()
         break
       default:
         break
     }
-  }, [])
+  }, [user?.id, isInstructor, fetchData, t])
 
   useEffect(() => {
     meetingService.recordAttendance(id, true)
@@ -189,7 +191,7 @@ const MeetingRoom = () => {
     } catch (err) {
       console.error('Error sending question', err)
     }
-  }, [id, newQuestion, fetchData])
+  }, [id, newQuestion])
 
   const handleAnswer = useCallback(async () => {
     if (!answerText.trim()) return
@@ -201,7 +203,7 @@ const MeetingRoom = () => {
     } catch (err) {
       console.error('Error answering question', err)
     }
-  }, [answeringId, answerText, fetchData])
+  }, [answeringId, answerText])
 
   const handleVote = useCallback(async (pollId, optionId) => {
     try {
@@ -210,13 +212,13 @@ const MeetingRoom = () => {
       setPolls(prev => prev.map(p => p.id === pollId ? { ...p, userVoted: true } : p))
       // fetchData() is now handled by WebSocket
     } catch (err) {
-      alert('Bạn đã bình chọn rồi!')
+      alert(t('meetings.already_voted'))
     }
-  }, [fetchData])
+  }, [t])
 
   const handleCreatePoll = async () => {
     if (!pollForm.question.trim() || pollForm.options.some(o => !o.trim())) {
-      alert('Vui lòng điền đầy đủ câu hỏi và các lựa chọn.')
+      alert(t('meetings.poll_form_error'))
       return
     }
     try {
@@ -244,18 +246,18 @@ const MeetingRoom = () => {
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Button startIcon={<BackIcon />} onClick={handleMeetingEnd} sx={{ mr: 2 }}>
-            Rời phòng
+            {t('meetings.leave_room')}
           </Button>
           <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
             {meetingTitle}
           </Typography>
-          <Chip icon={<LiveIcon sx={{ color: 'error.main !important', fontSize: 'small' }} />} label="LIVE" size="small" variant="outlined" sx={{ ml: 2, fontWeight: 'bold', color: 'error.main' }} />
+          <Chip icon={<LiveIcon sx={{ color: 'error.main !important', fontSize: 'small' }} />} label={t('meetings.live')} size="small" variant="outlined" sx={{ ml: 2, fontWeight: 'bold', color: 'error.main' }} />
         </Box>
         {isInstructor && (
             <Button variant="contained" color="error" onClick={async () => {
                 await meetingService.endMeeting(id)
                 handleMeetingEnd()
-            }}>Kết thúc buổi họp</Button>
+            }}>{t('meetings.end_meeting')}</Button>
         )}
       </Box>
 
@@ -273,7 +275,7 @@ const MeetingRoom = () => {
             ) : (
               <Box sx={{ textAlign: 'center', color: 'white' }}>
                 <CircularProgress color="inherit" sx={{ mb: 2 }} />
-                <Typography>Connecting to meeting room...</Typography>
+                <Typography>{t('meetings.connecting')}</Typography>
               </Box>
             )}
           </Paper>
@@ -282,9 +284,9 @@ const MeetingRoom = () => {
         <Grid item xs={12} md={3.5} lg={3} sx={{ height: '100%' }}>
           <Paper sx={{ height: '100%', display: 'flex', flexDirection: 'column', borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
             <Tabs value={tabValue} onChange={(e, v) => setTabValue(v)} variant="fullWidth">
-              <Tab icon={<PeopleIcon />} label="Members" />
-              <Tab icon={<QAIcon />} label="Q&A" />
-              <Tab icon={<PollIcon />} label="Polls" />
+              <Tab icon={<PeopleIcon />} label={t('meetings.tabs.members')} />
+              <Tab icon={<QAIcon />} label={t('meetings.tabs.qa')} />
+              <Tab icon={<PollIcon />} label={t('meetings.tabs.polls')} />
             </Tabs>
             
             <Box sx={{ flexGrow: 1, overflowY: 'auto', p: 1 }}>
@@ -301,10 +303,10 @@ const MeetingRoom = () => {
                           secondary={
                             <Box component="span">
                               <Typography variant="caption" display="block">
-                                Vào lúc: {new Date(a.joinedAt).toLocaleTimeString()}
+                                {t('meetings.joined_at')} {new Date(a.joinedAt).toLocaleTimeString()}
                               </Typography>
                               <Typography variant="caption" color={a.leftAt ? "text.secondary" : "success.main"} sx={{ fontWeight: 600 }}>
-                                {a.leftAt ? `Đã rời (${Math.round(a.durationSec/60)} phút)` : 'Đang tham gia'}
+                                {a.leftAt ? t('meetings.left', { count: Math.round(a.durationSec/60) }) : t('meetings.joining')}
                               </Typography>
                             </Box>
                           }
@@ -313,7 +315,7 @@ const MeetingRoom = () => {
                     ))
                   ) : (
                     <Typography variant="body2" color="text.secondary" textAlign="center" sx={{ mt: 2 }}>
-                      Chỉ giảng viên có thể xem danh sách điểm danh chi tiết.
+                      {t('meetings.instructor_only_attendance')}
                     </Typography>
                   )}
                 </List>
@@ -336,14 +338,14 @@ const MeetingRoom = () => {
                           }}
                         >
                           <Typography variant="caption" sx={{ fontWeight: 'bold', display: 'block', mb: 0.5, opacity: 0.8 }}>
-                            {q.userId === user.id ? 'Bạn' : q.userName}
+                            {q.userId === user.id ? t('meetings.you') : q.userName}
                           </Typography>
                           <Typography variant="body2">{q.content}</Typography>
                           
                           {q.answered && (
                             <Box sx={{ mt: 1, pt: 1, borderTop: '1px solid', borderColor: 'rgba(0,0,0,0.1)' }}>
                               <Typography variant="caption" sx={{ fontWeight: 'bold', display: 'block' }}>
-                                Trả lời bởi {q.answeredByName}:
+                                {t('meetings.answered_by', { name: q.answeredByName })}
                               </Typography>
                               <Typography variant="body2">{q.answer}</Typography>
                             </Box>
@@ -351,20 +353,20 @@ const MeetingRoom = () => {
                         </Paper>
                         {!q.answered && isInstructor && (
                           <Button size="small" onClick={() => setAnsweringId(q.id)} sx={{ mt: 0.5, alignSelf: 'flex-start' }}>
-                            Trả lời
+                            {t('meetings.answer')}
                           </Button>
                         )}
                       </Box>
                     ))}
                     {questions.length === 0 && (
                       <Typography variant="body2" color="text.secondary" textAlign="center" sx={{ mt: 4 }}>
-                        Chưa có câu hỏi nào. Hãy đặt câu hỏi đầu tiên!
+                        {t('meetings.no_questions')}
                       </Typography>
                     )}
                   </Box>
                   <Box sx={{ position: 'absolute', bottom: 10, left: 10, right: 10, display: 'flex', gap: 1, bgcolor: 'background.paper', p: 1, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
                     <TextField 
-                      fullWidth size="small" placeholder="Đặt câu hỏi..." 
+                      fullWidth size="small" placeholder={t('meetings.ask_question')}
                       value={newQuestion} onChange={(e) => setNewQuestion(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && handleSendQuestion()}
                     />
@@ -394,7 +396,7 @@ const MeetingRoom = () => {
                   ))}
                   {isInstructor && (
                     <Box sx={{ p: 2, textAlign: 'center' }}>
-                      <Button variant="contained" onClick={() => setOpenPollDialog(true)}>Tạo bình chọn mới</Button>
+                      <Button variant="contained" onClick={() => setOpenPollDialog(true)}>{t('meetings.create_poll')}</Button>
                     </Box>
                   )}
                 </Box>
@@ -405,38 +407,38 @@ const MeetingRoom = () => {
       </Grid>
 
       <Dialog open={!!answeringId} onClose={() => setAnsweringId(null)}>
-        <DialogTitle>Trả lời câu hỏi</DialogTitle>
+        <DialogTitle>{t('meetings.answer_question_dialog')}</DialogTitle>
         <DialogContent>
           <TextField 
-            autoFocus fullWidth multiline rows={3} label="Câu trả lời" sx={{ mt: 1 }}
+            autoFocus fullWidth multiline rows={3} label={t('meetings.answer_label')} sx={{ mt: 1 }}
             value={answerText} onChange={e => setAnswerText(e.target.value)}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setAnsweringId(null)}>Hủy</Button>
-          <Button variant="contained" onClick={handleAnswer}>Gửi trả lời</Button>
+          <Button onClick={() => setAnsweringId(null)}>{t('common.cancel')}</Button>
+          <Button variant="contained" onClick={handleAnswer}>{t('meetings.send_answer')}</Button>
         </DialogActions>
       </Dialog>
 
       <Dialog open={openPollDialog} onClose={() => setOpenPollDialog(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Tạo bình chọn mới</DialogTitle>
+        <DialogTitle>{t('meetings.create_poll_dialog')}</DialogTitle>
         <DialogContent sx={{ pt: 2 }}>
           <TextField 
-            fullWidth label="Câu hỏi bình chọn" sx={{ mb: 3 }}
+            fullWidth label={t('meetings.poll_question_label')} sx={{ mb: 3 }}
             value={pollForm.question} onChange={e => setPollForm({...pollForm, question: e.target.value})}
           />
-          <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>Các lựa chọn:</Typography>
+          <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>{t('meetings.options_label')}</Typography>
           {pollForm.options.map((opt, idx) => (
             <TextField 
-              key={idx} fullWidth size="small" label={`Lựa chọn ${idx + 1}`} sx={{ mb: 1.5 }}
+              key={idx} fullWidth size="small" label={t('meetings.option_placeholder', { count: idx + 1 })} sx={{ mb: 1.5 }}
               value={opt} onChange={e => handlePollOptionChange(idx, e.target.value)}
             />
           ))}
-          <Button size="small" onClick={handleAddPollOption} variant="outlined">Thêm lựa chọn</Button>
+          <Button size="small" onClick={handleAddPollOption} variant="outlined">{t('meetings.add_option')}</Button>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenPollDialog(false)}>Hủy</Button>
-          <Button variant="contained" onClick={handleCreatePoll}>Tạo bình chọn</Button>
+          <Button onClick={() => setOpenPollDialog(false)}>{t('common.cancel')}</Button>
+          <Button variant="contained" onClick={handleCreatePoll}>{t('meetings.create_poll_btn')}</Button>
         </DialogActions>
       </Dialog>
     </Container>

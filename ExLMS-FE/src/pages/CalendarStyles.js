@@ -7,10 +7,10 @@ export const CalendarContainer = styled(Paper)(({ theme }) => ({
   borderRadius: theme.shape.borderRadius * 2,
   boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
   background: theme.palette.mode === 'dark' 
-    ? alpha(theme.palette.background.paper, 0.8)
-    : alpha(theme.palette.background.paper, 0.9),
-  backdropFilter: 'blur(8px)',
-  border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
+    ? alpha(theme.palette.background.paper, 0.4)
+    : alpha(theme.palette.common.white, 0.95),
+  backdropFilter: 'blur(12px)',
+  border: `1px solid ${theme.palette.mode === 'dark' ? alpha(theme.palette.divider, 0.2) : alpha(theme.palette.divider, 0.1)}`,
   overflow: 'hidden',
   transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
   '&:hover': {
@@ -19,10 +19,10 @@ export const CalendarContainer = styled(Paper)(({ theme }) => ({
 
   /* Overriding FullCalendar default styles */
   '& .fc': {
-    '--fc-border-color': alpha(theme.palette.divider, 0.1),
-    '--fc-today-bg-color': alpha(theme.palette.primary.main, 0.05),
+    '--fc-border-color': theme.palette.mode === 'dark' ? alpha(theme.palette.common.white, 0.12) : alpha(theme.palette.divider, 0.15),
+    '--fc-today-bg-color': alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.08 : 0.05),
     '--fc-bg-event-color': theme.palette.primary.main,
-    '--fc-bg-event-opacity': 0.1,
+    '--fc-bg-event-opacity': theme.palette.mode === 'dark' ? 0.15 : 0.1,
     '--fc-event-bg-color': theme.palette.primary.main,
     '--fc-event-border-color': theme.palette.primary.main,
     fontFamily: theme.typography.fontFamily,
@@ -36,11 +36,19 @@ export const CalendarContainer = styled(Paper)(({ theme }) => ({
     border: 'none',
   },
 
+  '& .fc-col-header': {
+    width: '100% !important',
+    margin: 0,
+    '& th': {
+      backgroundColor: theme.palette.mode === 'dark' ? alpha(theme.palette.common.white, 0.05) : alpha(theme.palette.grey[100], 0.8),
+      borderBottom: `2px solid ${alpha(theme.palette.divider, 0.2)}`,
+    },
+  },
+
   '& .fc-col-header-cell': {
-    padding: theme.spacing(1.5, 0),
-    background: 'transparent',
+    padding: theme.spacing(2, 0),
     '& .fc-col-header-cell-cushion': {
-      fontSize: '0.875rem',
+      fontSize: '0.8125rem',
       fontWeight: 600,
       color: theme.palette.text.secondary,
       textTransform: 'uppercase',
@@ -56,25 +64,27 @@ export const CalendarContainer = styled(Paper)(({ theme }) => ({
   },
 
   '& .fc-day-today': {
-    background: `${alpha(theme.palette.primary.main, 0.05)} !important`,
+    background: `${alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.04)} !important`,
     '& .fc-daygrid-day-number': {
-      color: theme.palette.primary.main,
+      color: theme.palette.mode === 'dark' ? theme.palette.common.white : theme.palette.primary.main,
       fontWeight: 'bold',
-      backgroundColor: alpha(theme.palette.primary.main, 0.1),
+      backgroundColor: theme.palette.primary.main,
       borderRadius: '50%',
-      width: '32px',
-      height: '32px',
+      width: '28px',
+      height: '28px',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      margin: '4px',
+      margin: '8px auto',
+      boxShadow: `0 4px 10px ${alpha(theme.palette.primary.main, 0.3)}`,
     },
   },
 
   '& .fc-daygrid-day-number': {
-    padding: '8px 12px',
-    fontSize: '0.9rem',
-    color: theme.palette.text.secondary,
+    padding: '12px',
+    fontSize: '0.875rem',
+    color: theme.palette.text.primary,
+    fontWeight: 500,
   },
 
   '& .fc-event': {

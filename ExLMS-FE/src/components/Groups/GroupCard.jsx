@@ -6,10 +6,10 @@ import {
   Chip,
   Avatar,
   Tooltip,
-  AvatarGroup,
 } from '@mui/material'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 
 // ── SVG Icons ─────────────────────────────────────────────────────
 const PeopleIcon = () => (
@@ -62,6 +62,7 @@ const initials = (name = '') =>
   name.split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase() || 'G'
 
 const GroupCard = ({ group, onJoin }) => {
+  const { t } = useTranslation()
   const { id, name, description, ownerName, visibility, memberCount, category, coverUrl } = group
   const isPublic   = visibility === 'PUBLIC'
   const gradient   = getGradient(name)
@@ -120,7 +121,7 @@ const GroupCard = ({ group, onJoin }) => {
                 {isPublic ? <PublicIcon /> : <LockIcon />}
               </Box>
               <Typography sx={{ fontSize: '0.5625rem', fontWeight: 700, color: isPublic ? '#86EFAC' : '#FDE68A', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                {isPublic ? 'Public' : 'Private'}
+                {isPublic ? t('group_card.public') : t('group_card.private')}
               </Typography>
             </Box>
           </Box>
@@ -182,7 +183,7 @@ const GroupCard = ({ group, onJoin }) => {
             sx={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', lineHeight: 1.5, mb: 2 }}
             className="clamp-2"
           >
-            {description || 'No description provided.'}
+            {description || t('group_card.no_desc')}
           </Typography>
 
           {/* Stats row */}
@@ -190,12 +191,12 @@ const GroupCard = ({ group, onJoin }) => {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--color-text-muted)' }}>
               <PeopleIcon />
               <Typography sx={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--color-text-sec)' }}>
-                {memberCount ?? 0} members
+                {t('group_card.members_count', { count: memberCount ?? 0 })}
               </Typography>
             </Box>
             <Box sx={{ width: 3, height: 3, borderRadius: '50%', bgcolor: 'var(--color-border-lt)' }} />
             <Typography sx={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-              by <span style={{ color: 'var(--color-text-sec)', fontWeight: 500 }}>{ownerName}</span>
+              {t('group_card.by_owner', { owner: ownerName })}
             </Typography>
           </Box>
         </Box>
@@ -227,7 +228,7 @@ const GroupCard = ({ group, onJoin }) => {
               transition: 'all 0.15s',
             }}
           >
-            View
+            {t('group_card.view')}
           </Button>
           <Button
             size="small"
@@ -250,7 +251,7 @@ const GroupCard = ({ group, onJoin }) => {
               transition: 'all 0.15s',
             }}
           >
-            Join
+            {t('group_card.join')}
           </Button>
         </Box>
       </Box>
