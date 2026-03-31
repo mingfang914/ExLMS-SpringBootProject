@@ -40,8 +40,25 @@ const authSlice = createSlice({
     setUser: (state, action) => {
       state.user = action.payload
     },
+    /** Dùng cho Google OAuth2 flow khi cần set loading thủ công */
+    setLoading: (state, action) => {
+      state.loading = action.payload
+    },
+    /** Xóa error message (dùng khi user dismiss thông báo lỗi) */
+    clearError: (state) => {
+      state.error = null
+    },
   },
 })
 
-export const { loginStart, loginSuccess, loginFailure, logout, setUser } = authSlice.actions
+export const {
+  loginStart,
+  loginSuccess,
+  loginFailure,
+  logout,
+  setUser,
+  setLoading,
+  clearError,
+} = authSlice.actions
+
 export default authSlice.reducer

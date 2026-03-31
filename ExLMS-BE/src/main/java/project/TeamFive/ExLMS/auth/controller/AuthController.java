@@ -1,7 +1,10 @@
 package project.TeamFive.ExLMS.auth.controller;
 
+import jakarta.validation.Valid;
 import project.TeamFive.ExLMS.auth.service.AuthService;
+import project.TeamFive.ExLMS.auth.service.OAuth2GoogleService;
 import lombok.RequiredArgsConstructor;
+import project.TeamFive.ExLMS.auth.dto.request.GoogleOAuth2Request;
 import project.TeamFive.ExLMS.auth.dto.request.RegisterRequest;
 import project.TeamFive.ExLMS.auth.dto.request.LoginRequest;
 import project.TeamFive.ExLMS.auth.dto.response.AuthResponse;
@@ -14,11 +17,12 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final OAuth2GoogleService oAuth2GoogleService;
 
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody RegisterRequest request) {
         String responseMessage = authService.register(request);
-        return ResponseEntity.ok(responseMessage); // Trả về HTTP Status 200 OK
+        return ResponseEntity.ok(responseMessage);
     }
 
     @PostMapping("/login")
@@ -31,4 +35,12 @@ public class AuthController {
         return ResponseEntity.ok(authService.refreshToken(token));
     }
 
+    /**
+     * Endpoint nhận authorization_code từ Frontend (Google OAuth2 flow).
+     * Frontend dùng @react-oauth/google với flow='auth-code'.
+     */
+    @PostMapping("/oauth2/google")
+    public ResponseEntity<AuthResponse> googleLogin(@Valid @RequestBody GoogleOAuth2Request request) {
+        return ResponseEntity.ok(oAuth2GoogleService.authenticateWithGoogle(request));
+    }
 }
