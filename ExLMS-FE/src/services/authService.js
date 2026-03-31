@@ -21,9 +21,20 @@ const authService = {
     return response.data
   },
 
+  /**
+   * Đăng nhập bằng Google OAuth2 Authorization Code.
+   * @param {string} code - Authorization code từ Google
+   * @param {string} redirectUri - window.location.origin (postMessage mode)
+   */
+  loginWithGoogle: async (code, redirectUri) => {
+    const response = await api.post('/auth/oauth2/google', { code, redirectUri })
+    return response.data
+  },
+
   logout: () => {
     localStorage.removeItem('token')
-  }
+    localStorage.removeItem('refreshToken')
+  },
 }
 
 export default authService

@@ -4,9 +4,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
+
 
 import java.util.HashMap;
 import java.util.Map;
@@ -45,6 +48,32 @@ public class GlobalExceptionHandler {
         Map<String, String> error = new HashMap<>();
         error.put("message", "Bạn không có quyền thực hiện hành động này.");
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+    }
+
+    /**
+     * Xử lý lỗi từ Google OAuth2 flow.
+     * Tuân thủ common-error-handling: không lộ thông tin nhạy cảm.
+     */
+    @ExceptionHandler(OAuth2AuthenticationException.class)
+    public ResponseEntity<Map<String, String>> handleOAuth2AuthenticationException(OAuth2AuthenticationException e) {
+        Map<String, String> error = new HashMap<>();
+        String message = e.getMessage() != null ? e.getMessage() : "Xác thực Google thất bại. Vui lòng thử lại.";
+        error.put("message", message);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+    }
+
+    /**
+     * Xử lý lỗi validation (@Valid trên DTO).
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, String>> handleValidationException(MethodArgumentNotValidException e) {
+        Map<String, String> error = new HashMap<>();
+        String message = e.getBindingResult().getFieldErrors().stream()
+                .map(fe -> fe.getField() + ": " + fe.getDefaultMessage())
+                .findFirst()
+                .orElse("Dữ liệu không hợp lệ.");
+        error.put("message", message);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
     @ExceptionHandler(NullPointerException.class)
