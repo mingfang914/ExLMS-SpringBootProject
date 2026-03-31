@@ -36,8 +36,8 @@ services:
     container_name: lms-backend
     restart: always
     environment:
-      - DB_URL=jdbc:mysql://lms-mysql:3306/ExLMS?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&connectionCollation=utf8mb4_unicode_ci
-      - DB_USERNAME=root
+      - DB_URL=${DB_URL}
+      - DB_USERNAME=${DB_USERNAME}
       - DB_PASSWORD=${DB_PASSWORD}
       - MINIO_URL=http://lms-minio:9000
       - MINIO_ACCESS_KEY=${MINIO_ROOT_USER}

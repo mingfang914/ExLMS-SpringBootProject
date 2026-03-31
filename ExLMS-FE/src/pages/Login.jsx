@@ -125,7 +125,7 @@ const Login = () => {
   const [password, setPassword] = useState('')
   const [showPwd, setShowPwd] = useState(false)
   const [error, setError] = useState(null)
-  const [loading, setLoading] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const { t } = useTranslation()
   const dispatch = useDispatch()
@@ -134,7 +134,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError(null)
-    setLoading(true)
+    setIsSubmitting(true)
     dispatch(loginStart())
 
     try {
@@ -150,13 +150,13 @@ const Login = () => {
       setError(message)
       dispatch(loginFailure(message))
     } finally {
-      setLoading(false)
+      setIsSubmitting(false)
     }
   }
 
   const onGoogleSuccess = async (codeResponse) => {
     setError(null)
-    dispatch(setLoading(true))
+    dispatch(setLoading(true)) // Now correctly uses the Redux action
     try {
       const redirectUri = window.location.origin
       const data = await authService.loginWithGoogle(codeResponse.code, redirectUri)
@@ -294,8 +294,8 @@ const Login = () => {
             </motion.div>
 
             <motion.div custom={4} variants={fadeUp} initial="hidden" animate="visible">
-              <Button type="submit" fullWidth variant="contained" disabled={loading} endIcon={!loading && <ArrowRightIcon />} sx={{ mt: 3, mb: 2, height: 48, borderRadius: '10px', fontSize: '0.9375rem', fontWeight: 700, background: 'linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)', '&:hover': { background: 'linear-gradient(135deg, #818CF8 0%, #6366F1 100%)', transform: 'translateY(-1px)', boxShadow: '0 8px 24px rgba(99,102,241,0.4)' } }}>
-                {loading ? <CircularProgress size={20} sx={{ color: 'white' }} /> : t('auth.signin')}
+              <Button type="submit" fullWidth variant="contained" disabled={isSubmitting} endIcon={!isSubmitting && <ArrowRightIcon />} sx={{ mt: 3, mb: 2, height: 48, borderRadius: '10px', fontSize: '0.9375rem', fontWeight: 700, background: 'linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)', '&:hover': { background: 'linear-gradient(135deg, #818CF8 0%, #6366F1 100%)', transform: 'translateY(-1px)', boxShadow: '0 8px 24px rgba(99,102,241,0.4)' } }}>
+                {isSubmitting ? <CircularProgress size={20} sx={{ color: 'white' }} /> : t('auth.signin')}
               </Button>
             </motion.div>
           </Box>
@@ -306,7 +306,7 @@ const Login = () => {
             </Divider>
 
             <GoogleLoginButton 
-              disabled={loading}
+              disabled={isSubmitting}
               onSuccess={onGoogleSuccess}
               onError={onGoogleError}
             />

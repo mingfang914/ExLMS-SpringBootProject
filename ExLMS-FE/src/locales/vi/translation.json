@@ -122,9 +122,11 @@
   },
   "dashboard": {
     "welcome": "Chào mừng trở lại,",
-    "morning": "Chào buổi sáng",
-    "afternoon": "Chào buổi chiều",
-    "evening": "Chào buổi tối",
+    "greetings": {
+      "morning": "Chào buổi sáng",
+      "afternoon": "Chào buổi chiều",
+      "evening": "Chào buổi tối"
+    },
     "description": "Bạn có 4 thông báo mới và 2 bài tập cần hoàn thành.",
     "learning_hours": "Giờ học tập",
     "this_week": "Tuần này",
