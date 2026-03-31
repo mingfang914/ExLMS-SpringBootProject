@@ -44,6 +44,7 @@ jobs:
             echo "MINIO_URL=${{ secrets.MINIO_URL }}" >> .env
             echo "MINIO_ROOT_USER=${{ secrets.MINIO_ROOT_USER }}" >> .env
             echo "MINIO_ROOT_PASSWORD=${{ secrets.MINIO_ROOT_PASSWORD }}" >> .env
+            echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" >> .env
             
             # Cấu hình log levels
             echo "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=DEBUG" >> .env
