@@ -428,7 +428,7 @@ const Calendar = () => {
             navLinks={true}
             businessHours={true}
             nowIndicator={true}
-            locale={i18n.language === 'vi' ? 'vi' : 'en'}
+            locale={i18n && i18n.language === 'vi' ? 'vi' : 'en'}
           />
         </CalendarContainer>
       )}
