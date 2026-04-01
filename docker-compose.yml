@@ -11,6 +11,7 @@ services:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+      - ./docker-init/db:/docker-entrypoint-initdb.d
 
   # 2. MinIO (File Storage)
   lms-minio:
@@ -27,6 +28,20 @@ services:
     volumes:
       - minio_data:/data
 
+  # 2.1 MinIO Initializer Script (Creates Buckets & Uploads Assets)
+  lms-minio-init:
+    image: minio/mc
+    container_name: lms-minio-init
+    depends_on:
+      - lms-minio
+    entrypoint: >
+      /bin/sh -c "
+      sh /docker-init/init.sh
+      "
+    volumes:
+      - ./docker-init/minio:/docker-init
+      - ./Assets:/assets
+
   # 3. Backend Service (Spring Boot)
   lms-backend:
     build:
@@ -36,7 +51,7 @@ services:
     container_name: lms-backend
     restart: always
     environment:
-      - DB_URL=${DB_URL}
+      - DB_URL=jdbc:mysql://lms-mysql:3306/ExLMS?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&connectionCollation=utf8mb4_unicode_ci
       - DB_USERNAME=${DB_USERNAME}
       - DB_PASSWORD=${DB_PASSWORD}
       - MINIO_URL=http://lms-minio:9000

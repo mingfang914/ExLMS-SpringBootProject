@@ -14,7 +14,8 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class QuizResponseDTO {
-    private UUID id;
+    private UUID id;             // This is the deployment ID (GroupQuiz ID)
+    private UUID templateId;     // This is the template ID (Quiz ID)
     private String title;
     private String description;
     private UUID chapterId;

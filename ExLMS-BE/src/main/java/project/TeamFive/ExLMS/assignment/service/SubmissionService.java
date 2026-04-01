@@ -8,9 +8,10 @@ import project.TeamFive.ExLMS.assignment.dto.request.SubmissionRequest;
 import project.TeamFive.ExLMS.assignment.dto.response.SubmissionResponseDTO;
 import project.TeamFive.ExLMS.assignment.entity.Assignment;
 import project.TeamFive.ExLMS.assignment.entity.AssignmentSubmission;
+import project.TeamFive.ExLMS.assignment.entity.GroupAssignment;
 import project.TeamFive.ExLMS.assignment.repository.AssignmentGradeRepository;
-import project.TeamFive.ExLMS.assignment.repository.AssignmentRepository;
 import project.TeamFive.ExLMS.assignment.repository.AssignmentSubmissionRepository;
+import project.TeamFive.ExLMS.assignment.repository.GroupAssignmentRepository;
 import project.TeamFive.ExLMS.service.FileService;
 import project.TeamFive.ExLMS.user.entity.User;
 
@@ -25,40 +26,41 @@ public class SubmissionService {
 
     private final AssignmentSubmissionRepository submissionRepository;
     private final AssignmentGradeRepository gradeRepository;
-    private final AssignmentRepository assignmentRepository;
+    private final GroupAssignmentRepository groupAssignmentRepository;
     private final FileService fileService;
 
     @Transactional
-    public SubmissionResponseDTO submitAssignment(UUID assignmentId, SubmissionRequest request, MultipartFile file, User student) {
-        Assignment assignment = assignmentRepository.findById(assignmentId)
-                .orElseThrow(() -> new RuntimeException("Assignment not found"));
+    public SubmissionResponseDTO submitAssignment(UUID groupAssignmentId, SubmissionRequest request, MultipartFile file, User student) {
+        GroupAssignment deployment = groupAssignmentRepository.findById(groupAssignmentId)
+                .orElseThrow(() -> new RuntimeException("Assignment deployment not found"));
+        
+        Assignment template = deployment.getAssignment();
 
-        // Check if assignment is closed
-        if (assignment.getStatus() == Assignment.AssignmentStatus.CLOSED) {
-            throw new RuntimeException("Bài tập này đã đóng!");
+        // Check if deployment is closed
+        if (deployment.getStatus() == GroupAssignment.GroupAssignmentStatus.CLOSED) {
+            throw new RuntimeException("Bài tập này đã đóng trong nhóm này!");
         }
 
         // Check assigned_at
-        if (assignment.getAssignedAt() != null && assignment.getAssignedAt().isAfter(LocalDateTime.now())) {
+        if (deployment.getAssignedAt() != null && deployment.getAssignedAt().isAfter(LocalDateTime.now())) {
             throw new RuntimeException("Bài tập này chưa đến thời gian giao bài!");
         }
 
         // Check due_at and allow_late
-        boolean isLate = LocalDateTime.now().isAfter(assignment.getDueAt());
-        if (isLate && !assignment.isAllowLate()) {
+        boolean isLate = LocalDateTime.now().isAfter(deployment.getDueAt());
+        if (isLate && !deployment.isAllowLate()) {
             throw new RuntimeException("Đã quá hạn nộp bài!");
         }
 
         // Get current attempt number
-        long count = submissionRepository.countByAssignment_IdAndStudent_Id(assignmentId, student.getId());
+        long count = submissionRepository.countByGroupAssignment_IdAndStudent_Id(groupAssignmentId, student.getId());
         int attemptNumber = (int) count + 1;
 
         AssignmentSubmission submission = AssignmentSubmission.builder()
-                .assignment(assignment)
+                .groupAssignment(deployment)
                 .student(student)
-                .submissionType(request.getSubmissionType() != null ? request.getSubmissionType() : assignment.getSubmissionType())
+                .submissionType(request.getSubmissionType() != null ? request.getSubmissionType() : template.getSubmissionType())
                 .textContent(request.getTextContent())
-                .externalUrl(request.getExternalUrl())
                 .late(isLate)
                 .attemptNumber(attemptNumber)
                 .submittedAt(LocalDateTime.now())
@@ -68,19 +70,19 @@ public class SubmissionService {
         if (file != null && !file.isEmpty()) {
             // Check allowed file types
             String originalFileName = file.getOriginalFilename();
-            if (assignment.getAllowedFileTypes() != null && !assignment.getAllowedFileTypes().isEmpty()) {
+            if (template.getAllowedFileTypes() != null && !template.getAllowedFileTypes().isEmpty()) {
                 String ext = "";
                 if (originalFileName != null && originalFileName.contains(".")) {
                     ext = originalFileName.substring(originalFileName.lastIndexOf(".")).toLowerCase();
                 }
-                if (!assignment.getAllowedFileTypes().toLowerCase().contains(ext)) {
-                    throw new RuntimeException("Định dạng file không được phép! Chỉ nhận: " + assignment.getAllowedFileTypes());
+                if (!template.getAllowedFileTypes().toLowerCase().contains(ext)) {
+                    throw new RuntimeException("Định dạng file không được phép! Chỉ nhận: " + template.getAllowedFileTypes());
                 }
             }
 
             // Check file size
-            if (file.getSize() > (long) assignment.getMaxFileSizeMb() * 1024 * 1024) {
-                throw new RuntimeException("Dung lượng file vượt quá giới hạn " + assignment.getMaxFileSizeMb() + "MB!");
+            if (file.getSize() > (long) template.getMaxFileSizeMb() * 1024 * 1024) {
+                throw new RuntimeException("Dung lượng file vượt quá giới hạn " + template.getMaxFileSizeMb() + "MB!");
             }
 
             String fileKey = fileService.uploadFile(file);
@@ -94,8 +96,8 @@ public class SubmissionService {
     }
 
     @Transactional(readOnly = true)
-    public List<SubmissionResponseDTO> getMySubmissions(UUID assignmentId, User student) {
-        return submissionRepository.findByAssignment_IdAndStudent_Id(assignmentId, student.getId())
+    public List<SubmissionResponseDTO> getMySubmissions(UUID groupAssignmentId, User student) {
+        return submissionRepository.findByGroupAssignment_IdAndStudent_Id(groupAssignmentId, student.getId())
                 .stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
@@ -114,14 +116,16 @@ public class SubmissionService {
             throw new RuntimeException("Không thể chỉnh sửa bài nộp đã được chấm điểm!");
         }
 
-        Assignment assignment = submission.getAssignment();
-        if (assignment.getStatus() == Assignment.AssignmentStatus.CLOSED) {
+        GroupAssignment deployment = submission.getGroupAssignment();
+        Assignment template = deployment.getAssignment();
+
+        if (deployment.getStatus() == GroupAssignment.GroupAssignmentStatus.CLOSED) {
             throw new RuntimeException("Bài tập này đã đóng!");
         }
 
         // Check due_at and allow_late
-        boolean isLate = LocalDateTime.now().isAfter(assignment.getDueAt());
-        if (isLate && !assignment.isAllowLate()) {
+        boolean isLate = LocalDateTime.now().isAfter(deployment.getDueAt());
+        if (isLate && !deployment.isAllowLate()) {
             throw new RuntimeException("Đã quá hạn nộp bài!");
         }
 
@@ -132,19 +136,19 @@ public class SubmissionService {
         if (file != null && !file.isEmpty()) {
             // Check allowed file types
             String originalFileName = file.getOriginalFilename();
-            if (assignment.getAllowedFileTypes() != null && !assignment.getAllowedFileTypes().isEmpty()) {
+            if (template.getAllowedFileTypes() != null && !template.getAllowedFileTypes().isEmpty()) {
                 String ext = "";
                 if (originalFileName != null && originalFileName.contains(".")) {
                     ext = originalFileName.substring(originalFileName.lastIndexOf(".")).toLowerCase();
                 }
-                if (!assignment.getAllowedFileTypes().toLowerCase().contains(ext)) {
-                    throw new RuntimeException("Định dạng file không được phép! Chỉ nhận: " + assignment.getAllowedFileTypes());
+                if (!template.getAllowedFileTypes().toLowerCase().contains(ext)) {
+                    throw new RuntimeException("Định dạng file không được phép! Chỉ nhận: " + template.getAllowedFileTypes());
                 }
             }
 
             // Check file size
-            if (file.getSize() > (long) assignment.getMaxFileSizeMb() * 1024 * 1024) {
-                throw new RuntimeException("Dung lượng file vượt quá giới hạn " + assignment.getMaxFileSizeMb() + "MB!");
+            if (file.getSize() > (long) template.getMaxFileSizeMb() * 1024 * 1024) {
+                throw new RuntimeException("Dung lượng file vượt quá giới hạn " + template.getMaxFileSizeMb() + "MB!");
             }
 
             // Delete old file if exists

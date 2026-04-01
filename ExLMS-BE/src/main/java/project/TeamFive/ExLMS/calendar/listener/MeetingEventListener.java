@@ -57,7 +57,7 @@ public class MeetingEventListener {
             calEvent.setTitle("Meeting: " + meeting.getTitle());
             calEvent.setDescription(meeting.getDescription());
             calEvent.setStartAt(meeting.getStartAt());
-            calEvent.setEndAt(meeting.getStartAt().plusMinutes(meeting.getDurationMinutes()));
+            calEvent.setEndAt(meeting.getEndAt());
             calEvent.setColor("#6366F1"); // Blue for meetings
         }
 
@@ -82,7 +82,7 @@ public class MeetingEventListener {
                 .title("Meeting: " + meeting.getTitle())
                 .description(meeting.getDescription())
                 .startAt(meeting.getStartAt())
-                .endAt(meeting.getStartAt().plusMinutes(meeting.getDurationMinutes()))
+                .endAt(meeting.getEndAt())
                 .eventType(CalendarEvent.EventType.MEETING)
                 .color("#6366F1")
                 .sourceEntityId(meeting.getId())

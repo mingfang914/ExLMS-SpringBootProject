@@ -2,14 +2,14 @@ package project.TeamFive.ExLMS.course.event;
 
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
-import project.TeamFive.ExLMS.course.entity.Course;
+import project.TeamFive.ExLMS.course.entity.GroupCourse;
 
 @Getter
 public class CourseUpdatedEvent extends ApplicationEvent {
-    private final Course course;
+    private final GroupCourse groupCourse;
 
-    public CourseUpdatedEvent(Object source, Course course) {
+    public CourseUpdatedEvent(Object source, GroupCourse groupCourse) {
         super(source);
-        this.course = course;
+        this.groupCourse = groupCourse;
     }
 }

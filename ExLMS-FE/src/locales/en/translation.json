@@ -48,9 +48,13 @@
     "logout": "Logout",
     "sections": {
       "main": "MAIN MENU",
+      "inventory": "PERSONAL LIBRARY",
       "community": "COMMUNITY",
       "admin": "ADMINISTRATION"
-    }
+    },
+    "courses_repo": "Course Repository",
+    "assignments_repo": "Assignment Repository",
+    "quizzes_repo": "Quiz Bank"
   },
   "auth": {
     "signin": "Sign In",

@@ -51,9 +51,8 @@ public class Meeting extends BaseEntity {
     @Column(name = "start_at", nullable = false)
     private LocalDateTime startAt;
 
-    @Builder.Default
-    @Column(name = "duration_minutes", nullable = false)
-    private int durationMinutes = 60;
+    @Column(name = "end_at", nullable = false)
+    private LocalDateTime endAt;
 
     @Builder.Default
     @Enumerated(EnumType.STRING)

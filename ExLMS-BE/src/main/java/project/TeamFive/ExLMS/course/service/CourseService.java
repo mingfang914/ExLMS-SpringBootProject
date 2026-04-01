@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import project.TeamFive.ExLMS.course.dto.request.CourseRequest;
 import project.TeamFive.ExLMS.course.dto.response.CourseResponse;
 import project.TeamFive.ExLMS.course.entity.Course;
+import project.TeamFive.ExLMS.course.entity.GroupCourse;
 import project.TeamFive.ExLMS.course.event.CourseCreatedEvent;
 import project.TeamFive.ExLMS.course.event.CourseDeletedEvent;
 import project.TeamFive.ExLMS.course.event.CourseUpdatedEvent;
@@ -15,6 +16,7 @@ import project.TeamFive.ExLMS.group.entity.GroupMember;
 import project.TeamFive.ExLMS.group.entity.StudyGroup;
 import project.TeamFive.ExLMS.user.entity.User;
 import project.TeamFive.ExLMS.course.repository.CourseRepository;
+import project.TeamFive.ExLMS.course.repository.GroupCourseRepository;
 import project.TeamFive.ExLMS.group.repository.GroupMemberRepository;
 import project.TeamFive.ExLMS.group.repository.StudyGroupRepository;
 import project.TeamFive.ExLMS.service.FileService;
@@ -28,59 +30,57 @@ import java.util.stream.Collectors;
 public class CourseService {
 
     private final CourseRepository courseRepository;
+    private final GroupCourseRepository groupCourseRepository;
     private final StudyGroupRepository studyGroupRepository;
     private final GroupMemberRepository groupMemberRepository;
     private final FileService fileService;
     private final ApplicationEventPublisher eventPublisher;
 
-    // --- HÀM DÙNG CHUNG: Kiểm tra quyền Giảng viên (Owner/Editor) ---
     private void requireInstructorRole(StudyGroup group, User user) {
         GroupMember member = groupMemberRepository.findByGroup_IdAndUser_Id(group.getId(), user.getId())
                 .orElseThrow(() -> new RuntimeException("Bạn không phải là thành viên của nhóm này!"));
 
         if (!"OWNER".equals(member.getRole()) && !"EDITOR".equals(member.getRole())) {
-            throw new RuntimeException(
-                    "Truy cập bị từ chối: Chỉ Chủ nhóm hoặc Biên tập viên mới có quyền quản lý khóa học!");
+            throw new RuntimeException("Chỉ Chủ nhóm hoặc Biên tập viên mới có quyền quản lý khóa học!");
         }
     }
 
-    // ==================== CREATE ====================
     @Transactional
     public CourseResponse createCourse(UUID groupId, CourseRequest request) {
         User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         StudyGroup group = studyGroupRepository.findById(groupId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy nhóm học tập!"));
 
-        // 1. Kiểm tra quyền (Chốt chặn bảo mật)
         requireInstructorRole(group, currentUser);
 
-        // 2. Tạo khóa học
         String thumbnailKey = request.getThumbnailKey();
         if (thumbnailKey == null || thumbnailKey.trim().isEmpty()) {
             thumbnailKey = "DefaultCourseImg.png";
         }
 
-        Course newCourse = Course.builder()
-                .group(group)
+        Course template = Course.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .thumbnailKey(thumbnailKey)
-                .startDate(request.getStartDate())
-                .endDate(request.getEndDate())
-                .status(request.getStatus() != null ? request.getStatus() : "DRAFT")
                 .createdBy(currentUser)
                 .build();
+        template = courseRepository.save(template);
 
-        newCourse = courseRepository.save(newCourse);
-        eventPublisher.publishEvent(new CourseCreatedEvent(this, newCourse));
-        return mapToResponse(newCourse);
+        GroupCourse deployment = GroupCourse.builder()
+                .group(group)
+                .course(template)
+                .startDate(request.getStartDate())
+                .endDate(request.getEndDate())
+                .status(GroupCourse.GroupCourseStatus.PUBLISHED)
+                .build();
+        deployment = groupCourseRepository.save(deployment);
+
+        eventPublisher.publishEvent(new CourseCreatedEvent(this, deployment));
+        return mapToResponse(deployment);
     }
 
-    // ==================== READ (Tối ưu với readOnly = true) ====================
     @Transactional(readOnly = true)
     public List<CourseResponse> getCoursesByGroupId(UUID groupId) {
-        // Sinh viên trong nhóm cũng có thể xem danh sách khóa học, nên ở đây ta chỉ cần
-        // check có phải thành viên không
         User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         StudyGroup group = studyGroupRepository.findById(groupId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy nhóm học tập!"));
@@ -89,77 +89,149 @@ public class CourseService {
             throw new RuntimeException("Bạn phải tham gia nhóm mới xem được khóa học!");
         }
 
-        return courseRepository.findByGroup_Id(groupId).stream()
+        return groupCourseRepository.findByGroup_Id(groupId).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
 
-    // ==================== READ 1 COURSE ====================
     @Transactional(readOnly = true)
-    public CourseResponse getCourseById(UUID courseId) {
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học!"));
-        return mapToResponse(course);
+    public CourseResponse getCourseDeploymentById(UUID deploymentId) {
+        GroupCourse deployment = groupCourseRepository.findById(deploymentId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đợt mở khóa học này!"));
+        return mapToResponse(deployment);
     }
 
-    // ==================== UPDATE ====================
     @Transactional
-    public CourseResponse updateCourse(UUID courseId, CourseRequest request) {
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học!"));
+    public CourseResponse updateCourseDeployment(UUID deploymentId, CourseRequest request) {
+        GroupCourse deployment = groupCourseRepository.findById(deploymentId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đợt mở khóa học này!"));
 
         User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        requireInstructorRole(course.getGroup(), currentUser);
+        requireInstructorRole(deployment.getGroup(), currentUser);
 
-        if (request.getTitle() != null)
-            course.setTitle(request.getTitle());
-        if (request.getDescription() != null)
-            course.setDescription(request.getDescription());
-        if (request.getThumbnailKey() != null)
-            course.setThumbnailKey(request.getThumbnailKey());
-        if (request.getStatus() != null)
-            course.setStatus(request.getStatus());
-        if (request.getStartDate() != null)
-            course.setStartDate(request.getStartDate());
-        if (request.getEndDate() != null)
-            course.setEndDate(request.getEndDate());
+        Course template = deployment.getCourse();
+        if (request.getTitle() != null) template.setTitle(request.getTitle());
+        if (request.getDescription() != null) template.setDescription(request.getDescription());
+        if (request.getThumbnailKey() != null) template.setThumbnailKey(request.getThumbnailKey());
+        courseRepository.save(template);
 
-        course = courseRepository.save(course);
-        eventPublisher.publishEvent(new CourseUpdatedEvent(this, course));
-        return mapToResponse(course);
+        if (request.getStartDate() != null) deployment.setStartDate(request.getStartDate());
+        if (request.getEndDate() != null) deployment.setEndDate(request.getEndDate());
+        if (request.getStatus() != null) {
+            try {
+                deployment.setStatus(GroupCourse.GroupCourseStatus.valueOf(request.getStatus()));
+            } catch (Exception e) {}
+        }
+        deployment = groupCourseRepository.save(deployment);
+
+        eventPublisher.publishEvent(new CourseUpdatedEvent(this, deployment));
+        return mapToResponse(deployment);
     }
 
-    // ==================== DELETE ====================
     @Transactional
-    public String deleteCourse(UUID courseId) {
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học!"));
+    public String deleteCourseDeployment(UUID deploymentId) {
+        GroupCourse deployment = groupCourseRepository.findById(deploymentId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đợt mở khóa học này!"));
 
         User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        requireInstructorRole(course.getGroup(), currentUser);
+        requireInstructorRole(deployment.getGroup(), currentUser);
 
-        course.setStatus("DELETED"); // Soft delete
-        courseRepository.save(course);
-        eventPublisher.publishEvent(new CourseDeletedEvent(this, courseId));
-        return "Đã xóa khóa học thành công!";
+        groupCourseRepository.delete(deployment);
+        eventPublisher.publishEvent(new CourseDeletedEvent(this, deploymentId));
+        return "Đã xóa đợt mở khóa học thành công!";
     }
 
-    // --- Hàm phụ trợ map sang DTO ---
-    private CourseResponse mapToResponse(Course course) {
+    @Transactional(readOnly = true)
+    public List<CourseResponse> getTemplatesByCreator(User creator) {
+        return courseRepository.findByCreatedBy(creator)
+                .stream()
+                .map(this::mapTemplateToResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public CourseResponse getTemplateById(UUID id) {
+        Course course = courseRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bản mẫu khóa học!"));
+        return mapTemplateToResponse(course);
+    }
+
+    @Transactional
+    public void deployCourses(UUID groupId, List<UUID> templateIds, CourseRequest request, User user) {
+        StudyGroup group = studyGroupRepository.findById(groupId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhóm học tập!"));
+
+        requireInstructorRole(group, user);
+
+        for (UUID templateId : templateIds) {
+            Course template = courseRepository.findById(templateId)
+                    .orElseThrow(() -> new RuntimeException("Template not found: " + templateId));
+
+            GroupCourse deployment = GroupCourse.builder()
+                    .group(group)
+                    .course(template)
+                    .startDate(request.getStartDate())
+                    .endDate(request.getEndDate())
+                    .status(GroupCourse.GroupCourseStatus.PUBLISHED)
+                    .build();
+            groupCourseRepository.save(deployment);
+            eventPublisher.publishEvent(new CourseCreatedEvent(this, deployment));
+        }
+    }
+
+    @Transactional
+    public CourseResponse createTemplate(CourseRequest request, User user) {
+        String thumbnailKey = request.getThumbnailKey();
+        if (thumbnailKey == null || thumbnailKey.trim().isEmpty()) {
+            thumbnailKey = "DefaultCourseImg.png";
+        }
+
+        Course template = Course.builder()
+                .title(request.getTitle())
+                .description(request.getDescription())
+                .thumbnailKey(thumbnailKey)
+                .createdBy(user)
+                .build();
+        return mapTemplateToResponse(courseRepository.save(template));
+    }
+
+    @Transactional
+    public CourseResponse updateTemplate(UUID templateId, CourseRequest request, User user) {
+        Course template = courseRepository.findById(templateId)
+                .orElseThrow(() -> new RuntimeException("Template not found"));
+
+        if (!template.getCreatedBy().getId().equals(user.getId())) {
+            throw new RuntimeException("Bạn không có quyền chỉnh sửa bản mẫu này!");
+        }
+
+        if (request.getTitle() != null) template.setTitle(request.getTitle());
+        if (request.getDescription() != null) template.setDescription(request.getDescription());
+        if (request.getThumbnailKey() != null) template.setThumbnailKey(request.getThumbnailKey());
+
+        return mapTemplateToResponse(courseRepository.save(template));
+    }
+
+    private CourseResponse mapTemplateToResponse(Course template) {
         String thumbUrl = null;
-        if (course.getThumbnailKey() != null && !course.getThumbnailKey().trim().isEmpty()) {
-            thumbUrl = "/api/files/download/" + course.getThumbnailKey();
+        if (template.getThumbnailKey() != null && !template.getThumbnailKey().trim().isEmpty()) {
+            thumbUrl = "/api/files/download/" + template.getThumbnailKey();
         }
 
         return CourseResponse.builder()
-                .id(course.getId())
-                .title(course.getTitle())
-                .description(course.getDescription())
-                .status(course.getStatus())
-                .groupId(course.getGroup().getId())
+                .templateId(template.getId())
+                .title(template.getTitle())
+                .description(template.getDescription())
                 .thumbnailUrl(thumbUrl)
-                .startDate(course.getStartDate())
-                .endDate(course.getEndDate())
                 .build();
+    }
+
+    private CourseResponse mapToResponse(GroupCourse deployment) {
+        CourseResponse res = mapTemplateToResponse(deployment.getCourse());
+        res.setId(deployment.getId());
+        res.setGroupId(deployment.getGroup().getId());
+        res.setStatus(deployment.getStatus().name());
+        res.setStartDate(deployment.getStartDate());
+        res.setEndDate(deployment.getEndDate());
+        return res;
     }
 }

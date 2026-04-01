@@ -18,17 +18,14 @@ public class CreateAssignmentRequest {
     @NotBlank(message = "Title is required")
     private String title;
     private String description;
-    private UUID courseId;
-    @Builder.Default
-    private int maxScore = 100;
+    private UUID groupId;
+    private UUID courseId; // For matching Chapter if needed
+    private Integer maxScore;
+    private LocalDateTime assignedAt;
     private LocalDateTime dueAt;
-    @Builder.Default
-    private Assignment.SubmissionType submissionType = Assignment.SubmissionType.FILE;
+    private Assignment.SubmissionType submissionType;
     private String allowedFileTypes;
-    @Builder.Default
-    private int maxFileSizeMb = 50;
-    @Builder.Default
-    private boolean allowLate = false;
-    @Builder.Default
-    private int latePenaltyPercent = 0;
+    private Integer maxFileSizeMb;
+    private Boolean allowLate;
+    private Integer latePenaltyPercent;
 }

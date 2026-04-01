@@ -7,6 +7,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import project.TeamFive.ExLMS.assignment.entity.Assignment;
+import project.TeamFive.ExLMS.assignment.entity.GroupAssignment;
 import project.TeamFive.ExLMS.assignment.event.AssignmentCreatedEvent;
 import project.TeamFive.ExLMS.assignment.event.AssignmentDeletedEvent;
 import project.TeamFive.ExLMS.assignment.event.AssignmentUpdatedEvent;
@@ -31,82 +32,79 @@ public class AssignmentEventListener {
     @EventListener
     @Transactional
     public void onAssignmentCreated(AssignmentCreatedEvent event) {
-        Assignment assignment = event.getAssignment();
-        log.info("EVENT_DEBUG: Received AssignmentCreatedEvent for assignment ID: {}", assignment.getId());
-        if (assignment.getDueAt() == null) {
-            log.warn("EVENT_DEBUG: Assignment dueAt is NULL, skipping calendar sync.");
+        GroupAssignment deployment = event.getDeployment();
+        
+        log.info("EVENT_DEBUG: Received AssignmentCreatedEvent for deployment ID: {}, Title: {}", 
+                deployment.getId(), deployment.getAssignment().getTitle());
+        if (deployment.getDueAt() == null) {
+            log.warn("EVENT_DEBUG: Deployment dueAt is NULL, skipping calendar sync.");
             return;
         }
 
-        List<GroupMember> members = groupMemberRepository.findByGroup_Id(assignment.getGroup().getId());
-        log.info("EVENT_DEBUG: Found {} group members for assignment sync. Group ID: {}", members.size(), assignment.getGroup().getId());
+        List<GroupMember> members = groupMemberRepository.findByGroup_Id(deployment.getGroup().getId());
+        log.info("EVENT_DEBUG: Found {} group members for deployment sync.", members.size());
         
         if (members.isEmpty()) {
-            log.warn("EVENT_DEBUG: No members found for group {}, skipping calendar event creation.", assignment.getGroup().getId());
             return;
         }
 
         List<CalendarEvent> calendarEvents = members.stream()
-                .map(member -> {
-                    log.info("EVENT_DEBUG: Creating calendar event for user: {}", member.getUser().getId());
-                    return createCalendarEvent(assignment, member);
-                })
+                .map(member -> createCalendarEvent(deployment, member))
                 .collect(Collectors.toList());
 
         calendarEventRepository.saveAll(calendarEvents);
-        log.info("EVENT_DEBUG: Saved {} calendar events for assignment.", calendarEvents.size());
-        notifyMembers(members, assignment.getId());
+        notifyMembers(members, deployment.getId());
     }
 
     @EventListener
     @Transactional
     public void onAssignmentUpdated(AssignmentUpdatedEvent event) {
-        Assignment assignment = event.getAssignment();
-        log.info("Processing AssignmentUpdatedEvent for assignment: {}", assignment.getId());
+        GroupAssignment deployment = event.getDeployment();
+        Assignment template = deployment.getAssignment();
+        log.info("Processing AssignmentUpdatedEvent for deployment: {}", deployment.getId());
 
-        // Delete existing and recreate if dueAt changed significantly or just update
-        // To be safe and simple, we delete and recreate or update all matches
         List<CalendarEvent> existingEvents = calendarEventRepository.findBySourceEntityIdAndSourceEntityType(
-                assignment.getId(), CalendarEvent.SourceEntityType.ASSIGNMENT);
+                deployment.getId(), CalendarEvent.SourceEntityType.ASSIGNMENT);
 
-        if (assignment.getDueAt() == null) {
+        if (deployment.getDueAt() == null) {
             calendarEventRepository.deleteAll(existingEvents);
         } else {
             for (CalendarEvent calEvent : existingEvents) {
-                calEvent.setTitle("Assignment Due: " + assignment.getTitle());
-                calEvent.setDescription(assignment.getDescription());
-                calEvent.setStartAt(assignment.getDueAt());
-                calEvent.setEndAt(assignment.getDueAt());
-                calEvent.setColor("#EF4444"); // Red for assignments
+                calEvent.setTitle("Assignment Due: " + template.getTitle());
+                calEvent.setDescription(template.getDescription());
+                calEvent.setStartAt(deployment.getDueAt());
+                calEvent.setEndAt(deployment.getDueAt());
+                calEvent.setColor("#EF4444");
             }
             calendarEventRepository.saveAll(existingEvents);
         }
 
-        List<GroupMember> members = groupMemberRepository.findByGroup_Id(assignment.getGroup().getId());
-        notifyMembers(members, assignment.getId());
+        List<GroupMember> members = groupMemberRepository.findByGroup_Id(deployment.getGroup().getId());
+        notifyMembers(members, deployment.getId());
     }
 
     @EventListener
     @Transactional
     public void onAssignmentDeleted(AssignmentDeletedEvent event) {
-        log.info("Processing AssignmentDeletedEvent for assignment: {}", event.getAssignmentId());
+        log.info("Processing AssignmentDeletedEvent for deployment: {}", event.getAssignmentId());
         calendarEventRepository.deleteBySourceEntityIdAndSourceEntityType(
                 event.getAssignmentId(), CalendarEvent.SourceEntityType.ASSIGNMENT);
         messagingTemplate.convertAndSend("/topic/calendar-updates", "REFRESH");
     }
 
-    private CalendarEvent createCalendarEvent(Assignment assignment, GroupMember member) {
+    private CalendarEvent createCalendarEvent(GroupAssignment deployment, GroupMember member) {
+        Assignment template = deployment.getAssignment();
         return CalendarEvent.builder()
                 .user(member.getUser())
-                .title("Assignment Due: " + assignment.getTitle())
-                .description(assignment.getDescription())
-                .startAt(assignment.getDueAt())
-                .endAt(assignment.getDueAt())
+                .title("Assignment Due: " + template.getTitle())
+                .description(template.getDescription())
+                .startAt(deployment.getDueAt())
+                .endAt(deployment.getDueAt())
                 .eventType(CalendarEvent.EventType.ASSIGNMENT_DUE)
                 .color("#EF4444")
-                .sourceEntityId(assignment.getId())
+                .sourceEntityId(deployment.getId())
                 .sourceEntityType(CalendarEvent.SourceEntityType.ASSIGNMENT)
-                .groupId(assignment.getGroup().getId())
+                .groupId(deployment.getGroup().getId())
                 .personal(false)
                 .build();
     }

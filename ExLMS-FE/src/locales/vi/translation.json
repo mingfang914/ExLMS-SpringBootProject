@@ -46,9 +46,13 @@
     "logout": "Đăng xuất",
     "sections": {
       "main": "DANH MỤC CHÍNH",
+      "inventory": "THƯ VIỆN CÁ NHÂN",
       "community": "CỘNG ĐỒNG",
       "admin": "QUẢN TRỊ VIÊN"
-    }
+    },
+    "courses_repo": "Kho Khóa học",
+    "assignments_repo": "Kho Bài tập",
+    "quizzes_repo": "Ngân hàng Đề thi"
   },
   "auth": {
     "signin": "Đăng nhập",

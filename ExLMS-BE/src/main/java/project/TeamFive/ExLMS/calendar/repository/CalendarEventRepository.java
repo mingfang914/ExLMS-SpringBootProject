@@ -15,4 +15,5 @@ public interface CalendarEventRepository extends JpaRepository<CalendarEvent, UU
     List<CalendarEvent> findByUserOrderByStartAtAsc(User user);
     List<CalendarEvent> findBySourceEntityIdAndSourceEntityType(UUID sourceEntityId, CalendarEvent.SourceEntityType type);
     void deleteBySourceEntityIdAndSourceEntityType(UUID sourceEntityId, CalendarEvent.SourceEntityType type);
+    long countByUser_Id(UUID userId);
 }

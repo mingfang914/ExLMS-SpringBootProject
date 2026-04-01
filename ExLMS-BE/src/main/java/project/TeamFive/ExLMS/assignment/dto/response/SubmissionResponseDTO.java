@@ -38,7 +38,7 @@ public class SubmissionResponseDTO {
     public static SubmissionResponseDTO fromEntity(AssignmentSubmission sub) {
         return SubmissionResponseDTO.builder()
                 .id(sub.getId())
-                .assignmentId(sub.getAssignment().getId())
+                .assignmentId(sub.getGroupAssignment().getId())
                 .studentId(sub.getStudent().getId())
                 .studentName(sub.getStudent().getFullName())
                 .submissionType(sub.getSubmissionType())
@@ -46,7 +46,6 @@ public class SubmissionResponseDTO {
                 .fileKey(sub.getFileKey())
                 .fileName(sub.getFileName())
                 .fileSize(sub.getFileSize())
-                .externalUrl(sub.getExternalUrl())
                 .isLate(sub.isLate())
                 .attemptNumber(sub.getAttemptNumber())
                 .submittedAt(sub.getSubmittedAt())

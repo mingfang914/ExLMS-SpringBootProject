@@ -17,8 +17,8 @@ import java.time.LocalDateTime;
 public class AssignmentSubmission extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "assignment_id", nullable = false)
-    private Assignment assignment;
+    @JoinColumn(name = "group_assignment_id", nullable = false)
+    private GroupAssignment groupAssignment;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "student_id", nullable = false)
@@ -40,9 +40,6 @@ public class AssignmentSubmission extends BaseEntity {
 
     @Column(name = "file_size")
     private Integer fileSize;
-
-    @Column(name = "external_url", columnDefinition = "TEXT")
-    private String externalUrl;
 
     @Column(name = "is_late", nullable = false)
     @Builder.Default

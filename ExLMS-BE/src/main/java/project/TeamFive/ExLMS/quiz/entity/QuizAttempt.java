@@ -16,6 +16,13 @@ import java.time.LocalDateTime;
 @Builder
 public class QuizAttempt extends BaseEntity {
 
+    @Column(name = "deployment_id", nullable = false)
+    private byte[] deploymentId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "deployment_type", nullable = false)
+    private DeploymentType deploymentType;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "quiz_id", nullable = false)
     private Quiz quiz;
@@ -40,4 +47,8 @@ public class QuizAttempt extends BaseEntity {
 
     @Column(name = "submitted_at")
     private LocalDateTime submittedAt;
+
+    public enum DeploymentType {
+        GROUP_QUIZ, COURSE_QUIZ
+    }
 }

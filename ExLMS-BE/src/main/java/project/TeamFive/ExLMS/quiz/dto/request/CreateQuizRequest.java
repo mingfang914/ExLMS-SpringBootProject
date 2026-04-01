@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import project.TeamFive.ExLMS.quiz.entity.Quiz;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -16,9 +17,10 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateQuizRequest {
-    @NotBlank(message = "Title is required")
+    @NotBlank
     private String title;
     private String description;
+    private UUID groupId;
     private UUID chapterId;
     @Min(0)
     private Integer timeLimitSec;
@@ -32,6 +34,8 @@ public class CreateQuizRequest {
     private boolean shuffleQuestions = false;
     @Builder.Default
     private Quiz.ResultVisibility resultVisibility = Quiz.ResultVisibility.IMMEDIATE;
+    private LocalDateTime openAt;
+    private LocalDateTime closeAt;
     private List<QuestionRequest> questions;
 
     @Data
@@ -39,12 +43,9 @@ public class CreateQuizRequest {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class QuestionRequest {
-        @NotBlank(message = "Content is required")
         private String content;
         private String questionType;
-        @Builder.Default
-        @Min(1)
-        private int points = 1;
+        private int points;
         private String explanation;
         private List<AnswerRequest> answers;
     }
@@ -54,7 +55,6 @@ public class CreateQuizRequest {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class AnswerRequest {
-        @NotBlank(message = "Content is required")
         private String content;
         private boolean correct;
     }

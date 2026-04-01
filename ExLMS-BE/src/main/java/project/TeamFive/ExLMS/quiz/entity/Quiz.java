@@ -3,8 +3,6 @@ package project.TeamFive.ExLMS.quiz.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import project.TeamFive.ExLMS.entity.BaseEntity;
-import project.TeamFive.ExLMS.course.entity.Course;
-import project.TeamFive.ExLMS.course.entity.CourseChapter;
 import project.TeamFive.ExLMS.user.entity.User;
 
 @Entity
@@ -16,13 +14,7 @@ import project.TeamFive.ExLMS.user.entity.User;
 @Builder
 public class Quiz extends BaseEntity {
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "course_id", nullable = false)
-    private Course course;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "chapter_id")
-    private CourseChapter chapter;
 
     @Column(nullable = false, length = 200)
     private String title;

@@ -77,11 +77,19 @@ const AssignmentForm = () => {
 
     try {
       if (isEdit) {
-        await assignmentService.updateAssignment(id, formData);
-        alert(t('assignment_form.messages.update_success'));
+        if (groupId) {
+          await assignmentService.updateAssignment(id, formData);
+        } else {
+          await assignmentService.updateTemplate(id, formData);
+        }
+        alert(t('common.update_success'));
       } else {
-        await assignmentService.createAssignment(groupId, formData);
-        alert(t('assignment_form.messages.create_success'));
+        if (groupId) {
+          await assignmentService.createAssignment(groupId, formData);
+        } else {
+          await assignmentService.createTemplate(formData);
+        }
+        alert(t('common.create_success'));
       }
       navigate(-1);
     } catch (err) {

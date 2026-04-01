@@ -30,7 +30,6 @@ public class LessonController {
         return ResponseEntity.ok(lessonService.createLesson(
                 chapterId,
                 request.getTitle(),
-                request.getContentType(),
                 request.getContent(),
                 request.getResourceKey(),
                 request.getDurationSeconds()));

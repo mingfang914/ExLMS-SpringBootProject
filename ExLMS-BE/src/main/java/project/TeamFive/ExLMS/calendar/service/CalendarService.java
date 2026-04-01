@@ -5,7 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import project.TeamFive.ExLMS.assignment.entity.Assignment;
+import project.TeamFive.ExLMS.assignment.entity.GroupAssignment;
 import project.TeamFive.ExLMS.assignment.repository.AssignmentRepository;
+import project.TeamFive.ExLMS.assignment.repository.GroupAssignmentRepository;
 import project.TeamFive.ExLMS.calendar.dto.response.CalendarEventResponse;
 import project.TeamFive.ExLMS.calendar.entity.CalendarEvent;
 import project.TeamFive.ExLMS.calendar.repository.CalendarEventRepository;
@@ -29,6 +31,7 @@ public class CalendarService {
     private final CalendarEventRepository calendarEventRepository;
     private final UserRepository userRepository;
     private final AssignmentRepository assignmentRepository;
+    private final GroupAssignmentRepository groupAssignmentRepository;
     private final GroupMemberRepository groupMemberRepository;
 
     @Transactional(readOnly = true)
@@ -49,41 +52,40 @@ public class CalendarService {
     @Transactional
     public int syncAllExistingAssignments() {
         log.info("CALENDAR_SYNC: Starting sync of all existing assignments to calendar...");
-        List<Assignment> allAssignments = assignmentRepository.findAll();
-        log.info("CALENDAR_SYNC: Found {} total assignments in database", allAssignments.size());
+        List<GroupAssignment> allDeployments = groupAssignmentRepository.findAll();
+        log.info("CALENDAR_SYNC: Found {} total deployments in database", allDeployments.size());
         int createdCount = 0;
         int skipNoDueDate = 0;
         int skipNoGroup = 0;
         int skipNoMembers = 0;
         
-        for (Assignment assignment : allAssignments) {
-            String assignmentLabel = "[" + assignment.getId() + ": " + assignment.getTitle() + "]";
+        for (GroupAssignment deployment : allDeployments) {
+            Assignment template = deployment.getAssignment();
+            String deploymentLabel = "[" + deployment.getId() + ": " + template.getTitle() + "]";
             
-            if (assignment.getDueAt() == null) {
-                log.info("CALENDAR_SYNC: Skipping {} - No due date", assignmentLabel);
+            if (deployment.getDueAt() == null) {
+                log.info("CALENDAR_SYNC: Skipping {} - No due date", deploymentLabel);
                 skipNoDueDate++;
                 continue;
             }
 
-            if (assignment.getGroup() == null) {
-                log.warn("CALENDAR_SYNC: Skipping {} - Assignment not linked to any group", assignmentLabel);
+            if (deployment.getGroup() == null) {
+                log.warn("CALENDAR_SYNC: Skipping {} - Deployment not linked to any group", deploymentLabel);
                 skipNoGroup++;
                 continue;
             }
 
-            List<GroupMember> members = groupMemberRepository.findByGroup_Id(assignment.getGroup().getId());
+            List<GroupMember> members = groupMemberRepository.findByGroup_Id(deployment.getGroup().getId());
             if (members.isEmpty()) {
-                log.info("CALENDAR_SYNC: Skipping {} - Group {} has no members", assignmentLabel, assignment.getGroup().getName());
+                log.info("CALENDAR_SYNC: Skipping {} - Group has no members", deploymentLabel);
                 skipNoMembers++;
                 continue;
             }
             
-            log.info("CALENDAR_SYNC: Processing {} - Found {} group members", assignmentLabel, members.size());
-            
             for (GroupMember member : members) {
-                // Check if already exists to avoid duplicates
+                // Check if already exists for this deployment and user
                 List<CalendarEvent> existing = calendarEventRepository.findBySourceEntityIdAndSourceEntityType(
-                        assignment.getId(), CalendarEvent.SourceEntityType.ASSIGNMENT);
+                        deployment.getId(), CalendarEvent.SourceEntityType.ASSIGNMENT);
                 
                 boolean alreadySyncedForUser = existing.stream()
                         .anyMatch(ce -> ce.getUser().getId().equals(member.getUser().getId()));
@@ -91,15 +93,15 @@ public class CalendarService {
                 if (!alreadySyncedForUser) {
                     CalendarEvent calEvent = CalendarEvent.builder()
                             .user(member.getUser())
-                            .title("Assignment Due: " + assignment.getTitle())
-                            .description(assignment.getDescription())
-                            .startAt(assignment.getDueAt())
-                            .endAt(assignment.getDueAt())
+                            .title("Assignment Due: " + template.getTitle())
+                            .description(template.getDescription())
+                            .startAt(deployment.getDueAt())
+                            .endAt(deployment.getDueAt())
                             .eventType(CalendarEvent.EventType.ASSIGNMENT_DUE)
                             .color("#EF4444")
-                            .sourceEntityId(assignment.getId())
+                            .sourceEntityId(deployment.getId())
                             .sourceEntityType(CalendarEvent.SourceEntityType.ASSIGNMENT)
-                            .groupId(assignment.getGroup().getId())
+                            .groupId(deployment.getGroup().getId())
                             .personal(false)
                             .build();
                     calendarEventRepository.save(calEvent);
@@ -107,7 +109,7 @@ public class CalendarService {
                 }
             }
         }
-        log.info("CALENDAR_SYNC: Sync completed. Created: {}, Skipped (No Due Date: {}, No Group: {}, No Members: {})", 
+        log.info("CALENDAR_SYNC: Finished. Created: {}, Skipped: NoDueDate={}, NoGroup={}, NoMembers={}", 
                 createdCount, skipNoDueDate, skipNoGroup, skipNoMembers);
         return createdCount;
     }
@@ -116,33 +118,16 @@ public class CalendarService {
     public Map<String, Object> getDiagnostics(UUID userId) {
         Map<String, Object> stats = new HashMap<>();
         long totalEvents = calendarEventRepository.count();
-        long totalAssignments = assignmentRepository.count();
+        long totalDeployments = groupAssignmentRepository.count();
+        long totalTemplates = assignmentRepository.count();
         
-        List<CalendarEvent> allEvents = calendarEventRepository.findAll();
-        
-        long syncedAssignments = allEvents.stream()
-                .filter(ce -> ce.getSourceEntityType() == CalendarEvent.SourceEntityType.ASSIGNMENT)
-                .map(CalendarEvent::getSourceEntityId)
-                .distinct()
-                .count();
-                
         stats.put("total_calendar_events", totalEvents);
-        stats.put("total_assignments", totalAssignments);
-        stats.put("synced_distinct_assignments", syncedAssignments);
-        stats.put("unsynced_assignments", Math.max(0, totalAssignments - syncedAssignments));
+        stats.put("total_assignment_templates", totalTemplates);
+        stats.put("total_assignment_deployments", totalDeployments);
         
         if (userId != null) {
-            long userEvents = allEvents.stream()
-                    .filter(ce -> ce.getUser().getId().equals(userId))
-                    .count();
-            long userAssignments = allEvents.stream()
-                    .filter(ce -> ce.getUser().getId().equals(userId) && ce.getSourceEntityType() == CalendarEvent.SourceEntityType.ASSIGNMENT)
-                    .count();
+            long userEvents = calendarEventRepository.countByUser_Id(userId);
             stats.put("user_total_events", userEvents);
-            stats.put("user_assignment_events", userAssignments);
-            
-            List<GroupMember> userMemberships = groupMemberRepository.findAllByUserId(userId.toString());
-            stats.put("user_group_count", userMemberships.size());
         }
         
         return stats;

@@ -2,14 +2,14 @@ package project.TeamFive.ExLMS.assignment.event;
 
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
-import project.TeamFive.ExLMS.assignment.entity.Assignment;
+import project.TeamFive.ExLMS.assignment.entity.GroupAssignment;
 
 @Getter
 public class AssignmentUpdatedEvent extends ApplicationEvent {
-    private final Assignment assignment;
+    private final GroupAssignment deployment;
 
-    public AssignmentUpdatedEvent(Object source, Assignment assignment) {
+    public AssignmentUpdatedEvent(Object source, GroupAssignment deployment) {
         super(source);
-        this.assignment = assignment;
+        this.deployment = deployment;
     }
 }

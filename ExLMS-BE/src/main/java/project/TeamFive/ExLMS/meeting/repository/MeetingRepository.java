@@ -6,6 +6,11 @@ import project.TeamFive.ExLMS.meeting.entity.Meeting;
 import java.util.List;
 import java.util.UUID;
 
+import project.TeamFive.ExLMS.meeting.entity.Meeting.MeetingStatus;
+import java.time.LocalDateTime;
+
 public interface MeetingRepository extends JpaRepository<Meeting, UUID> {
     List<Meeting> findByGroup_IdOrderByStartAtDesc(UUID groupId);
+    List<Meeting> findByStatusAndStartAtBefore(MeetingStatus status, LocalDateTime now);
+    List<Meeting> findByStatusAndEndAtBefore(MeetingStatus status, LocalDateTime now);
 }

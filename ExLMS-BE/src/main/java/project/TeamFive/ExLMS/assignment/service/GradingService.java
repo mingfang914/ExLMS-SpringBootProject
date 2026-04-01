@@ -7,13 +7,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import project.TeamFive.ExLMS.assignment.dto.request.GradeRequest;
 import project.TeamFive.ExLMS.assignment.dto.response.SubmissionResponseDTO;
-import project.TeamFive.ExLMS.assignment.entity.Assignment;
 import project.TeamFive.ExLMS.assignment.entity.AssignmentGrade;
 import project.TeamFive.ExLMS.assignment.entity.AssignmentSubmission;
+import project.TeamFive.ExLMS.assignment.entity.GroupAssignment;
 import project.TeamFive.ExLMS.assignment.repository.AssignmentGradeRepository;
-import project.TeamFive.ExLMS.assignment.repository.AssignmentRepository;
 import project.TeamFive.ExLMS.assignment.repository.AssignmentSubmissionRepository;
-import project.TeamFive.ExLMS.service.FileService;
+import project.TeamFive.ExLMS.assignment.repository.GroupAssignmentRepository;
 import project.TeamFive.ExLMS.group.entity.GroupMember;
 import project.TeamFive.ExLMS.group.repository.GroupMemberRepository;
 import project.TeamFive.ExLMS.user.entity.User;
@@ -32,12 +31,11 @@ public class GradingService {
 
     private final AssignmentGradeRepository gradeRepository;
     private final AssignmentSubmissionRepository submissionRepository;
-    private final AssignmentRepository assignmentRepository;
+    private final GroupAssignmentRepository groupAssignmentRepository;
     private final GroupMemberRepository groupMemberRepository;
-    // private final FileService fileService; // Removed due to lint: not used anymore
 
-    private void requireInstructorRole(Assignment assignment, User user) {
-        GroupMember member = groupMemberRepository.findByGroup_IdAndUser_Id(assignment.getGroup().getId(), user.getId())
+    private void requireInstructorRole(GroupAssignment deployment, User user) {
+        GroupMember member = groupMemberRepository.findByGroup_IdAndUser_Id(deployment.getGroup().getId(), user.getId())
                 .orElseThrow(() -> new RuntimeException("Bạn không phải là thành viên của nhóm này!"));
 
         if (!"OWNER".equals(member.getRole()) && !"EDITOR".equals(member.getRole())) {
@@ -50,12 +48,13 @@ public class GradingService {
         AssignmentSubmission submission = submissionRepository.findById(submissionId)
                 .orElseThrow(() -> new RuntimeException("Submission not found"));
 
-        requireInstructorRole(submission.getAssignment(), grader);
+        GroupAssignment deployment = submission.getGroupAssignment();
+        requireInstructorRole(deployment, grader);
 
         // Calculate penalty if late
         int finalScore = request.getScore();
-        if (submission.isLate() && submission.getAssignment().getLatePenaltyPercent() > 0) {
-            finalScore = (int) (finalScore * (100 - submission.getAssignment().getLatePenaltyPercent()) / 100.0);
+        if (submission.isLate() && deployment.getLatePenaltyPercent() > 0) {
+            finalScore = (int) (finalScore * (100 - deployment.getLatePenaltyPercent()) / 100.0);
         }
 
         AssignmentGrade grade = gradeRepository.findBySubmission_Id(submissionId)
@@ -89,13 +88,13 @@ public class GradingService {
     }
 
     @Transactional(readOnly = true)
-    public List<SubmissionResponseDTO> getAllSubmissions(UUID assignmentId, User instructor) {
-        Assignment assignment = assignmentRepository.findById(assignmentId)
-                .orElseThrow(() -> new RuntimeException("Assignment not found"));
+    public List<SubmissionResponseDTO> getAllSubmissions(UUID groupAssignmentId, User instructor) {
+        GroupAssignment deployment = groupAssignmentRepository.findById(groupAssignmentId)
+                .orElseThrow(() -> new RuntimeException("Assignment deployment not found"));
         
-        requireInstructorRole(assignment, instructor);
+        requireInstructorRole(deployment, instructor);
 
-        return submissionRepository.findByAssignment_Id(assignmentId)
+        return submissionRepository.findByGroupAssignment_Id(groupAssignmentId)
                 .stream()
                 .map(sub -> {
                     SubmissionResponseDTO dto = SubmissionResponseDTO.fromEntity(sub);
@@ -112,8 +111,8 @@ public class GradingService {
                 .collect(Collectors.toList());
     }
 
-    public byte[] exportToExcel(UUID assignmentId, User instructor) throws IOException {
-        List<SubmissionResponseDTO> submissions = getAllSubmissions(assignmentId, instructor);
+    public byte[] exportToExcel(UUID groupAssignmentId, User instructor) throws IOException {
+        List<SubmissionResponseDTO> submissions = getAllSubmissions(groupAssignmentId, instructor);
 
         try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             Sheet sheet = workbook.createSheet("Grades");

@@ -36,12 +36,15 @@ import {
   Share as ShareIcon,
   Add as AddIcon,
   Edit as EditIcon,
-  Delete as DeleteIcon
+  Delete as DeleteIcon,
+  Quiz as QuizIcon,
+  Inventory2 as InventoryIcon,
 } from '@mui/icons-material'
 import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom'
 import groupService from '../../services/groupService'
 import courseService from '../../services/courseService'
 import assignmentService from '../../services/assignmentService'
+import * as quizService from '../../services/quizService'
 import meetingService from '../../services/meetingService'
 import { format } from 'date-fns'
 import { vi, enUS } from 'date-fns/locale'
@@ -49,6 +52,7 @@ import { useTranslation } from 'react-i18next'
 
 import GroupMembers from './components/GroupMembers'
 import GroupFeed from './components/GroupFeed'
+import InventoryDeploymentModal from '../Inventory/InventoryDeploymentModal'
 
 const GroupDetail = () => {
   const { t, i18n } = useTranslation()
@@ -56,6 +60,7 @@ const GroupDetail = () => {
   const [group, setGroup] = useState(null)
   const [courses, setCourses] = useState([])
   const [assignments, setAssignments] = useState([])
+  const [quizzes, setQuizzes] = useState([])
   const [meetings, setMeetings] = useState([]) 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -71,6 +76,8 @@ const GroupDetail = () => {
   const [editMeetingDialogOpen, setEditMeetingDialogOpen] = useState(false)
   const [editingMeeting, setEditingMeeting] = useState(null)
   const [editMeetingData, setEditMeetingData] = useState({ title: '', description: '', startAt: '', durationMinutes: 60 })
+  
+  const [deployModal, setDeployModal] = useState({ open: false, type: 'course' })
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -88,14 +95,16 @@ const GroupDetail = () => {
 
         if (groupData.isJoined) {
           try {
-            const [coursesData, asgnData, meetingsData] = await Promise.all([
+            const [coursesData, asgnData, meetingsData, quizzesData] = await Promise.all([
               courseService.getCoursesByGroupId(id),
               assignmentService.getAssignmentsByGroup(id),
-              meetingService.getMeetingsByGroup(id)
+              meetingService.getMeetingsByGroup(id),
+              quizService.getQuizzesByGroup(id)
             ])
             setCourses(coursesData)
             setAssignments(asgnData)
             setMeetings(meetingsData)
+            setQuizzes(quizzesData)
           } catch (err) {
             console.error('Error fetching group content:', err)
           }
@@ -108,6 +117,23 @@ const GroupDetail = () => {
     }
     fetchGroupData()
   }, [id, t])
+
+  const refreshData = async () => {
+    try {
+      const [coursesData, asgnData, meetingsData, quizzesData] = await Promise.all([
+        courseService.getCoursesByGroupId(id),
+        assignmentService.getAssignmentsByGroup(id),
+        meetingService.getMeetingsByGroup(id),
+        quizService.getQuizzesByGroup(id)
+      ])
+      setCourses(coursesData)
+      setAssignments(asgnData)
+      setMeetings(meetingsData)
+      setQuizzes(quizzesData)
+    } catch (err) {
+      console.error('Error refreshing content:', err)
+    }
+  }
 
   const handleJoinGroup = async () => {
     try {
@@ -242,6 +268,7 @@ const GroupDetail = () => {
             <Tab icon={<InfoIcon />} iconPosition="start" label={t('group_detail.tabs.overview')} />
             {group.isJoined && <Tab icon={<CourseIcon />} iconPosition="start" label={t('group_detail.tabs.courses')} />}
             {group.isJoined && <Tab icon={<AssignmentIcon />} iconPosition="start" label={t('group_detail.tabs.assignments')} />}
+            {group.isJoined && <Tab icon={<QuizIcon />} iconPosition="start" label="Kiểm tra" />}
             {group.isJoined && <Tab icon={<MeetingIcon />} iconPosition="start" label={t('group_detail.tabs.meetings')} />}
             {group.isJoined && <Tab icon={<ForumIcon />} iconPosition="start" label={t('group_detail.tabs.feed')} />}
             {group.isJoined && <Tab icon={<PeopleIcon />} iconPosition="start" label={t('group_detail.tabs.members')} />}
@@ -308,14 +335,16 @@ const GroupDetail = () => {
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
               <Typography variant="h5">{t('group_detail.tabs.courses')} in {group.name}</Typography>
               {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
-                <Button
-                  variant="contained"
-                  startIcon={<AddIcon />}
-                  component={RouterLink}
-                  to={`/groups/${id}/courses/create`}
-                >
-                  {t('group_detail.actions.create_course')}
-                </Button>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Button
+                    variant="contained"
+                    startIcon={<InventoryIcon />}
+                    onClick={() => setDeployModal({ open: true, type: 'course' })}
+                    sx={{ borderRadius: '12px', fontWeight: 700, background: 'linear-gradient(135deg, #6366F1, #4F46E5)' }}
+                  >
+                    Kết nối từ kho đồ
+                  </Button>
+                </Box>
               )}
             </Box>
             {courses.length === 0 ? (
@@ -372,14 +401,16 @@ const GroupDetail = () => {
               <Typography variant="h5">{t('group_detail.tabs.assignments')}</Typography>
               <Box sx={{ display: 'flex', gap: 1 }}>
                 {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
-                  <Button
-                    variant="contained"
-                    startIcon={<AddIcon />}
-                    component={RouterLink}
-                    to={`/groups/${id}/assignments/create`}
-                  >
-                    {t('common.create')}
-                  </Button>
+                  <>
+                    <Button
+                      variant="contained"
+                      startIcon={<InventoryIcon />}
+                      onClick={() => setDeployModal({ open: true, type: 'assignment' })}
+                      sx={{ borderRadius: '12px', fontWeight: 700, background: 'linear-gradient(135deg, #FCD34D, #F59E0B)', color: '#000' }}
+                    >
+                      Kết nối từ kho đồ
+                    </Button>
+                  </>
                 )}
                 <Button
                   variant="outlined"
@@ -443,6 +474,68 @@ const GroupDetail = () => {
         )}
 
         {activeTab === 3 && (
+          <Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+              <Typography variant="h5">Kiểm tra & Trắc nghiệm</Typography>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
+                  <>
+                    <Button
+                      variant="contained"
+                      startIcon={<InventoryIcon />}
+                      onClick={() => setDeployModal({ open: true, type: 'quiz' })}
+                      sx={{ borderRadius: '12px', fontWeight: 700, background: 'linear-gradient(135deg, #10B981, #059669)', color: '#FFF' }}
+                    >
+                      Kết nối từ kho đồ
+                    </Button>
+                  </>
+                )}
+              </Box>
+            </Box>
+
+            {quizzes.length === 0 ? (
+              <Paper sx={{ p: 5, textAlign: 'center', borderRadius: '24px', background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.1)' }}>
+                <Typography color="text.secondary">Chưa có bài kiểm tra nào được tổ chức trong nhóm này.</Typography>
+              </Paper>
+            ) : (
+              <Grid container spacing={3}>
+                {quizzes.map(quiz => (
+                  <Grid item xs={12} sm={6} md={4} key={quiz.id}>
+                    <Card sx={{ 
+                      borderRadius: '24px', 
+                      background: 'rgba(255,255,255,0.02)', 
+                      border: '1px solid rgba(255,255,255,0.05)',
+                      '&:hover': { borderColor: '#10B981', background: 'rgba(16, 185, 129, 0.05)' }
+                    }}>
+                      <CardContent sx={{ p: 4 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                          <Avatar sx={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10B981' }}>
+                            <QuizIcon />
+                          </Avatar>
+                          <Typography variant="h6" fontWeight={800}>{quiz.title}</Typography>
+                        </Box>
+                        <Typography variant="body2" color="var(--color-text-muted)" sx={{ mb: 3 }}>
+                          Thời lượng: {quiz.timeLimitSec / 60} phút | Tối đa {quiz.maxAttempts} lần làm.
+                        </Typography>
+                        <Button 
+                          fullWidth 
+                          variant="contained" 
+                          component={RouterLink}
+                          to={`/groups/${id}/courses/placeholder-quiz/${quiz.id}`} // Adjust taking path
+                          sx={{ borderRadius: '12px', fontWeight: 700, background: 'rgba(16, 185, 129, 0.2)', color: '#10B981', '&:hover': { background: '#10B981', color: '#FFF' } }}
+                        >
+                          Bắt đầu làm bài
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+            )}
+          </Box>
+        )}
+
+        {activeTab === 4 && (
           <Box>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
               <Typography variant="h5">{t('group_detail.tabs.meetings')}</Typography>
@@ -523,7 +616,7 @@ const GroupDetail = () => {
         )}
 
         {/* Placeholder for other tabs */}
-        {activeTab === 4 && (
+        {activeTab === 5 && (
           <GroupFeed 
             groupId={id} 
             currentUserRole={group.currentUserRole}
@@ -533,12 +626,24 @@ const GroupDetail = () => {
           />
         )}
 
-        {activeTab === 5 && (
+        {activeTab === 6 && (
           <Paper sx={{ p: 3 }}>
             <GroupMembers groupId={id} groupRole={group.currentUserRole} />
           </Paper>
         )}
       </Box>
+
+      {/* Inventory Deployment Modal */}
+      <InventoryDeploymentModal 
+        open={deployModal.open}
+        onClose={() => setDeployModal({ ...deployModal, open: false })}
+        type={deployModal.type}
+        groupId={id}
+        onDeploySuccess={() => {
+          refreshData();
+          alert('Học liệu đã được kết nối thành công!');
+        }}
+      />
 
       {/* Share Dialog */}
       <Dialog open={shareDialogOpen} onClose={() => setShareDialogOpen(false)}>

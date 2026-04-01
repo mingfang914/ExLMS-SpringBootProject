@@ -36,7 +36,7 @@ public class MeetingResponseDTO {
                 .platform(meeting.getPlatform())
                 .joinUrl(meeting.getJoinUrl())
                 .startAt(meeting.getStartAt())
-                .durationMinutes(meeting.getDurationMinutes())
+                .durationMinutes((int) java.time.Duration.between(meeting.getStartAt(), meeting.getEndAt()).toMinutes())
                 .status(meeting.getStatus())
                 .build();
     }

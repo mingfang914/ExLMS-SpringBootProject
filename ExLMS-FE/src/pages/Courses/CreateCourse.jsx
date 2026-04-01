@@ -45,12 +45,25 @@ const CreateCourse = () => {
     setError(null)
 
     try {
-      await courseService.createCourse(groupId, formData)
-      navigate(`/groups/${groupId}`)
+      if (groupId) {
+        await courseService.createCourse(groupId, formData)
+        navigate(`/groups/${groupId}`)
+      } else {
+        await courseService.createTemplate(formData)
+        navigate('/inventory/courses')
+      }
     } catch (err) {
       setError(err.response?.data?.message || t('course_editor.errors.save_course_failed'))
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleBack = () => {
+    if (groupId) {
+      navigate(`/groups/${groupId}`)
+    } else {
+      navigate('/inventory/courses')
     }
   }
 

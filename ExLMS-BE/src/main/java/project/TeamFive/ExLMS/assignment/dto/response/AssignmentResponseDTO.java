@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import project.TeamFive.ExLMS.assignment.entity.Assignment;
 
+import project.TeamFive.ExLMS.assignment.entity.GroupAssignment;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -14,11 +16,11 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AssignmentResponseDTO {
-    private UUID id;
+    private UUID id;             // This is the deployment ID (GroupAssignment ID)
+    private UUID templateId;     // This is the template ID (Assignment ID)
     private String title;
     private String description;
     private UUID groupId;
-    private UUID courseId;
     private int maxScore;
     private LocalDateTime assignedAt;
     private LocalDateTime dueAt;
@@ -27,24 +29,25 @@ public class AssignmentResponseDTO {
     private int maxFileSizeMb;
     private boolean allowLate;
     private int latePenaltyPercent;
-    private Assignment.AssignmentStatus status;
+    private GroupAssignment.GroupAssignmentStatus status;
 
-    public static AssignmentResponseDTO fromEntity(Assignment assignment) {
+    public static AssignmentResponseDTO fromEntity(GroupAssignment deployment) {
+        Assignment template = deployment.getAssignment();
         return AssignmentResponseDTO.builder()
-                .id(assignment.getId())
-                .title(assignment.getTitle())
-                .description(project.TeamFive.ExLMS.util.UrlUtils.normalizeCkeUrls(assignment.getDescription()))
-                .groupId(assignment.getGroup().getId())
-                .courseId(assignment.getCourse() != null ? assignment.getCourse().getId() : null)
-                .maxScore(assignment.getMaxScore())
-                .assignedAt(assignment.getAssignedAt())
-                .dueAt(assignment.getDueAt())
-                .submissionType(assignment.getSubmissionType())
-                .allowedFileTypes(assignment.getAllowedFileTypes())
-                .maxFileSizeMb(assignment.getMaxFileSizeMb())
-                .allowLate(assignment.isAllowLate())
-                .latePenaltyPercent(assignment.getLatePenaltyPercent())
-                .status(assignment.getStatus())
+                .id(deployment.getId())
+                .templateId(template.getId())
+                .title(template.getTitle())
+                .description(project.TeamFive.ExLMS.util.UrlUtils.normalizeCkeUrls(template.getDescription()))
+                .groupId(deployment.getGroup().getId())
+                .maxScore(template.getMaxScore())
+                .assignedAt(deployment.getAssignedAt())
+                .dueAt(deployment.getDueAt())
+                .submissionType(template.getSubmissionType())
+                .allowedFileTypes(template.getAllowedFileTypes())
+                .maxFileSizeMb(template.getMaxFileSizeMb())
+                .allowLate(deployment.isAllowLate())
+                .latePenaltyPercent(deployment.getLatePenaltyPercent())
+                .status(deployment.getStatus())
                 .build();
     }
 }

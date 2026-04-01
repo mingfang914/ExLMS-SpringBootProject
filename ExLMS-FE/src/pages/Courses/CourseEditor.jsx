@@ -151,7 +151,12 @@ const CourseEditor = () => {
     if (isEdit) {
       const load = async () => {
         try {
-          const data = await courseService.getCourseById(groupId, courseId)
+          let data
+          if (groupId) {
+             data = await courseService.getCourseById(groupId, courseId)
+          } else {
+             data = await courseService.getTemplateById(courseId)
+          }
           setCourse({
             title: data.title,
             description: data.description || '',
@@ -160,8 +165,8 @@ const CourseEditor = () => {
             endDate: data.endDate ? data.endDate.split('T')[0] : ''
           })
           const [chapterList, quizList] = await Promise.all([
-            courseService.getChapters(courseId),
-            courseService.getQuizzesByCourseId(courseId)
+            groupId ? courseService.getChapters(courseId) : courseService.getTemplateChapters(courseId),
+            groupId ? courseService.getQuizzesByCourseId(courseId) : courseService.getQuizzesByTemplateId(courseId)
           ])
           
           setQuizzes(quizList)
@@ -169,7 +174,7 @@ const CourseEditor = () => {
           const chapterWithLessons = await Promise.all(
             chapterList.map(async (ch) => ({
               ...ch,
-              lessons: await courseService.getLessons(ch.id).catch(() => [])
+              lessons: await (groupId ? courseService.getLessons(ch.id) : courseService.getTemplateLessons(ch.id)).catch(() => [])
             }))
           )
           setChapters(chapterWithLessons)
@@ -190,12 +195,22 @@ const CourseEditor = () => {
     try {
       let savedCourse
       if (isEdit) {
-        savedCourse = await courseService.updateCourse(groupId, courseId, course)
+        if (groupId) {
+          savedCourse = await courseService.updateCourse(groupId, courseId, course)
+        } else {
+          savedCourse = await courseService.updateTemplate(courseId, course)
+        }
+        showSnack(t('course_editor.messages.course_saved'))
       } else {
-        savedCourse = await courseService.createCourse(groupId, course)
-        navigate(`/groups/${groupId}/courses/${savedCourse.id}/edit`, { replace: true })
+        if (groupId) {
+          savedCourse = await courseService.createCourse(groupId, course)
+          navigate(`/groups/${groupId}/courses/${savedCourse.id}/edit`, { replace: true })
+        } else {
+          savedCourse = await courseService.createTemplate(course)
+          navigate(`/inventory/courses/edit/${savedCourse.id || savedCourse.templateId}`, { replace: true })
+        }
+        showSnack(t('course_editor.messages.course_saved'))
       }
-      showSnack(t('course_editor.messages.course_saved'))
     } catch (e) {
       showSnack(e.response?.data?.message || t('course_editor.errors.save_course_failed'), 'error')
     } finally {

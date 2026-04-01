@@ -3,6 +3,8 @@ import {
   Box, Typography, Paper, Button, Container, Grid, 
   Divider, Chip, Avatar, CircularProgress, Alert 
 } from '@mui/material'
+import SockJS from 'sockjs-client'
+import { Client } from '@stomp/stompjs'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { 
@@ -24,19 +26,51 @@ const MeetingDetail = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  useEffect(() => {
-    const fetchMeeting = async () => {
-      try {
-        const data = await meetingService.getMeeting(id)
-        setMeeting(data)
-      } catch (err) {
-        setError('Không thể tải thông tin buổi họp')
-        console.error(err)
-      } finally {
-        setLoading(false)
-      }
+  const fetchMeeting = async () => {
+    try {
+      const data = await meetingService.getMeeting(id)
+      setMeeting(data)
+    } catch (err) {
+      setError('Không thể tải thông tin buổi họp')
+      console.error(err)
+    } finally {
+      setLoading(false)
     }
+  }
+
+  useEffect(() => {
     fetchMeeting()
+    
+    // Setup WebSocket
+    const socket = new SockJS('/api/ws')
+    const client = new Client({
+      webSocketFactory: () => socket,
+      debug: (str) => console.log('STOMP: ' + str),
+      reconnectDelay: 5000,
+      heartbeatIncoming: 4000,
+      heartbeatOutgoing: 4000,
+    })
+
+    client.onConnect = (frame) => {
+      console.log('STOMP Connected: ' + frame)
+      client.subscribe(`/topic/meeting/${id}`, (message) => {
+        try {
+          const event = JSON.parse(message.body)
+          console.log('Meeting Detail Event:', event)
+          if (event.type === 'MEETING_STARTED' || event.type === 'MEETING_ENDED') {
+            fetchMeeting()
+          }
+        } catch (err) {
+          console.error('Error parsing STOMP message', err)
+        }
+      })
+    }
+
+    client.activate()
+
+    return () => {
+      client.deactivate()
+    }
   }, [id])
 
   const handleJoin = async () => {

@@ -11,8 +11,8 @@ import java.util.UUID;
 @Repository
 public interface CourseEnrollmentRepository extends JpaRepository<CourseEnrollment, UUID> {
 
-    @EntityGraph(attributePaths = {"course", "user"})
-    Optional<CourseEnrollment> findByCourse_IdAndUser_Id(UUID courseId, UUID userId);
+    @EntityGraph(attributePaths = {"groupCourse", "user"})
+    Optional<CourseEnrollment> findByGroupCourse_IdAndUser_Id(UUID groupCourseId, UUID userId);
 
-    boolean existsByCourse_IdAndUser_Id(UUID courseId, UUID userId);
+    boolean existsByGroupCourse_IdAndUser_Id(UUID groupCourseId, UUID userId);
 }

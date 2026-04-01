@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
+import SockJS from 'sockjs-client'
+import { Client } from '@stomp/stompjs'
 import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
@@ -130,6 +132,37 @@ const Calendar = () => {
     }
     fetchEvents()
   }, [t])
+
+  const subscribeToCalendarUpdates = useCallback(() => {
+    const socket = new SockJS('/api/ws')
+    const client = new Client({
+      webSocketFactory: () => socket,
+      debug: (str) => console.log('STOMP Calendar: ' + str),
+      reconnectDelay: 5000,
+    })
+
+    client.onConnect = (frame) => {
+      console.log('STOMP Calendar Connected: ' + frame)
+      client.subscribe('/topic/calendar-updates', (message) => {
+        console.log('Calendar Update Signal Received:', message.body)
+        if (message.body === 'REFRESH') {
+          calendarService.getEvents().then(data => setEvents(data))
+        }
+      })
+    }
+
+    client.activate()
+    return client
+  }, [])
+
+  useEffect(() => {
+    const client = subscribeToCalendarUpdates()
+    return () => {
+      if (client) {
+        client.deactivate()
+      }
+    }
+  }, [subscribeToCalendarUpdates])
 
   const handleSync = async () => {
     setSyncing(true)

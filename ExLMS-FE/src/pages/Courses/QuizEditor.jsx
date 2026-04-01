@@ -12,6 +12,7 @@ import {
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import courseService from '../../services/courseService'
+import * as quizService from '../../services/quizService'
 
 const QuizEditor = () => {
   const { t } = useTranslation()
@@ -129,10 +130,18 @@ const QuizEditor = () => {
         }))
       }
       if (isEdit) {
-        await courseService.updateQuiz(quizId, payload)
+        if (groupId || courseId) {
+          await courseService.updateQuiz(quizId, payload)
+        } else {
+          await quizService.updateTemplate(quizId, payload)
+        }
         showSnack(t('quizzes.messages.update_success'))
       } else {
-        await courseService.createQuiz(courseId, payload)
+        if (courseId) {
+          await courseService.createQuiz(courseId, payload)
+        } else {
+          await quizService.createTemplate(payload)
+        }
         showSnack(t('quizzes.messages.create_success'))
       }
       setTimeout(() => navigate(-1), 1000)
