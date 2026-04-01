@@ -38,7 +38,9 @@ public class SubmissionService {
 
         // Check if deployment is closed
         if (deployment.getStatus() == GroupAssignment.GroupAssignmentStatus.CLOSED) {
-            throw new RuntimeException("Bài tập này đã đóng trong nhóm này!");
+            if (!deployment.isAllowLate()) {
+                throw new RuntimeException("Bài tập này đã đóng và không chấp nhận nộp muộn!");
+            }
         }
 
         // Check assigned_at
@@ -120,7 +122,9 @@ public class SubmissionService {
         Assignment template = deployment.getAssignment();
 
         if (deployment.getStatus() == GroupAssignment.GroupAssignmentStatus.CLOSED) {
-            throw new RuntimeException("Bài tập này đã đóng!");
+            if (!deployment.isAllowLate()) {
+                throw new RuntimeException("Bài tập này đã đóng!");
+            }
         }
 
         // Check due_at and allow_late
@@ -130,6 +134,9 @@ public class SubmissionService {
         }
 
         submission.setTextContent(request.getTextContent());
+        if (request.getSubmissionType() != null) {
+            submission.setSubmissionType(request.getSubmissionType());
+        }
         submission.setLate(isLate);
         submission.setSubmittedAt(LocalDateTime.now());
 

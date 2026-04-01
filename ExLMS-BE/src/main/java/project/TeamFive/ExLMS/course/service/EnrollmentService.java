@@ -32,6 +32,10 @@ public class EnrollmentService {
                 .findByGroup_IdAndUser_Id(deployment.getGroup().getId(), currentUser.getId())
                 .orElseThrow(() -> new RuntimeException("Bạn chưa tham gia nhóm học tập này!"));
 
+        if (deployment.getStatus() != GroupCourse.GroupCourseStatus.PUBLISHED) {
+            throw new RuntimeException("Chưa đến thời gian đăng ký hoặc khóa học đã đóng!");
+        }
+
         if (enrollmentRepository.existsByGroupCourse_IdAndUser_Id(groupCourseId, currentUser.getId())) {
             throw new RuntimeException("Bạn đã đăng ký khóa học này rồi!");
         }

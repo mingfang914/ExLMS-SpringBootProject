@@ -2,15 +2,16 @@ import React, { useState, useEffect, useRef } from 'react'
 import {
   Box, Typography, TextField, Button, Paper, Select, MenuItem,
   FormControl, InputLabel, Accordion, AccordionSummary, AccordionDetails,
-  IconButton, Chip, Divider, Alert, CircularProgress, Snackbar
+  IconButton, Chip, Divider, Alert, CircularProgress, Snackbar, Stack, Grid,
+  Dialog, DialogTitle, DialogContent, DialogActions, List, ListItem, 
+  ListItemText, Checkbox, FormControlLabel
 } from '@mui/material'
 import {
   ExpandMore as ExpandMoreIcon, Add as AddIcon, Delete as DeleteIcon,
-  DragIndicator as DragIcon, Save as SaveIcon, VideoLibrary as VideoIcon,
-  Description as DocIcon, AttachFile as FileIcon, Code as EmbedIcon,
-  Quiz as QuizIcon, Edit as EditIcon, BarChart as BarChartIcon
+  DragIndicator as DragIcon, Save as SaveIcon,
+  Description as DocIcon, MenuBook as BookIcon
 } from '@mui/icons-material'
-import { useParams, useNavigate, Link as RouterLink } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import courseService from '../../services/courseService'
 
@@ -141,7 +142,6 @@ const CourseEditor = () => {
 
   const [course, setCourse] = useState({ title: '', description: '', status: 'DRAFT', startDate: '', endDate: '' })
   const [chapters, setChapters] = useState([])
-  const [quizzes, setQuizzes] = useState([])
   const [loading, setLoading] = useState(isEdit)
   const [saving, setSaving] = useState(false)
   const [snackbar, setSnackbar] = useState({ open: false, msg: '', severity: 'success' })
@@ -153,7 +153,7 @@ const CourseEditor = () => {
         try {
           let data
           if (groupId) {
-             data = await courseService.getCourseById(groupId, courseId)
+             data = await courseService.getCourseDeploymentById(courseId)
           } else {
              data = await courseService.getTemplateById(courseId)
           }
@@ -161,16 +161,14 @@ const CourseEditor = () => {
             title: data.title,
             description: data.description || '',
             status: data.status,
-            startDate: data.startDate ? data.startDate.split('T')[0] : '',
-            endDate: data.endDate ? data.endDate.split('T')[0] : ''
+            templateId: data.templateId || data.id
           })
-          const [chapterList, quizList] = await Promise.all([
-            groupId ? courseService.getChapters(courseId) : courseService.getTemplateChapters(courseId),
-            groupId ? courseService.getQuizzesByCourseId(courseId) : courseService.getQuizzesByTemplateId(courseId)
+          
+          const targetId = data.templateId || data.id;
+          const [chapterList] = await Promise.all([
+            groupId ? courseService.getChapters(targetId) : courseService.getTemplateChapters(targetId)
           ])
           
-          setQuizzes(quizList)
-
           const chapterWithLessons = await Promise.all(
             chapterList.map(async (ch) => ({
               ...ch,
@@ -189,7 +187,6 @@ const CourseEditor = () => {
   const showSnack = (msg, severity = 'success') =>
     setSnackbar({ open: true, msg, severity })
 
-  // ──────────── Course ────────────
   const handleSaveCourse = async () => {
     setSaving(true)
     try {
@@ -207,7 +204,7 @@ const CourseEditor = () => {
           navigate(`/groups/${groupId}/courses/${savedCourse.id}/edit`, { replace: true })
         } else {
           savedCourse = await courseService.createTemplate(course)
-          navigate(`/inventory/courses/edit/${savedCourse.id || savedCourse.templateId}`, { replace: true })
+          navigate(`/inventory/courses`, { replace: true })
         }
         showSnack(t('course_editor.messages.course_saved'))
       }
@@ -221,8 +218,9 @@ const CourseEditor = () => {
   // ──────────── Chapters ────────────
   const handleAddChapter = async () => {
     if (!courseId) { showSnack(t('course_editor.messages.save_course_before_chapter'), 'warning'); return }
+    const targetId = course.templateId || courseId;
     try {
-      const ch = await courseService.createChapter(courseId, { title: t('course_editor.chapter_new_title'), description: '' })
+      const ch = await courseService.createChapter(targetId, { title: t('course_editor.chapter_new_title'), description: '' })
       setChapters(prev => [...prev, { ...ch, lessons: [] }])
       setExpandedChapter(ch.id)
     } catch (e) {
@@ -231,8 +229,9 @@ const CourseEditor = () => {
   }
 
   const handleDeleteChapter = async (chapterId) => {
+    const targetId = course.templateId || courseId;
     try {
-      await courseService.deleteChapter(courseId, chapterId)
+      await courseService.deleteChapter(targetId, chapterId)
       setChapters(prev => prev.filter(c => c.id !== chapterId))
       showSnack(t('course_editor.messages.chapter_deleted'))
     } catch (e) {
@@ -241,8 +240,9 @@ const CourseEditor = () => {
   }
 
   const handleSaveChapter = async (ch) => {
+    const targetId = course.templateId || courseId;
     try {
-      await courseService.updateChapter(courseId, ch.id, { title: ch.title, description: ch.description })
+      await courseService.updateChapter(targetId, ch.id, { title: ch.title, description: ch.description })
       showSnack(t('course_editor.messages.chapter_saved'))
     } catch (e) {
       showSnack(t('course_editor.errors.save_chapter_failed'), 'error')
@@ -299,198 +299,286 @@ const CourseEditor = () => {
             l.id === lessonId ? { ...l, [field]: value } : l)
         } : c))
 
-  if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', mt: 6 }}><CircularProgress /></Box>
+  if (loading) return (
+    <Box sx={{ display: 'flex', justifyContent: 'center', p: 8 }}>
+      <CircularProgress />
+    </Box>
+  )
 
   return (
-    <Box sx={{ maxWidth: 900, mx: 'auto', p: 3 }}>
-      <Typography variant="h4" fontWeight={800} mb={3} sx={{ color: 'var(--color-text)', fontFamily: 'var(--font-heading)' }}>
-        {isEdit ? t('course_editor.title_edit') : t('course_editor.title_new')}
-      </Typography>
-
-      {/* ── Course Info ── */}
-      <Paper sx={{ p: 3, mb: 3, borderRadius: 3, bgcolor: 'var(--color-surface)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }}>
-        <Typography variant="h6" gutterBottom fontWeight={700}>{t('course_editor.course_info')}</Typography>
-        <TextField
-          label={t('course_editor.course_name_label')} fullWidth sx={{ mb: 2 }}
-          value={course.title}
-          onChange={e => setCourse(p => ({ ...p, title: e.target.value }))}
-        />
-        <TextField
-          label={t('course_editor.course_desc_label')} fullWidth multiline rows={3} sx={{ mb: 2 }}
-          value={course.description}
-          onChange={e => setCourse(p => ({ ...p, description: e.target.value }))}
-        />
-        <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-          <TextField
-            label={t('course_editor.start_date_label')} type="date" sx={{ flex: 1 }}
-            InputLabelProps={{ shrink: true }}
-            value={course.startDate}
-            onChange={e => setCourse(p => ({ ...p, startDate: e.target.value }))}
-          />
-          <TextField
-            label={t('course_editor.end_date_label')} type="date" sx={{ flex: 1 }}
-            InputLabelProps={{ shrink: true }}
-            value={course.endDate}
-            onChange={e => setCourse(p => ({ ...p, endDate: e.target.value }))}
-          />
+    <Box sx={{ maxWidth: 1000, mx: 'auto', p: { xs: 2, md: 4 } }}>
+      {/* Header section with glassmorphism */}
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        mb: 4,
+        p: 3,
+        background: 'var(--glass-bg)',
+        backdropFilter: 'blur(10px)',
+        border: '1px solid var(--glass-border)',
+        borderRadius: '24px',
+        boxShadow: 'var(--glass-shadow)',
+        color: 'var(--color-text)'
+      }}>
+        <Box>
+          <Typography variant="h4" fontWeight={900} sx={{ fontFamily: 'var(--font-heading)', color: 'var(--color-text)' }}>
+            {isEdit ? t('course_editor.title_edit') : t('course_editor.title_new')}
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'var(--color-text-sec)' }}>
+            {isEdit ? 'Cập nhật nội dung và thiết kế cho khóa học này' : 'Bắt đầu xây dựng nền tảng tri thức mới'}
+          </Typography>
         </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-          <FormControl sx={{ minWidth: 200 }}>
-            <InputLabel>{t('course_editor.status_label')}</InputLabel>
-            <Select value={course.status} label={t('course_editor.status_label')}
-              onChange={e => setCourse(p => ({ ...p, status: e.target.value }))}>
-              <MenuItem value="DRAFT">📝 {t('course_editor.status.draft')}</MenuItem>
-              <MenuItem value="PUBLISHED">🌐 {t('course_editor.status.published')}</MenuItem>
-              <MenuItem value="ARCHIVED">📦 {t('course_editor.status.archived')}</MenuItem>
-            </Select>
-          </FormControl>
+        <Button 
+          variant="contained" 
+          startIcon={<SaveIcon />} 
+          onClick={handleSaveCourse} 
+          disabled={saving}
+          sx={{ 
+            height: 48, borderRadius: '16px', px: 4, fontWeight: 800,
+            background: 'linear-gradient(135deg, #6366F1, #4F46E5)',
+            boxShadow: '0 8px 20px rgba(99, 102, 241, 0.4)',
+            '&:hover': { background: 'linear-gradient(135deg, #818CF8, #6366F1)', transform: 'translateY(-2px)' },
+            transition: 'all 0.2s'
+          }}
+        >
+          {saving ? <CircularProgress size={24} color="inherit" /> : t('course_editor.save_course')}
+        </Button>
+      </Box>
+
+      {/* ── Course Info Section ── */}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid item xs={12}>
+          <Paper sx={{ p: 4, borderRadius: '24px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'none' }}>
+            <Typography variant="h6" sx={{ fontWeight: 800, mb: 3, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <DocIcon sx={{ color: '#6366F1' }} />
+              Thông tin cơ bản
+            </Typography>
+            <Stack spacing={3}>
+              <TextField
+                label={t('course_editor.course_name_label')} 
+                fullWidth
+                value={course.title || ''}
+                onChange={e => setCourse(p => ({ ...p, title: e.target.value }))}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '14px' } }}
+              />
+              <TextField
+                label={t('course_editor.course_desc_label')} 
+                fullWidth multiline rows={4}
+                value={course.description || ''}
+                onChange={e => setCourse(p => ({ ...p, description: e.target.value }))}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '14px' } }}
+              />
+            </Stack>
+          </Paper>
+        </Grid>
+      </Grid>
+
+      {/* ── Structure Section ── */}
+      {/* ── Structure Section ── */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, mt: 6 }}>
+        <Typography variant="h5" fontWeight={900} sx={{ color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 2 }}>
+          <BookIcon sx={{ color: '#F59E0B' }} />
+          {t('course_editor.content_structure')}
+        </Typography>
+        {isEdit && (
+          <Stack direction="row" spacing={2}>
+
+            <Button 
+              startIcon={<AddIcon />} 
+              onClick={handleAddChapter}
+              sx={{ 
+                borderRadius: '16px', px: 3, fontWeight: 800, 
+                background: 'linear-gradient(135deg, #6366F1, #4F46E5)', color: 'white',
+                '&:hover': { transform: 'translateY(-2px)' }
+              }}
+            >
+              Thêm chương mới
+            </Button>
+          </Stack>
+        )}
+      </Box>
+
+      {!isEdit ? (
+        <Paper sx={{ 
+          p: 6, textAlign: 'center', borderRadius: '32px', 
+          background: 'var(--glass-bg)', border: '2px dashed var(--glass-border)',
+          mb: 4
+        }}>
+          <BookIcon sx={{ fontSize: 48, color: 'var(--color-text-muted)', mb: 2, opacity: 0.3 }} />
+          <Typography variant="h6" sx={{ color: 'var(--color-text)', fontWeight: 800, mb: 1 }}>
+            {t('course_editor.ready_to_build')}
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'var(--color-text-secondary)', mb: 3 }}>
+            {t('course_editor.save_to_start_building')}
+          </Typography>
           <Button 
             variant="contained" 
-            startIcon={<SaveIcon />} 
-            onClick={handleSaveCourse} 
+            onClick={handleSaveCourse}
             disabled={saving}
-            sx={{ 
-                height: 44, borderRadius: '10px', px: 3, fontWeight: 700,
-                background: 'linear-gradient(135deg, #6366F1, #4F46E5)',
-                '&:hover': { background: 'linear-gradient(135deg, #818CF8, #6366F1)' }
-            }}
+            sx={{ borderRadius: '12px', px: 4, background: 'var(--color-primary)', fontWeight: 800 }}
           >
-            {saving ? <CircularProgress size={20} color="inherit" /> : t('course_editor.save_course')}
+            {saving ? <CircularProgress size={20} color="inherit" /> : t('course_editor.save_and_start')}
           </Button>
-        </Box>
-      </Paper>
-
-      {/* ── Chapters ── */}
-      {isEdit && (
+        </Paper>
+      ) : (
         <>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 2 }}>
-            <Typography variant="h6" fontWeight={700}>{t('course_editor.chapter_list', { count: chapters.length })}</Typography>
-            <Box sx={{ display: 'flex', gap: 1.5 }}>
-              <Button 
-                variant="outlined" 
-                component={RouterLink} 
-                to={`/groups/${groupId}/courses/${courseId}/quiz/create`}
-                sx={{ borderRadius: '10px', fontWeight: 600, borderColor: 'var(--color-border)', color: 'var(--color-text-sec)' }}
-              >
-                {t('course_editor.add_quiz')}
-              </Button>
-              <Button 
-                variant="contained" 
-                startIcon={<AddIcon />} 
-                onClick={handleAddChapter}
-                sx={{ 
-                    borderRadius: '10px', fontWeight: 700,
-                    background: 'linear-gradient(135deg, #6366F1, #4F46E5)',
-                    '&:hover': { background: 'linear-gradient(135deg, #818CF8, #6366F1)' }
-                }}
-              >
-                {t('course_editor.add_chapter')}
-              </Button>
-            </Box>
-          </Box>
-
           {chapters.map((ch, idx) => (
-            <Accordion key={ch.id} expanded={expandedChapter === ch.id}
+            <Accordion 
+              key={ch.id} 
+              expanded={expandedChapter === ch.id}
               onChange={(_, exp) => setExpandedChapter(exp ? ch.id : null)}
-              sx={{ mb: 1.5, borderRadius: '12px !important', border: '1px solid var(--color-border)', bgcolor: 'var(--color-surface)', color: 'var(--color-text)', '&:before': { display: 'none' } }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: 'var(--color-text-muted)' }} />}>
-                <DragIcon sx={{ mr: 1, color: 'var(--color-text-muted)' }} />
-                <Typography fontWeight={700} sx={{ flexGrow: 1 }}>
-                  Chapter {idx + 1}: {ch.title}
+              sx={{ 
+                mb: 2, 
+                borderRadius: '20px !important', 
+                border: '1px solid var(--color-border)', 
+                bgcolor: 'var(--color-surface)', 
+                overflow: 'hidden',
+                boxShadow: expandedChapter === ch.id ? 'var(--glass-shadow)' : 'none',
+                transition: 'all 0.3s ease',
+                '&:before': { display: 'none' } 
+              }}
+            >
+              <AccordionSummary 
+                expandIcon={<ExpandMoreIcon sx={{ color: 'var(--color-text-sec)' }} />}
+                sx={{ p: 3, '&.Mui-expanded': { background: 'var(--color-surface-2)' } }}
+              >
+                <DragIcon sx={{ mr: 2, color: 'var(--color-text-muted)' }} />
+                <Typography fontWeight={800} sx={{ flexGrow: 1, color: 'var(--color-text)', fontSize: '1.1rem' }}>
+                  Chương {idx + 1}: {ch.title}
                 </Typography>
-                <Chip label={`${ch.lessons?.length || 0} items`} size="small" sx={{ ml: 2, bgcolor: 'rgba(99,102,241,0.1)', color: '#818CF8', fontWeight: 600 }} />
+                <Chip 
+                  label={`${ch.lessons?.length || 0} bài học`} 
+                  size="small" 
+                  sx={{ 
+                    mr: 2, 
+                    fontWeight: 800, 
+                    bgcolor: 'rgba(99, 102, 241, 0.1)', 
+                    color: 'var(--color-primary)' 
+                  }} 
+                />
               </AccordionSummary>
-              <AccordionDetails sx={{ borderTop: '1px solid var(--color-border)', pt: 3 }}>
-                <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-                  <TextField label={t('course_editor.chapter_name_label')} size="small" sx={{ flex: 1 }}
-                    value={ch.title}
-                    onChange={e => updateChapterField(ch.id, 'title', e.target.value)} />
+              <AccordionDetails sx={{ p: 4 }}>
+                {/* Chapter Config */}
+                <Box sx={{ display: 'flex', gap: 2, mb: 4, p: 2, borderRadius: '16px', background: 'var(--color-surface-2)' }}>
+                  <TextField 
+                    label="Tên chương học" 
+                    size="small" 
+                    fullWidth
+                    value={ch.title || ''}
+                    onChange={e => updateChapterField(ch.id, 'title', e.target.value)}
+                    sx={{ bgcolor: 'var(--color-surface)', '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+                  />
                   <Button 
                     variant="contained" 
-                    size="small" 
                     onClick={() => handleSaveChapter(ch)}
-                    sx={{ borderRadius: '8px', px: 3 }}
+                    sx={{ borderRadius: '10px', px: 4, fontWeight: 700 }}
                   >
-                    {t('common.save')}
+                    Lưu
                   </Button>
-                  <IconButton color="error" onClick={() => handleDeleteChapter(ch.id)} sx={{ border: '1px solid var(--color-border)', borderRadius: '8px' }}>
+                  <IconButton 
+                    color="error" 
+                    onClick={() => handleDeleteChapter(ch.id)} 
+                    sx={{ 
+                      borderRadius: '10px', 
+                      background: 'rgba(239, 68, 68, 0.05)',
+                      border: '1px solid rgba(239, 68, 68, 0.1)' 
+                    }}
+                  >
                     <DeleteIcon />
                   </IconButton>
                 </Box>
 
-                <Divider sx={{ my: 2.5, borderColor: 'var(--color-border)' }} />
-                <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 700, color: 'var(--color-text-sec)' }}>{t('course_editor.lessons_in_chapter')}</Typography>
+                <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 800, color: 'var(--color-text-sec)', display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <DocIcon fontSize="small" sx={{ color: 'var(--color-primary-lt)' }} />
+                  Nội dung bài học
+                </Typography>
 
-                {(ch.lessons || []).map((lesson, lIdx) => (
-                  <Paper key={lesson.id} elevation={0} sx={{ p: 2.5, mb: 2, borderRadius: 2, border: '1px solid var(--color-border)', bgcolor: 'var(--color-surface-2)' }}>
-                    <Box sx={{ display: 'flex', gap: 1.5, mb: 2 }}>
-                      <TextField label={t('course_editor.lesson_name_label')} size="small" sx={{ flex: 1 }}
-                        value={lesson.title}
-                        onChange={e => updateLessonField(ch.id, lesson.id, 'title', e.target.value)} />
-                      <Button variant="outlined" size="small" onClick={() => handleSaveLesson(ch.id, lesson)} sx={{ borderRadius: '8px' }}>{t('common.save')}</Button>
-                      <IconButton color="error" size="small" onClick={() => handleDeleteLesson(ch.id, lesson.id)} sx={{ border: '1px solid var(--color-border)', borderRadius: '8px' }}>
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    </Box>
-
-                    <CKEditorWrapper
-                      lessonId={lesson.id}
-                      value={lesson.content}
-                      onChange={val => updateLessonField(ch.id, lesson.id, 'content', val)}
-                    />
-                  </Paper>
-                ))}
+                <Stack spacing={2.5}>
+                  {(ch.lessons || []).map((lesson, lIdx) => (
+                    <Paper 
+                      key={lesson.id} 
+                      elevation={0} 
+                      sx={{ 
+                        p: 0, 
+                        mb: 2, 
+                        borderRadius: '20px', 
+                        border: '1px solid var(--color-border)', 
+                        bgcolor: 'var(--color-surface)',
+                        overflow: 'hidden'
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', gap: 1.5, p: 2, background: 'var(--color-surface-2)', borderBottom: '1px solid var(--color-border)' }}>
+                        <TextField 
+                          label={`Bài ${lIdx + 1}: Tên bài học`} 
+                          size="small" 
+                          fullWidth
+                          variant="standard"
+                          value={lesson.title || ''}
+                          onChange={e => updateLessonField(ch.id, lesson.id, 'title', e.target.value)}
+                          sx={{ '& .MuiInput-root': { fontWeight: 700 } }}
+                        />
+                        <Button 
+                          variant="text" 
+                          size="small" 
+                          startIcon={<SaveIcon />}
+                          onClick={() => handleSaveLesson(ch.id, lesson)}
+                          sx={{ borderRadius: '8px', fontWeight: 700 }}
+                        >
+                          Lưu
+                        </Button>
+                        <IconButton 
+                          color="error" 
+                          size="small" 
+                          onClick={() => handleDeleteLesson(ch.id, lesson.id)}
+                          sx={{ borderRadius: '8px' }}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Box>
+                      <Box sx={{ p: 2 }}>
+                        <CKEditorWrapper
+                          lessonId={lesson.id}
+                          value={lesson.content || ''}
+                          onChange={val => updateLessonField(ch.id, lesson.id, 'content', val)}
+                        />
+                      </Box>
+                    </Paper>
+                  ))}
+                </Stack>
 
                 <Button 
-                  variant="outlined" 
-                  size="small" 
-                  startIcon={<AddIcon />} 
+                  fullWidth
                   onClick={() => handleAddLesson(ch.id)}
-                  sx={{ mt: 1, borderRadius: '8px', color: 'var(--color-primary-lt)', borderColor: 'rgba(99,102,241,0.3)' }}
+                  sx={{ 
+                    mt: 3, 
+                    py: 2,
+                    borderRadius: '16px', 
+                    border: '2px dashed var(--color-border)',
+                    color: 'var(--color-primary)',
+                    fontWeight: 800,
+                    fontSize: '0.95rem',
+                    textTransform: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 1,
+                    '&:hover': { background: 'rgba(99, 102, 241, 0.05)', borderColor: 'var(--color-primary)' }
+                  }}
                 >
-                  {t('course_editor.add_lesson')}
+                  <AddIcon fontSize="small" />
+                  Thêm bài học mới
                 </Button>
               </AccordionDetails>
             </Accordion>
           ))}
 
-          {quizzes.filter(q => !q.chapterId).map((q, qIdx) => (
-            <Paper key={q.id} elevation={0} sx={{ p: 2, mb: 1.5, borderRadius: 3, display: 'flex', alignItems: 'center', gap: 2, bgcolor: 'var(--color-surface)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }}>
-              <Box sx={{ width: 44, height: 44, borderRadius: '12px', bgcolor: 'rgba(34,211,238,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#67E8F9' }}>
-                <QuizIcon />
-              </Box>
-              <Box sx={{ flex: 1 }}>
-                <Typography fontWeight={700} sx={{ color: 'var(--color-text)' }}>{t('course_editor.quiz_label')}: {q.title}</Typography>
-                <Typography variant="caption" color="var(--color-text-muted)">
-                  {t('course_editor.quiz_desc', { 
-                    time: q.timeLimitSec ? `${q.timeLimitSec} ${t('course_editor.seconds')}` : t('course_editor.no_limit'),
-                    count: q.maxAttempts 
-                  })}
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', gap: 0.5 }}>
-                <Tooltip title="Statistics">
-                  <IconButton component={RouterLink} to={`/groups/${groupId}/courses/${courseId}/quiz/${q.id}/stats`} sx={{ color: 'var(--color-primary-lt)' }}>
-                    <BarChartIcon fontSize="small" />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title="Edit">
-                  <IconButton component={RouterLink} to={`/groups/${groupId}/courses/${courseId}/quiz/${q.id}/edit`} sx={{ color: 'var(--color-text-muted)' }}>
-                    <EditIcon fontSize="small" />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title="Delete">
-                  <IconButton color="error">
-                    <DeleteIcon fontSize="small" />
-                  </IconButton>
-                </Tooltip>
-              </Box>
-            </Paper>
-          ))}
-
-          {chapters.length === 0 && quizzes.length === 0 && (
-            <Paper sx={{ p: 6, textAlign: 'center', color: 'var(--color-text-muted)', borderRadius: 4, bgcolor: 'var(--color-surface)', border: '1px dashed var(--color-border)' }}>
-              <Typography>{t('course_editor.no_content')}</Typography>
+          {chapters.length === 0 && (
+            <Paper sx={{ p: 8, textAlign: 'center', borderRadius: '32px', bgcolor: 'var(--color-surface)', border: '2px dashed var(--color-border)' }}>
+              <DocIcon sx={{ fontSize: 60, color: 'var(--color-text-muted)', mb: 2, opacity: 0.3 }} />
+              <Typography variant="h6" fontWeight={700} sx={{ color: 'var(--color-text-muted)' }}>Chưa có nội dung cho khóa học này</Typography>
+              <Typography variant="body2" sx={{ color: 'var(--color-text-muted)', mb: 3 }}>Bắt đầu bằng cách thêm chương học đầu tiên của bạn.</Typography>
+              <Button variant="contained" onClick={handleAddChapter} sx={{ borderRadius: '12px', fontWeight: 800 }}>Bắt đầu xây dựng</Button>
             </Paper>
           )}
         </>

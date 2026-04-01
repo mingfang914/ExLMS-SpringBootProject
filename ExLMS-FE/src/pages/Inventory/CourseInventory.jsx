@@ -48,7 +48,6 @@ const CourseInventory = () => {
     <Box sx={{ p: 4 }}>
       {/* Header section with glassmorphism */}
       <Box 
-        className="glass-card"
         sx={{ 
           p: 4, 
           mb: 4, 
@@ -56,17 +55,17 @@ const CourseInventory = () => {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          background: 'rgba(255, 255, 255, 0.03)',
-          border: '1px solid rgba(255, 255, 255, 0.05)'
+          background: 'var(--glass-bg)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid var(--glass-border)',
+          boxShadow: 'var(--glass-shadow)',
         }}
       >
         <Box>
           <Typography variant="h3" sx={{ 
             fontWeight: 900, 
             fontFamily: 'var(--font-heading)',
-            background: 'linear-gradient(135deg, #FFF 0%, #AAA 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
+            color: 'var(--color-text)',
             display: 'flex',
             alignItems: 'center',
             gap: 2
@@ -74,21 +73,21 @@ const CourseInventory = () => {
             <InventoryIcon sx={{ fontSize: 48, color: '#6366F1' }} />
             Kho Khóa học
           </Typography>
-          <Typography variant="body1" sx={{ color: 'var(--color-text-muted)', mt: 1 }}>
+          <Typography variant="body1" sx={{ color: 'var(--color-text-sec)', mt: 1 }}>
             Quản lý các bản mẫu khóa học toàn diện của bạn trước khi đưa vào giảng dạy.
           </Typography>
         </Box>
         <Fab 
           variant="extended" 
           color="primary" 
-          onClick={() => navigate('/inventory/courses/create')} // Adapt as needed
+          onClick={() => navigate('/inventory/courses/create')} 
           sx={{ 
             px: 4, 
             fontWeight: 800, 
             borderRadius: '16px',
             textTransform: 'none',
             fontSize: '1rem',
-            boxShadow: '0 8px 16px rgba(99, 102, 241, 0.4)',
+            boxShadow: '0 8px 24px rgba(99, 102, 241, 0.4)',
             background: 'linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)'
           }}
         >
@@ -111,7 +110,7 @@ const CourseInventory = () => {
           <AnimatePresence>
             {courses.length > 0 ? (
               courses.map((course, idx) => (
-                <Grid item xs={12} sm={6} md={3} key={course.templateId}>
+                <Grid item xs={12} sm={6} md={4} key={course.templateId}>
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -121,24 +120,23 @@ const CourseInventory = () => {
                       sx={{
                         height: '100%',
                         borderRadius: '24px',
-                        background: 'rgba(255, 255, 255, 0.02)',
-                        border: '1px solid rgba(255, 255, 255, 0.05)',
+                        background: 'var(--color-surface)',
+                        border: '1px solid var(--color-border)',
                         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                         position: 'relative',
+                        overflow: 'hidden',
                         '&:hover': {
                           transform: 'translateY(-8px)',
-                          boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
-                          borderColor: 'rgba(99, 102, 241, 0.4)',
-                          '& .card-overlay': { opacity: 1 }
+                          boxShadow: 'var(--glass-shadow)',
+                          borderColor: 'var(--color-primary)',
                         }
                       }}
                     >
                       <CardMedia
                         component="img"
-                        height="180"
+                        height="200"
                         image={course.thumbnailUrl || '/DefaultCourseImg.png'}
                         alt={course.title}
-                        sx={{ borderTopLeftRadius: '24px', borderTopRightRadius: '24px' }}
                       />
                       
                       <CardContent sx={{ p: 3 }}>
@@ -149,43 +147,59 @@ const CourseInventory = () => {
                             size="small"
                             sx={{ 
                               background: 'rgba(99, 102, 241, 0.1)', 
-                              color: '#818CF8', 
+                              color: 'var(--color-primary)', 
                               fontWeight: 700,
                               borderRadius: '8px'
                             }} 
                           />
                         </Box>
                         
-                        <Typography variant="h6" sx={{ fontWeight: 800, mb: 1, lineHeight: 1.3, color: '#FFF' }}>
+                        <Typography variant="h6" sx={{ fontWeight: 800, mb: 1, lineHeight: 1.3, color: 'var(--color-text)' }}>
                           {course.title}
                         </Typography>
                         
                         <Typography variant="body2" sx={{ 
-                          color: 'var(--color-text-muted)', 
+                          color: 'var(--color-text-sec)', 
                           display: '-webkit-box', 
                           WebkitLineClamp: 2, 
                           WebkitBoxOrient: 'vertical',
                           overflow: 'hidden',
                           height: '40px',
-                          mb: 2
+                          mb: 3
                         }}>
                           {course.description || "Chưa có mô tả chi tiết cho khóa học này."}
                         </Typography>
 
-                        <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Box sx={{ display: 'flex', gap: 1.5 }}>
                           <Button 
-                            fullWidth 
                             variant="contained" 
-                            onClick={() => navigate(`/inventory/courses/edit/${course.templateId}`)}
+                            onClick={() => navigate(`/inventory/courses/view/${course.templateId}`)}
                             sx={{ 
+                              flex: 2,
                               borderRadius: '12px', 
-                              background: 'rgba(255,255,255,0.05)', 
-                              color: '#FFF',
-                              fontWeight: 700,
-                              '&:hover': { background: 'rgba(99, 102, 241, 0.2)' }
+                              background: 'rgba(99, 102, 241, 0.08)', 
+                              color: 'var(--color-primary)',
+                              fontWeight: 800,
+                              textTransform: 'none',
+                              '&:hover': { background: 'rgba(99, 102, 241, 0.15)' }
                             }}
                           >
-                            Chỉnh sửa
+                            Xem chi tiết
+                          </Button>
+                          <Button 
+                            variant="outlined" 
+                            onClick={() => navigate(`/inventory/courses/edit/${course.templateId}`)}
+                            sx={{ 
+                              flex: 1,
+                              borderRadius: '12px', 
+                              borderColor: 'var(--color-border)',
+                              color: 'var(--color-text-sec)',
+                              fontWeight: 700,
+                              textTransform: 'none',
+                              '&:hover': { background: 'rgba(0,0,0,0.02)', borderColor: 'var(--color-text-muted)' }
+                            }}
+                          >
+                            Sửa
                           </Button>
                           <IconButton 
                             onClick={async () => {
@@ -194,7 +208,12 @@ const CourseInventory = () => {
                                 fetchInventory()
                               }
                             }}
-                            sx={{ background: 'rgba(255,255,255,0.05)', borderRadius: '12px', color: '#EF4444' }}
+                            sx={{ 
+                              borderRadius: '12px', 
+                              color: 'var(--color-error)',
+                              border: '1px solid transparent',
+                              '&:hover': { background: 'rgba(239, 68, 68, 0.05)', borderColor: 'rgba(239, 68, 68, 0.2)' }
+                            }}
                           >
                             <DeleteIcon />
                           </IconButton>

@@ -96,9 +96,25 @@ const AssignmentDetail = () => {
     e.preventDefault();
     setSubmitting(true);
     try {
+      let finalSubmissionType = assignment.submissionType;
+      
+      if (assignment.submissionType === 'MIXED') {
+        const hasText = submissionText && submissionText.trim() !== '';
+        const hasNewFile = !!selectedFile;
+        const hasExistingFile = editingSubmission && mySubmissions.find(s => s.id === editingSubmission)?.fileUrl;
+        
+        if (hasText && (hasNewFile || hasExistingFile)) {
+          finalSubmissionType = 'MIXED';
+        } else if (hasNewFile || hasExistingFile) {
+          finalSubmissionType = 'FILE';
+        } else {
+          finalSubmissionType = 'TEXT';
+        }
+      }
+
       const formData = new FormData();
       formData.append('request', new Blob([JSON.stringify({
-        submissionType: assignment.submissionType === 'MIXED' ? (selectedFile ? 'FILE' : 'TEXT') : assignment.submissionType,
+        submissionType: finalSubmissionType,
         textContent: submissionText
       })], { type: 'application/json' }));
 
@@ -150,6 +166,12 @@ const AssignmentDetail = () => {
   };
 
   const handleGrade = async () => {
+    // Validate score
+    if (gradeData.score < 0 || gradeData.score > assignment.maxScore) {
+      alert(t('assignment_detail.errors.invalid_score', { max: assignment.maxScore }));
+      return;
+    }
+
     setGrading(true);
     try {
       await assignmentService.gradeSubmission(gradingSubmission.id, gradeData);
@@ -277,11 +299,18 @@ const AssignmentDetail = () => {
                             </IconButton>
                           </Tooltip>
                           {sub.fileUrl && (
-                            <Tooltip title={t('assignment_detail.actions.download_file')}>
-                              <IconButton color="secondary" component="a" href={sub.fileUrl} download>
-                                <DownloadIcon />
-                              </IconButton>
-                            </Tooltip>
+                            <>
+                              <Tooltip title={t('assignment_detail.actions.preview_file')}>
+                                <IconButton color="info" onClick={() => window.open(sub.fileUrl, '_blank')}>
+                                  <DescriptionIcon />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title={t('assignment_detail.actions.download_file')}>
+                                <IconButton color="secondary" component="a" href={sub.fileUrl} download>
+                                  <DownloadIcon />
+                                </IconButton>
+                              </Tooltip>
+                            </>
                           )}
                         </TableCell>
                       </TableRow>
@@ -298,182 +327,218 @@ const AssignmentDetail = () => {
           <Grid item xs={12} md={4}>
             <Paper sx={{ p: 3, borderRadius: 3, mb: 4 }}>
               <Typography variant="h6" fontWeight="bold" gutterBottom>{t('assignment_detail.your_submission')}</Typography>
-              <Divider sx={{ mb: 2 }} />
-
-              <Box component="form" onSubmit={handleSubmission}>
+              <form onSubmit={handleSubmission}>
                 {(assignment.submissionType === 'TEXT' || assignment.submissionType === 'MIXED') && (
-                  <Box sx={{ mb: 2 }}>
-                    <Typography variant="subtitle2" gutterBottom>{t('assignment_detail.text_content')}</Typography>
-                    <CKEditorWrapper
-                      value={submissionText}
-                      onChange={setSubmissionText}
-                      placeholder={t('assignment_detail.enter_answer')}
-                      minHeight="200px"
+                  <Box sx={{ mb: 3 }}>
+                    <Typography variant="subtitle2" fontWeight="bold" gutterBottom>{t('assignment_detail.text_submission')}</Typography>
+                    <CKEditorWrapper 
+                      data={submissionText} 
+                      onChange={(data) => setSubmissionText(data)} 
+                      placeholder={t('assignment_detail.text_placeholder')}
                     />
                   </Box>
                 )}
-
                 {(assignment.submissionType === 'FILE' || assignment.submissionType === 'MIXED') && (
                   <Box sx={{ mb: 3 }}>
-                    <Typography variant="subtitle2" gutterBottom>{t('assignment_detail.attachments')} ({assignment.allowedFileTypes})</Typography>
-                    <Button
-                      variant="outlined"
-                      component="label"
-                      fullWidth
-                      startIcon={<UploadIcon />}
-                      sx={{ py: 2, borderStyle: 'dashed' }}
-                    >
-                      {selectedFile ? selectedFile.name : t('assignment_detail.choose_file')}
-                      <input type="file" hidden onChange={handleFileChange} accept={assignment.allowedFileTypes} />
-                    </Button>
-                    {selectedFile && (
-                      <Typography variant="caption" color="textSecondary" sx={{ mt: 1, display: 'block' }}>
-                        {t('assignment_detail.file_size')}: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                    <Typography variant="subtitle2" fontWeight="bold" gutterBottom>{t('assignment_detail.file_submission')}</Typography>
+                    <input
+                      type="file"
+                      id="assignment-file"
+                      style={{ display: 'none' }}
+                      onChange={handleFileChange}
+                    />
+                    <label htmlFor="assignment-file">
+                      <Button
+                        variant="outlined"
+                        component="span"
+                        fullWidth
+                        startIcon={<UploadIcon />}
+                        sx={{ py: 1.5, borderRadius: 2 }}
+                      >
+                        {selectedFile ? selectedFile.name : t('assignment_detail.choose_file')}
+                      </Button>
+                    </label>
+                    {assignment.allowedFileTypes && (
+                      <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5, display: 'block' }}>
+                        {t('assignment_detail.allowed_types')}: {assignment.allowedFileTypes}
                       </Typography>
                     )}
                   </Box>
                 )}
-
                 <Button
                   type="submit"
                   variant="contained"
                   fullWidth
-                  size="large"
-                  disabled={submitting || (assignment.submissionType === 'FILE' && !selectedFile && !editingSubmission)}
-                  startIcon={submitting ? <CircularProgress size={20} color="inherit" /> : <CheckCircleIcon />}
+                  disabled={submitting || (!submissionText && !selectedFile)}
+                  sx={{ py: 1.5, borderRadius: 2, fontWeight: 'bold' }}
                 >
-                  {submitting ? t('assignment_detail.submitting') : (editingSubmission ? t('assignment_detail.update_btn') : t('assignment_detail.submit_btn'))}
+                  {submitting ? <CircularProgress size={24} /> : (editingSubmission ? t('common.save_changes') : t('assignment_detail.submit_btn'))}
                 </Button>
                 {editingSubmission && (
-                  <Button 
-                    fullWidth 
-                    sx={{ mt: 1 }} 
+                  <Button
+                    fullWidth
                     onClick={() => {
                       setEditingSubmission(null);
                       setSubmissionText('');
                       setSelectedFile(null);
                     }}
+                    sx={{ mt: 1 }}
                   >
                     {t('common.cancel')}
                   </Button>
                 )}
-              </Box>
+              </form>
             </Paper>
 
-            <Typography variant="h6" fontWeight="bold" gutterBottom>{t('assignment_detail.submission_history')}</Typography>
-            {mySubmissions.map((sub, idx) => (
-              <Paper key={sub.id} sx={{ p: 2, borderRadius: 2, mb: 2, borderLeft: '4px solid', borderColor: sub.gradeStatus === 'GRADED' ? 'success.main' : 'warning.main' }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                  <Typography variant="subtitle2" fontWeight="bold">{t('assignment_detail.attempt_no', { count: sub.attemptNumber })}</Typography>
-                  <Typography variant="caption" color="textSecondary">{format(new Date(sub.submittedAt), 'HH:mm dd/MM/yyyy', { locale: currentLocale })}</Typography>
-                </Box>
-                {sub.isLate && <Chip label={t('assignment_detail.late')} color="error" size="small" sx={{ mb: 1 }} />}
-                {sub.gradeStatus === 'GRADED' ? (
-                  <Box sx={{ mt: 1, p: 1, bgcolor: 'success.light', color: 'success.contrastText', borderRadius: 1 }}>
-                    <Typography variant="subtitle2">{t('assignment_detail.score')}: {sub.score}/{assignment.maxScore}</Typography>
-                    <Typography variant="caption" sx={{ display: 'block' }}>{t('assignment_detail.feedback')}: {sub.feedback}</Typography>
-                  </Box>
-                ) : (
-                    <Box sx={{ mt: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Typography variant="caption" color="textSecondary italic">{t('assignment_detail.awaiting_grade')}</Typography>
-                      <Box>
-                        <Button size="small" onClick={() => startEditSubmission(sub)}>{t('common.edit')}</Button>
-                        <Button size="small" color="error" onClick={() => setConfirmCancel(sub.id)}>{t('common.delete')}</Button>
+            <Paper sx={{ p: 3, borderRadius: 3 }}>
+              <Typography variant="h6" fontWeight="bold" gutterBottom>{t('assignment_detail.submission_history')}</Typography>
+              {mySubmissions.length === 0 ? (
+                <Typography variant="body2" color="textSecondary" sx={{ py: 2 }}>{t('assignment_detail.no_submissions')}</Typography>
+              ) : (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  {mySubmissions.map((sub) => (
+                    <Paper key={sub.id} variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <Box>
+                          <Typography variant="subtitle2" fontWeight="bold">
+                            {t('assignment_detail.attempt_no', { count: sub.attemptNumber })}
+                          </Typography>
+                          <Typography variant="caption" color="textSecondary">
+                            {format(new Date(sub.submittedAt), 'HH:mm dd/MM/yyyy')}
+                          </Typography>
+                        </Box>
+                        <Chip
+                          label={sub.gradeStatus === 'GRADED' ? t('assignment_detail.graded') : t('assignment_detail.awaiting_grade')}
+                          color={sub.gradeStatus === 'GRADED' ? 'success' : 'warning'}
+                          size="small"
+                        />
                       </Box>
-                    </Box>
-                  )}
-
-                  <Box sx={{ mt: 2, p: 1.5, bgcolor: 'grey.50', borderRadius: 1, border: '1px solid', borderColor: 'grey.200' }}>
-                    {sub.textContent && (
-                      <Box 
-                        sx={{ fontSize: '0.875rem', color: 'text.secondary', mb: sub.fileUrl ? 1 : 0 }} 
-                        dangerouslySetInnerHTML={{ __html: sub.textContent }} 
-                      />
-                    )}
-                    {sub.fileUrl && (
-                      <Button 
-                        startIcon={<FileIcon />} 
-                        size="small" 
-                        component="a" 
-                        href={sub.fileUrl} 
-                        download={sub.fileName}
-                        target="_blank"
-                      >
-                        {sub.fileName}
-                      </Button>
-                    )}
-                  </Box>
-              </Paper>
-            ))}
+                      
+                      <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
+                        {sub.fileUrl && (
+                          <Button size="small" startIcon={<FileIcon />} component="a" href={sub.fileUrl} target="_blank">
+                            {sub.fileName || t('assignment_detail.view_file')}
+                          </Button>
+                        )}
+                        {sub.gradeStatus !== 'GRADED' && !submitting && (
+                          <Box sx={{ ml: 'auto' }}>
+                            <Tooltip title={t('common.edit')}>
+                              <IconButton size="small" color="primary" onClick={() => startEditSubmission(sub)}>
+                                <GradeIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title={t('assignment_detail.actions.cancel_submission')}>
+                              <IconButton size="small" color="error" onClick={() => setConfirmCancel(sub.id)}>
+                                <ErrorIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </Box>
+                        )}
+                      </Box>
+                      
+                      {sub.gradeStatus === 'GRADED' && (
+                        <Box sx={{ mt: 2, p: 1.5, bgcolor: 'rgba(16, 185, 129, 0.05)', borderRadius: 1.5, border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+                          <Typography variant="subtitle2" fontWeight="bold" color="success.main">
+                            {t('assignment_detail.score')}: {sub.score}/{assignment.maxScore}
+                          </Typography>
+                          {sub.feedback && (
+                            <Typography variant="body2" sx={{ mt: 0.5 }}>
+                              <strong>{t('assignment_detail.feedback')}:</strong> {sub.feedback}
+                            </Typography>
+                          )}
+                        </Box>
+                      )}
+                    </Paper>
+                  ))}
+                </Box>
+              )}
+            </Paper>
           </Grid>
         )}
       </Grid>
 
       {/* Grading Dialog */}
-      <Dialog open={!!gradingSubmission} onClose={() => setGradingSubmission(null)} fullWidth maxWidth="sm">
-        <DialogTitle sx={{ fontWeight: 'bold' }}>{t('assignment_detail.grading_title')}</DialogTitle>
+      <Dialog open={Boolean(gradingSubmission)} onClose={() => setGradingSubmission(null)} fullWidth maxWidth="md">
+        <DialogTitle sx={{ fontWeight: 'bold' }}>
+          {t('assignment_detail.dialog.grade_title')} - {gradingSubmission?.studentName}
+        </DialogTitle>
         <DialogContent dividers>
-          {gradingSubmission && (
-            <Box>
-              <Typography variant="subtitle1" fontWeight="bold">{gradingSubmission.studentName}</Typography>
-              <Typography variant="body2" color="textSecondary" gutterBottom>{t('assignment_detail.attempt_no', { count: gradingSubmission.attemptNumber })} | {gradingSubmission.isLate ? t('assignment_detail.late').toUpperCase() : t('assignment_detail.on_time')}</Typography>
+          <Grid container spacing={3}>
+            {/* Submission Preview */}
+            <Grid item xs={12} md={7}>
+              <Typography variant="subtitle2" fontWeight="bold" gutterBottom>{t('assignment_detail.submission_content')}</Typography>
+              
+              {gradingSubmission?.textContent && (
+                <Paper variant="outlined" sx={{ p: 2, mb: 3, maxHeight: 400, overflowY: 'auto', bgcolor: 'background.default' }}>
+                  <div className="ck-content" dangerouslySetInnerHTML={{ __html: gradingSubmission.textContent }} />
+                </Paper>
+              )}
 
-              <Box sx={{ my: 3, p: 2, bgcolor: 'grey.100', borderRadius: 2 }}>
-                <Typography variant="subtitle2" gutterBottom>{t('assignment_detail.student_submission')}:</Typography>
-                {gradingSubmission.textContent && (
-                  <Box 
-                    sx={{ mb: 2, color: 'text.primary' }} 
-                    dangerouslySetInnerHTML={{ __html: gradingSubmission.textContent }} 
-                  />
-                )}
-                {gradingSubmission.fileName && (
-                  <Button 
-                    startIcon={<FileIcon />} 
-                    color="primary" 
-                    component="a" 
-                    href={gradingSubmission.fileUrl} 
-                    download={gradingSubmission.fileName}
-                    target="_blank"
-                  >
-                    {gradingSubmission.fileName}
-                  </Button>
-                )}
+              {gradingSubmission?.fileUrl && (
+                <Box>
+                  <Typography variant="subtitle2" fontWeight="bold" gutterBottom>{t('assignment_detail.file_submission')}</Typography>
+                  <Paper variant="outlined" sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2, borderRadius: 2 }}>
+                    <FileIcon color="primary" sx={{ fontSize: 32 }} />
+                    <Box sx={{ flexGrow: 1 }}>
+                      <Typography variant="body2" fontWeight="bold">{gradingSubmission.fileName}</Typography>
+                      <Typography variant="caption" color="textSecondary">{gradingSubmission.fileSize ? `${(gradingSubmission.fileSize / 1024).toFixed(1)} KB` : ''}</Typography>
+                    </Box>
+                    <Button variant="outlined" size="small" component="a" href={gradingSubmission.fileUrl} target="_blank">
+                      {t('assignment_detail.actions.preview_file')}
+                    </Button>
+                    <Button variant="contained" size="small" component="a" href={gradingSubmission.fileUrl} download>
+                      {t('assignment_detail.actions.download_file')}
+                    </Button>
+                  </Paper>
+                  
+                  {/* Embedded Preview for common file types (PDF, Images) */}
+                  {gradingSubmission.fileName?.toLowerCase().match(/\.(pdf|jpg|jpeg|png|gif)$/) && (
+                    <Box sx={{ mt: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2, overflow: 'hidden' }}>
+                      {gradingSubmission.fileName.toLowerCase().endsWith('.pdf') ? (
+                        <iframe src={`${gradingSubmission.fileUrl}#toolbar=0`} width="100%" height="500px" title="PDF Preview" />
+                      ) : (
+                        <img src={gradingSubmission.fileUrl} alt="Preview" style={{ width: '100%', display: 'block' }} />
+                      )}
+                    </Box>
+                  )}
+                </Box>
+              )}
+            </Grid>
+
+            {/* Grading Form */}
+            <Grid item xs={12} md={5}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <TextField
+                  label={t('assignment_detail.score')}
+                  type="number"
+                  fullWidth
+                  inputProps={{ min: 0, max: assignment.maxScore }}
+                  value={gradeData.score}
+                  onChange={(e) => setGradeData({ ...gradeData, score: parseInt(e.target.value) || 0 })}
+                  helperText={`${t('assignment_detail.max_possible')}: ${assignment.maxScore}`}
+                />
+                <TextField
+                  label={t('assignment_detail.feedback')}
+                  multiline
+                  rows={6}
+                  fullWidth
+                  value={gradeData.feedback}
+                  onChange={(e) => setGradeData({ ...gradeData, feedback: e.target.value })}
+                  placeholder={t('assignment_detail.feedback_placeholder')}
+                />
               </Box>
-
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <TextField
-                    label={t('assignment_detail.score_label')}
-                    type="number"
-                    fullWidth
-                    value={gradeData.score}
-                    onChange={(e) => setGradeData({ ...gradeData, score: e.target.value })}
-                    InputProps={{ endAdornment: <Typography variant="body2">/{assignment.maxScore}</Typography> }}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    label={t('assignment_detail.feedback_label')}
-                    fullWidth
-                    multiline
-                    rows={4}
-                    value={gradeData.feedback}
-                    onChange={(e) => setGradeData({ ...gradeData, feedback: e.target.value })}
-                  />
-                </Grid>
-              </Grid>
-            </Box>
-          )}
+            </Grid>
+          </Grid>
         </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
+        <DialogActions sx={{ p: 3 }}>
           <Button onClick={() => setGradingSubmission(null)}>{t('common.cancel')}</Button>
-          <Button
-            variant="contained"
-            onClick={handleGrade}
+          <Button 
+            variant="contained" 
+            onClick={handleGrade} 
             disabled={grading}
-            startIcon={grading && <CircularProgress size={20} />}
+            sx={{ px: 4, borderRadius: 2, fontWeight: 'bold' }}
           >
-            {t('common.save')}
+            {grading ? <CircularProgress size={24} /> : t('assignment_detail.actions.submit_grade')}
           </Button>
         </DialogActions>
       </Dialog>

@@ -35,9 +35,24 @@ export const getMyAttempts = async (quizId) => {
     return response.data;
 };
 
+export const updateQuiz = async (id, quizData) => {
+    const response = await api.put(`/v1/quizzes/${id}`, quizData);
+    return response.data;
+};
+
+export const deleteQuiz = async (quizId) => {
+    const response = await api.delete(`/v1/quizzes/${quizId}`);
+    return response.data;
+};
+
 // ── Inventory & Deployment ──────────────────────────────────────────────────
 export const getInventory = async () => {
     const response = await api.get('/v1/inventory/quizzes');
+    return response.data;
+};
+
+export const getTemplateById = async (id) => {
+    const response = await api.get(`/v1/inventory/quizzes/${id}`);
     return response.data;
 };
 
@@ -58,5 +73,15 @@ export const deleteTemplate = async (id) => {
 
 export const deployToGroup = async (groupId, templateIds, config) => {
     const response = await api.post(`/v1/inventory/quizzes/deploy/${groupId}`, { templateIds, deploymentConfig: config });
+    return response.data;
+};
+
+export const getQuizStats = async (quizId) => {
+    const response = await api.get(`/v1/quizzes/${quizId}/stats`);
+    return response.data;
+};
+
+export const getAttemptsByDeployment = async (quizId) => {
+    const response = await api.get(`/v1/quizzes/${quizId}/attempts`, { params: { type: 'GROUP_QUIZ' } });
     return response.data;
 };

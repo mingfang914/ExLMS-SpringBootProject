@@ -221,8 +221,6 @@ CREATE TABLE `quizzes` (
   `time_limit_sec` int DEFAULT NULL,
   `max_attempts` int NOT NULL DEFAULT '1',
   `passing_score` int NOT NULL DEFAULT '50',
-  `shuffle_questions` tinyint(1) NOT NULL DEFAULT '0',
-  `result_visibility` enum('IMMEDIATE','AFTER_DEADLINE','MANUAL') NOT NULL DEFAULT 'IMMEDIATE',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -233,7 +231,7 @@ CREATE TABLE `quiz_questions` (
   `id` binary(16) NOT NULL,
   `quiz_id` binary(16) NOT NULL,
   `content` text NOT NULL,
-  `question_type` enum('SINGLE_CHOICE','MULTIPLE_CHOICE','TRUE_FALSE','FILL_BLANK','SHORT_ANSWER') NOT NULL DEFAULT 'SINGLE_CHOICE',
+  `question_type` enum('SINGLE_CHOICE','MULTIPLE_CHOICE','TRUE_FALSE','FILL_BLANK') NOT NULL DEFAULT 'SINGLE_CHOICE',
   `points` int NOT NULL DEFAULT '1',
   `explanation` text,
   `order_index` int NOT NULL,
@@ -264,7 +262,7 @@ CREATE TABLE `group_courses` (
   `start_date` date DEFAULT NULL,
   `end_date` date DEFAULT NULL,
   `order_index` smallint NOT NULL DEFAULT '0',
-  `status` enum('DRAFT','PUBLISHED','ENDED','ARCHIVED') NOT NULL DEFAULT 'DRAFT',
+  `status` enum('DRAFT','PUBLISHED','CLOSED') NOT NULL DEFAULT 'DRAFT',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -294,7 +292,8 @@ CREATE TABLE `group_quizzes` (
   `quiz_id` binary(16) NOT NULL,
   `open_at` datetime DEFAULT NULL,
   `close_at` datetime DEFAULT NULL,
-  `status` enum('DRAFT','PUBLISHED','CLOSED') NOT NULL DEFAULT 'DRAFT',
+  `status` enum('DRAFT', 'PUBLISHED','CLOSED') NOT NULL DEFAULT 'DRAFT',
+  `result_visibility` enum('IMMEDIATE','AFTER_DEADLINE','OPENED') NOT NULL DEFAULT 'IMMEDIATE',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -302,17 +301,17 @@ CREATE TABLE `group_quizzes` (
   CONSTRAINT `fk_gq_quiz` FOREIGN KEY (`quiz_id`) REFERENCES `quizzes` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE `course_quizzes` (
-  `id` binary(16) NOT NULL,
-  `course_id` binary(16) NOT NULL,
-  `quiz_id` binary(16) NOT NULL,
-  `chapter_id` binary(16) DEFAULT NULL,
-  `order_index` int NOT NULL DEFAULT '0',
-  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  CONSTRAINT `fk_cq_course` FOREIGN KEY (`course_id`) REFERENCES `courses` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_cq_quiz` FOREIGN KEY (`quiz_id`) REFERENCES `quizzes` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-- CREATE TABLE `course_quizzes` (
+--   `id` binary(16) NOT NULL,
+--   `course_id` binary(16) NOT NULL,
+--   `quiz_id` binary(16) NOT NULL,
+--   `chapter_id` binary(16) DEFAULT NULL,
+--   `order_index` int NOT NULL DEFAULT '0',
+--   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+--   PRIMARY KEY (`id`),
+--   CONSTRAINT `fk_cq_course` FOREIGN KEY (`course_id`) REFERENCES `courses` (`id`) ON DELETE CASCADE,
+--   CONSTRAINT `fk_cq_quiz` FOREIGN KEY (`quiz_id`) REFERENCES `quizzes` (`id`) ON DELETE CASCADE
+-- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 -- ACADEMIC PROGRESS & SUBMISSIONS

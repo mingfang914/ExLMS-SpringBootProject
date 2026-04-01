@@ -40,6 +40,6 @@ public class GroupCourse extends BaseEntity {
     private GroupCourseStatus status = GroupCourseStatus.DRAFT;
 
     public enum GroupCourseStatus {
-        DRAFT, PUBLISHED, ENDED, ARCHIVED
+        DRAFT, PUBLISHED, CLOSED
     }
 }

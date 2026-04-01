@@ -5,6 +5,8 @@ import lombok.*;
 import project.TeamFive.ExLMS.entity.BaseEntity;
 import project.TeamFive.ExLMS.user.entity.User;
 
+import java.util.List;
+
 @Entity
 @Table(name = "quizzes")
 @Getter
@@ -14,7 +16,8 @@ import project.TeamFive.ExLMS.user.entity.User;
 @Builder
 public class Quiz extends BaseEntity {
 
-
+    @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<QuizQuestion> questions;
 
     @Column(nullable = false, length = 200)
     private String title;
@@ -33,20 +36,7 @@ public class Quiz extends BaseEntity {
     @Builder.Default
     private int passingScore = 50;
 
-    @Column(name = "shuffle_questions", nullable = false)
-    @Builder.Default
-    private boolean shuffleQuestions = false;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "result_visibility", nullable = false)
-    @Builder.Default
-    private ResultVisibility resultVisibility = ResultVisibility.IMMEDIATE;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
     private User createdBy;
-
-    public enum ResultVisibility {
-        IMMEDIATE, AFTER_DEADLINE, MANUAL
-    }
 }

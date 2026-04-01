@@ -51,6 +51,11 @@ public class GradingService {
         GroupAssignment deployment = submission.getGroupAssignment();
         requireInstructorRole(deployment, grader);
 
+        // Validate score
+        if (request.getScore() < 0 || request.getScore() > deployment.getAssignment().getMaxScore()) {
+            throw new RuntimeException("Điểm số phải nằm trong khoảng từ 0 đến " + deployment.getAssignment().getMaxScore());
+        }
+
         // Calculate penalty if late
         int finalScore = request.getScore();
         if (submission.isLate() && deployment.getLatePenaltyPercent() > 0) {

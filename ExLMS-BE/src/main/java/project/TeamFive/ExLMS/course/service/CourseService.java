@@ -19,8 +19,8 @@ import project.TeamFive.ExLMS.course.repository.CourseRepository;
 import project.TeamFive.ExLMS.course.repository.GroupCourseRepository;
 import project.TeamFive.ExLMS.group.repository.GroupMemberRepository;
 import project.TeamFive.ExLMS.group.repository.StudyGroupRepository;
-import project.TeamFive.ExLMS.service.FileService;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -33,7 +33,6 @@ public class CourseService {
     private final GroupCourseRepository groupCourseRepository;
     private final StudyGroupRepository studyGroupRepository;
     private final GroupMemberRepository groupMemberRepository;
-    private final FileService fileService;
     private final ApplicationEventPublisher eventPublisher;
 
     private void requireInstructorRole(StudyGroup group, User user) {
@@ -45,6 +44,21 @@ public class CourseService {
         }
     }
 
+    private void validateDates(LocalDate start, LocalDate end) {
+        if (start != null && end != null && end.isBefore(start)) {
+            throw new RuntimeException("Ngày kết thúc không được nhỏ hơn ngày bắt đầu!");
+        }
+    }
+
+    private GroupCourse.GroupCourseStatus determineInitialStatus(LocalDate startDate, LocalDate endDate) {
+        LocalDate today = LocalDate.now();
+        if (startDate != null && startDate.isAfter(today)) {
+            return GroupCourse.GroupCourseStatus.DRAFT;
+        } else {
+            return GroupCourse.GroupCourseStatus.PUBLISHED;
+        }
+    }
+
     @Transactional
     public CourseResponse createCourse(UUID groupId, CourseRequest request) {
         User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -52,6 +66,7 @@ public class CourseService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy nhóm học tập!"));
 
         requireInstructorRole(group, currentUser);
+        validateDates(request.getStartDate(), request.getEndDate());
 
         String thumbnailKey = request.getThumbnailKey();
         if (thumbnailKey == null || thumbnailKey.trim().isEmpty()) {
@@ -71,7 +86,7 @@ public class CourseService {
                 .course(template)
                 .startDate(request.getStartDate())
                 .endDate(request.getEndDate())
-                .status(GroupCourse.GroupCourseStatus.PUBLISHED)
+                .status(determineInitialStatus(request.getStartDate(), request.getEndDate()))
                 .build();
         deployment = groupCourseRepository.save(deployment);
 
@@ -85,11 +100,13 @@ public class CourseService {
         StudyGroup group = studyGroupRepository.findById(groupId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy nhóm học tập!"));
 
-        if (!groupMemberRepository.existsByGroupAndUser(group, currentUser)) {
-            throw new RuntimeException("Bạn phải tham gia nhóm mới xem được khóa học!");
-        }
+        GroupMember member = groupMemberRepository.findByGroup_IdAndUser_Id(group.getId(), currentUser.getId())
+                .orElseThrow(() -> new RuntimeException("Bạn phải tham gia nhóm mới xem được khóa học!"));
+
+        boolean isInstructor = "OWNER".equals(member.getRole()) || "EDITOR".equals(member.getRole());
 
         return groupCourseRepository.findByGroup_Id(groupId).stream()
+                .filter(gc -> isInstructor || gc.getStatus() != GroupCourse.GroupCourseStatus.DRAFT)
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
@@ -98,6 +115,16 @@ public class CourseService {
     public CourseResponse getCourseDeploymentById(UUID deploymentId) {
         GroupCourse deployment = groupCourseRepository.findById(deploymentId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đợt mở khóa học này!"));
+
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        GroupMember member = groupMemberRepository.findByGroup_IdAndUser_Id(deployment.getGroup().getId(), currentUser.getId())
+                .orElseThrow(() -> new RuntimeException("Bạn không có quyền truy cập!"));
+
+        boolean isInstructor = "OWNER".equals(member.getRole()) || "EDITOR".equals(member.getRole());
+        if (!isInstructor && (deployment.getStatus() == GroupCourse.GroupCourseStatus.DRAFT || deployment.getStatus() == GroupCourse.GroupCourseStatus.CLOSED)) {
+            throw new RuntimeException("Khóa học hiện tại không khả dụng hoặc đã kết thúc!");
+        }
+
         return mapToResponse(deployment);
     }
 
@@ -115,8 +142,14 @@ public class CourseService {
         if (request.getThumbnailKey() != null) template.setThumbnailKey(request.getThumbnailKey());
         courseRepository.save(template);
 
-        if (request.getStartDate() != null) deployment.setStartDate(request.getStartDate());
-        if (request.getEndDate() != null) deployment.setEndDate(request.getEndDate());
+        if (request.getStartDate() != null) {
+            if (!request.getStartDate().equals(deployment.getStartDate())) validateDates(request.getStartDate(), null);
+            deployment.setStartDate(request.getStartDate());
+        }
+        if (request.getEndDate() != null) {
+            validateDates(deployment.getStartDate(), request.getEndDate());
+            deployment.setEndDate(request.getEndDate());
+        }
         if (request.getStatus() != null) {
             try {
                 deployment.setStatus(GroupCourse.GroupCourseStatus.valueOf(request.getStatus()));
@@ -172,7 +205,7 @@ public class CourseService {
                     .course(template)
                     .startDate(request.getStartDate())
                     .endDate(request.getEndDate())
-                    .status(GroupCourse.GroupCourseStatus.PUBLISHED)
+                    .status(determineInitialStatus(request.getStartDate(), request.getEndDate()))
                     .build();
             groupCourseRepository.save(deployment);
             eventPublisher.publishEvent(new CourseCreatedEvent(this, deployment));
@@ -209,6 +242,26 @@ public class CourseService {
         if (request.getThumbnailKey() != null) template.setThumbnailKey(request.getThumbnailKey());
 
         return mapTemplateToResponse(courseRepository.save(template));
+    }
+
+    @Transactional
+    public String deleteTemplate(UUID templateId, User user) {
+        Course template = courseRepository.findById(templateId)
+                .orElseThrow(() -> new RuntimeException("Template not found"));
+
+        if (!template.getCreatedBy().getId().equals(user.getId()) && !"ADMIN".equals(user.getRole().name())) {
+            throw new RuntimeException("Bạn không có quyền xóa bản mẫu này!");
+        }
+
+        // JPA might fail if there are deployed GroupCourses referencing this Course. 
+        // We will just let it fail or ideally we would archive it instead, but since it's a template builder
+        // let's try to delete it.
+        try {
+            courseRepository.delete(template);
+        } catch (Exception e) {
+            throw new RuntimeException("Không thể xóa bản mẫu này vì đã có lớp học triển khai từ nó hoặc có dữ liệu liên kết chéo. Vui lòng chuyển trạng thái thay vì xóa.", e);
+        }
+        return "Đã xóa bản mẫu thành công!";
     }
 
     private CourseResponse mapTemplateToResponse(Course template) {

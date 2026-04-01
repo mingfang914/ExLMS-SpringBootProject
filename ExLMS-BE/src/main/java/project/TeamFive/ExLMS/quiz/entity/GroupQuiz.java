@@ -35,6 +35,19 @@ public class GroupQuiz extends BaseEntity {
     @Column(nullable = false)
     private GroupQuizStatus status = GroupQuizStatus.DRAFT;
 
+    @Column(name = "shuffle_questions", nullable = false)
+    @Builder.Default
+    private boolean shuffleQuestions = false;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "result_visibility", nullable = false)
+    @Builder.Default
+    private ResultVisibility resultVisibility = ResultVisibility.IMMEDIATE;
+
+    public enum ResultVisibility {
+        IMMEDIATE, AFTER_DEADLINE, OPENED
+    }
+
     public enum GroupQuizStatus {
         DRAFT, PUBLISHED, CLOSED
     }

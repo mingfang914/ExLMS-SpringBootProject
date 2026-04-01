@@ -49,7 +49,6 @@ const AssignmentInventory = () => {
   return (
     <Box sx={{ p: 4 }}>
       <Box 
-        className="glass-card"
         sx={{ 
           p: 4, 
           mb: 4, 
@@ -57,17 +56,17 @@ const AssignmentInventory = () => {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          background: 'rgba(255, 255, 255, 0.03)',
-          border: '1px solid rgba(255, 255, 255, 0.05)'
+          background: 'var(--glass-bg)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid var(--glass-border)',
+          boxShadow: 'var(--glass-shadow)',
         }}
       >
         <Box>
           <Typography variant="h3" sx={{ 
             fontWeight: 900, 
             fontFamily: 'var(--font-heading)',
-            background: 'linear-gradient(135deg, #FFF 0%, #AAA 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
+            color: 'var(--color-text)',
             display: 'flex',
             alignItems: 'center',
             gap: 2
@@ -75,7 +74,7 @@ const AssignmentInventory = () => {
             <AssignmentIcon sx={{ fontSize: 48, color: '#FCD34D' }} />
             Kho Bài tập
           </Typography>
-          <Typography variant="body1" sx={{ color: 'var(--color-text-muted)', mt: 1 }}>
+          <Typography variant="body1" sx={{ color: 'var(--color-text-sec)', mt: 1 }}>
             Xây dựng và quản lý các bài tập tiêu chuẩn trước khi giao cho sinh viên.
           </Typography>
         </Box>
@@ -90,6 +89,7 @@ const AssignmentInventory = () => {
             fontSize: '1rem',
             background: 'linear-gradient(135deg, #FCD34D 0%, #F59E0B 100%)',
             color: '#000',
+            boxShadow: '0 8px 16px rgba(245, 158, 11, 0.3)',
             '&:hover': { background: '#F59E0B' }
           }}
         >
@@ -120,14 +120,13 @@ const AssignmentInventory = () => {
                     <Card
                       sx={{
                         borderRadius: '24px',
-                        background: 'rgba(255, 255, 255, 0.02)',
-                        border: '1px solid rgba(255, 255, 255, 0.05)',
+                        background: 'var(--color-surface)',
+                        border: '1px solid var(--color-border)',
                         transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
                         '&:hover': {
                           transform: 'scale(1.03)',
                           borderColor: '#FCD34D',
-                          background: 'rgba(252, 211, 77, 0.03)',
-                          boxShadow: '0 10px 30px rgba(0,0,0,0.3)'
+                          boxShadow: 'var(--glass-shadow)'
                         }
                       }}
                     >
@@ -137,10 +136,10 @@ const AssignmentInventory = () => {
                             <DescriptionIcon />
                           </Avatar>
                           <Box>
-                            <Typography variant="h6" sx={{ fontWeight: 800, color: '#FFF' }}>
+                            <Typography variant="h6" sx={{ fontWeight: 800, color: 'var(--color-text)' }}>
                               {assignment.title}
                             </Typography>
-                            <Typography variant="caption" sx={{ color: 'var(--color-text-muted)' }}>
+                            <Typography variant="caption" sx={{ color: 'var(--color-text-sec)' }}>
                               Loại nộp bài: {assignment.submissionType}
                             </Typography>
                           </Box>
@@ -148,7 +147,7 @@ const AssignmentInventory = () => {
 
                         <Typography variant="body2" sx={{ 
                           mb: 3, 
-                          color: 'var(--color-text-muted)',
+                          color: 'var(--color-text-sec)',
                           display: '-webkit-box',
                           WebkitLineClamp: 2,
                           WebkitBoxOrient: 'vertical',
@@ -158,34 +157,50 @@ const AssignmentInventory = () => {
                           {assignment.description || "Chưa có nội dung mô tả chi tiết."}
                         </Typography>
 
-                        <Divider sx={{ mb: 3, borderColor: 'rgba(255,255,255,0.05)' }} />
+                        <Divider sx={{ mb: 3, borderColor: 'var(--color-border)' }} />
 
                         <Grid container spacing={2} sx={{ mb: 3 }}>
                           <Grid item xs={6}>
-                            <Typography variant="caption" color="var(--color-text-muted)">Điểm tối đa</Typography>
-                            <Typography variant="body2" fontWeight={700} color="#FFF">{assignment.maxScore} pts</Typography>
+                            <Typography variant="caption" color="var(--color-text-sec)">Điểm tối đa</Typography>
+                            <Typography variant="body2" fontWeight={700} color="var(--color-text)">{assignment.maxScore} pts</Typography>
                           </Grid>
                           <Grid item xs={6}>
-                            <Typography variant="caption" color="var(--color-text-muted)">File max</Typography>
-                            <Typography variant="body2" fontWeight={700} color="#FFF">{assignment.maxFileSizeMb} MB</Typography>
+                            <Typography variant="caption" color="var(--color-text-sec)">File max</Typography>
+                            <Typography variant="body2" fontWeight={700} color="var(--color-text)">{assignment.maxFileSizeMb} MB</Typography>
                           </Grid>
                         </Grid>
 
                         <Box sx={{ display: 'flex', gap: 1 }}>
                           <Button 
-                            fullWidth 
+                            variant="contained" 
+                            size="large"
+                            onClick={() => navigate(`/inventory/assignments/view/${assignment.templateId}`)}
+                            sx={{ 
+                              flex: 1,
+                              borderRadius: '12px', 
+                              fontWeight: 700, 
+                              background: 'rgba(252, 211, 77, 0.1)', 
+                              color: '#FCD34D',
+                              border: '1px solid rgba(252, 211, 77, 0.2)',
+                              '&:hover': { background: 'rgba(252, 211, 77, 0.2)' }
+                            }}
+                          >
+                            Xem
+                          </Button>
+                          <Button 
                             variant="contained" 
                             size="large"
                             onClick={() => navigate(`/inventory/assignments/edit/${assignment.templateId}`)}
                             sx={{ 
+                              flex: 1,
                               borderRadius: '12px', 
                               fontWeight: 700, 
                               background: 'rgba(255,255,255,0.05)', 
                               color: '#FFF',
-                              '&:hover': { background: 'rgba(252, 211, 77, 0.2)' }
+                              '&:hover': { background: 'rgba(255, 255, 255, 0.1)' }
                             }}
                           >
-                            Thiết lập mẫu
+                            Thiết lập
                           </Button>
                           <IconButton 
                              onClick={async () => {

@@ -3,6 +3,7 @@ package project.TeamFive.ExLMS.quiz.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import project.TeamFive.ExLMS.entity.BaseEntity;
+import java.util.List;
 
 @Entity
 @Table(name = "quiz_questions")
@@ -35,6 +36,9 @@ public class QuizQuestion extends BaseEntity {
     @Column(name = "order_index", nullable = false)
     @Builder.Default
     private int orderIndex = 0;
+
+    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<QuizAnswer> answers;
 
     public enum QuestionType {
         SINGLE_CHOICE, MULTIPLE_CHOICE, TRUE_FALSE, FILL_BLANK, SHORT_ANSWER

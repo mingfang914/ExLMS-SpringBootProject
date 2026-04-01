@@ -113,78 +113,152 @@ const AssignmentList = ({ courseId, isInstructor: isInstructorProp }) => {
           {isInstructor ? t('assignments.no_assignments_instructor') : t('assignments.no_assignments_student')}
         </Alert>
       ) : (
-        <Grid container spacing={2}>
+        <Grid container spacing={3}>
           {assignments.map((asgn) => (
             <Grid item xs={12} key={asgn.id}>
               <Card
                 sx={{
-                  '&:hover': { boxShadow: 4 },
-                  transition: 'box-shadow 0.2s'
+                  borderRadius: 4,
+                  overflow: 'hidden',
+                  background: 'rgba(255, 255, 255, 0.03)',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  '&:hover': {
+                    transform: 'translateY(-4px)',
+                    boxShadow: '0 12px 24px rgba(0,0,0,0.2)',
+                    borderColor: 'primary.main'
+                  }
                 }}
               >
-                <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Box sx={{ flex: 1 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                      <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                        {asgn.title}
-                      </Typography>
-                      {getStatusChip(asgn)}
-                    </Box>
-                    <Typography
-                      variant="body2"
-                      color="textSecondary"
-                      sx={{
-                        mb: 2,
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden'
-                      }}
-                      dangerouslySetInnerHTML={{ __html: asgn.description }}
-                    />
-                    <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
-                      <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        <TimelineIcon fontSize="inherit" />
-                        {t('assignments.due')}: {format(new Date(asgn.dueAt), 'HH:mm dd/MM/yyyy', { locale: i18n.language === 'vi' ? vi : enUS })}
-                      </Typography>
-                      <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        {asgn.submissionType === 'FILE' ? <FileIcon fontSize="inherit" /> : <DescriptionIcon fontSize="inherit" />}
-                        {t('assignments.type')}: {asgn.submissionType === 'FILE' ? t('assignments.type_file') : t('assignments.type_text')}
-                      </Typography>
-                      <Typography variant="caption" sx={{ fontWeight: 'bold' }}>
-                        {t('assignments.max_score')}: {asgn.maxScore}
-                      </Typography>
-                    </Box>
-                  </Box>
+                <CardContent sx={{ p: 0 }}>
+                  <Grid container>
+                    <Grid item xs={12} md={8} sx={{ p: 3 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                        <Avatar sx={{ bgcolor: 'rgba(99, 102, 241, 0.1)', color: 'primary.main', width: 56, height: 56, borderRadius: 3 }}>
+                          <AssignmentIcon fontSize="large" />
+                        </Avatar>
+                        <Box>
+                          <Typography variant="h6" fontWeight={800} sx={{ lineHeight: 1.2 }}>
+                            {asgn.title}
+                          </Typography>
+                          <Box sx={{ display: 'flex', gap: 1, mt: 0.5 }}>
+                            {getStatusChip(asgn)}
+                            <Chip label={asgn.submissionType} size="small" variant="outlined" />
+                          </Box>
+                        </Box>
+                      </Box>
 
-                  <Box sx={{ ml: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Button
-                      variant="outlined"
-                      onClick={() => navigate(`/groups/${groupId}/assignments/${asgn.id}`)}
-                    >
-                      {isInstructor ? t('assignments.actions.grade') : t('common.details')}
-                    </Button>
-                    {isInstructor && (
-                      <>
-                        <Tooltip title={t('common.edit')}>
-                          <IconButton size="small" color="primary" onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/groups/${groupId}/assignments/${asgn.id}/edit`);
-                          }}>
-                            <EditIcon />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title={t('common.delete')}>
-                          <IconButton size="small" color="error" onClick={(e) => {
-                            e.stopPropagation();
-                            handleDelete(asgn.id);
-                          }}>
+                      <Typography
+                        variant="body2"
+                        color="textSecondary"
+                        sx={{
+                          mb: 3,
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                          opacity: 0.8
+                        }}
+                        dangerouslySetInnerHTML={{ __html: asgn.description }}
+                      />
+
+                      <Grid container spacing={2}>
+                        <Grid item xs={6} sm={3}>
+                          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                            <Typography variant="caption" color="textSecondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                              <TimelineIcon sx={{ fontSize: 14 }} /> {t('assignments.assigned')}
+                            </Typography>
+                            <Typography variant="body2" fontWeight={700}>
+                              {asgn.assignedAt ? format(new Date(asgn.assignedAt), 'HH:mm dd/MM', { locale: i18n.language === 'vi' ? vi : enUS }) : '---'}
+                            </Typography>
+                          </Box>
+                        </Grid>
+                        <Grid item xs={6} sm={3}>
+                          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                            <Typography variant="caption" color="error" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                              <TimelineIcon sx={{ fontSize: 14 }} /> {t('assignments.due')}
+                            </Typography>
+                            <Typography variant="body2" fontWeight={700} color="error">
+                              {format(new Date(asgn.dueAt), 'HH:mm dd/MM', { locale: i18n.language === 'vi' ? vi : enUS })}
+                            </Typography>
+                          </Box>
+                        </Grid>
+                        <Grid item xs={6} sm={3}>
+                          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                            <Typography variant="caption" color="textSecondary">
+                              Nộp muộn
+                            </Typography>
+                            <Typography variant="body2" fontWeight={700} color={asgn.allowLate ? 'success.main' : 'error.main'}>
+                              {asgn.allowLate ? `Có (-${asgn.latePenaltyPercent}%)` : 'Không'}
+                            </Typography>
+                          </Box>
+                        </Grid>
+                        <Grid item xs={6} sm={3}>
+                          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                            <Typography variant="caption" color="textSecondary">
+                              {t('assignments.max_score')}
+                            </Typography>
+                            <Typography variant="body2" fontWeight={700}>
+                              {asgn.maxScore} pts
+                            </Typography>
+                          </Box>
+                        </Grid>
+                      </Grid>
+                    </Grid>
+
+                    <Grid item xs={12} md={4} sx={{ 
+                      bgcolor: 'rgba(255,255,255,0.02)', 
+                      borderLeft: { md: '1px solid rgba(255,255,255,0.05)' },
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                      p: 3,
+                      gap: 1.5
+                    }}>
+                      <Button
+                        fullWidth
+                        variant="contained"
+                        disabled={asgn.status === 'CLOSED' && !asgn.allowLate && !isInstructor}
+                        onClick={() => navigate(`/groups/${groupId}/assignments/${asgn.id}`)}
+                        sx={{ 
+                          borderRadius: 3, 
+                          py: 1.5, 
+                          fontWeight: 800,
+                          boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)'
+                        }}
+                      >
+                        {asgn.status === 'CLOSED' ? (asgn.allowLate ? 'Nộp muộn' : t('assignments.status.closed')) : (isInstructor ? t('assignments.actions.grade') : t('common.details'))}
+                      </Button>
+                      
+                      {isInstructor && (
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          <Button
+                            fullWidth
+                            variant="outlined"
+                            startIcon={<EditIcon />}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/groups/${groupId}/assignments/${asgn.id}/edit`);
+                            }}
+                            sx={{ borderRadius: 3 }}
+                          >
+                            {t('common.edit')}
+                          </Button>
+                          <IconButton 
+                            color="error" 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(asgn.id);
+                            }}
+                            sx={{ borderRadius: 3, border: '1px solid rgba(239, 68, 68, 0.2)' }}
+                          >
                             <DeleteIcon />
                           </IconButton>
-                        </Tooltip>
-                      </>
-                    )}
-                  </Box>
+                        </Box>
+                      )}
+                    </Grid>
+                  </Grid>
                 </CardContent>
               </Card>
             </Grid>

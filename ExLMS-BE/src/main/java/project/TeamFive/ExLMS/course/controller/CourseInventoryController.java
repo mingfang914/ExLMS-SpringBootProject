@@ -18,6 +18,7 @@ import java.util.UUID;
 public class CourseInventoryController {
 
     private final CourseService courseService;
+    private final project.TeamFive.ExLMS.quiz.service.CourseQuizService courseQuizService;
 
     // [READ] Lấy danh sách khóa học mẫu của cá nhân
     @GetMapping
@@ -28,8 +29,35 @@ public class CourseInventoryController {
     // [READ] Chi tiết bản mẫu
     @GetMapping("/{id}")
     public ResponseEntity<CourseResponse> getTemplate(@PathVariable UUID id) {
-        // reuse getCourseByDeployment or specific template method
         return ResponseEntity.ok(courseService.getTemplateById(id));
+    }
+
+    // [READ] Lấy danh sách quiz liên kết với course template
+    @GetMapping("/{id}/quizzes")
+    public ResponseEntity<List<project.TeamFive.ExLMS.quiz.dto.response.QuizResponseDTO>> getCourseQuizzes(@PathVariable UUID id) {
+        // Since we need QuizResponseDTO, let's use QuizService too or just DTO mapping
+        // To be quick, I'll just return the Quiz entities mapped to simplified responses 
+        // OR better, I should use the QuizService map method
+        return ResponseEntity.ok(courseQuizService.getQuizzesByCourseId(id).stream()
+                .map(q -> project.TeamFive.ExLMS.quiz.dto.response.QuizResponseDTO.builder()
+                        .templateId(q.getId())
+                        .title(q.getTitle())
+                        .description(q.getDescription())
+                        .timeLimitSec(q.getTimeLimitSec())
+                        .maxAttempts(q.getMaxAttempts())
+                        .passingScore(q.getPassingScore())
+                        .build())
+                .collect(java.util.stream.Collectors.toList()));
+    }
+
+    // [UPDATE] Liên kết hàng loạt trắc nghiệm vào khóa học mẫu
+    @PostMapping("/{id}/quizzes")
+    public ResponseEntity<Void> associateQuizzes(
+            @PathVariable UUID id,
+            @RequestBody List<UUID> quizIds,
+            @AuthenticationPrincipal User user) {
+        courseQuizService.associateQuizzes(id, quizIds);
+        return ResponseEntity.ok().build();
     }
 
     // [CREATE] Tạo bản thiết kế khóa học mới trong kho
@@ -47,6 +75,14 @@ public class CourseInventoryController {
             @RequestBody CourseRequest request,
             @AuthenticationPrincipal User user) {
         return ResponseEntity.ok(courseService.updateTemplate(id, request, user));
+    }
+
+    // [DELETE] Xóa bản thiết kế
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteTemplate(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(courseService.deleteTemplate(id, user));
     }
 
     // [DEPLOY] Đưa khóa học vào nhóm

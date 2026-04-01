@@ -36,8 +36,9 @@ public class AssignmentController {
 
     @GetMapping("/groups/{groupId}/assignments")
     public ResponseEntity<List<AssignmentResponseDTO>> getAssignmentsByGroup(
-            @PathVariable UUID groupId) {
-        return ResponseEntity.ok(assignmentService.getAssignmentsByGroup(groupId));
+            @PathVariable UUID groupId,
+            @AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(assignmentService.getAssignmentsByGroup(groupId, user));
     }
 
     @PutMapping("/assignments/{id}")
@@ -45,7 +46,11 @@ public class AssignmentController {
             @PathVariable UUID id,
             @RequestBody CreateAssignmentRequest request,
             @AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(assignmentService.updateTemplate(id, request, user));
+        try {
+            return ResponseEntity.ok(assignmentService.updateAssignmentDeployment(id, request, user));
+        } catch (Exception e) {
+            return ResponseEntity.ok(assignmentService.updateTemplate(id, request, user));
+        }
     }
 
     @DeleteMapping("/assignments/{id}")

@@ -25,6 +25,7 @@ public class AssignmentService {
     private final AssignmentRepository assignmentRepository;
     private final GroupAssignmentRepository groupAssignmentRepository;
     private final StudyGroupRepository studyGroupRepository;
+    private final project.TeamFive.ExLMS.group.repository.GroupMemberRepository groupMemberRepository;
 
     @Transactional
     public AssignmentResponseDTO createTemplate(CreateAssignmentRequest request, User creator) {
@@ -32,9 +33,21 @@ public class AssignmentService {
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .maxScore(request.getMaxScore() != null ? request.getMaxScore() : 100)
+                .submissionType(safeSubmissionType(request.getSubmissionType()))
+                .allowedFileTypes(request.getAllowedFileTypes())
+                .maxFileSizeMb(request.getMaxFileSizeMb() != null ? request.getMaxFileSizeMb() : 50)
                 .createdBy(creator)
                 .build();
         return mapToResponseDTO(assignmentRepository.save(assignment), null);
+    }
+
+    private Assignment.SubmissionType safeSubmissionType(String type) {
+        if (type == null) return Assignment.SubmissionType.FILE;
+        try {
+            return Assignment.SubmissionType.valueOf(type);
+        } catch (IllegalArgumentException e) {
+            return Assignment.SubmissionType.FILE;
+        }
     }
 
     @Transactional
@@ -49,6 +62,18 @@ public class AssignmentService {
         if (request.getTitle() != null) assignment.setTitle(request.getTitle());
         if (request.getDescription() != null) assignment.setDescription(request.getDescription());
         if (request.getMaxScore() != null) assignment.setMaxScore(request.getMaxScore());
+        
+        if (request.getSubmissionType() != null) {
+            assignment.setSubmissionType(safeSubmissionType(request.getSubmissionType()));
+        }
+        
+        if (request.getAllowedFileTypes() != null) {
+            assignment.setAllowedFileTypes(request.getAllowedFileTypes());
+        }
+        
+        if (request.getMaxFileSizeMb() != null) {
+            assignment.setMaxFileSizeMb(request.getMaxFileSizeMb());
+        }
 
         return mapToResponseDTO(assignmentRepository.save(assignment), null);
     }
@@ -75,19 +100,31 @@ public class AssignmentService {
         Assignment assignment = assignmentRepository.findById(templateId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bản mẫu bài tập!"));
 
+        validateDates(config.getAssignedAt(), config.getDueAt());
         GroupAssignment deployment = GroupAssignment.builder()
                 .group(group)
                 .assignment(assignment)
+                .assignedAt(config.getAssignedAt() != null ? config.getAssignedAt() : LocalDateTime.now())
                 .dueAt(config.getDueAt() != null ? config.getDueAt() : LocalDateTime.now().plusDays(7))
-                .status(GroupAssignment.GroupAssignmentStatus.PUBLISHED)
+                .allowLate(config.getAllowLate() != null ? config.getAllowLate() : false)
+                .latePenaltyPercent(config.getLatePenaltyPercent() != null ? config.getLatePenaltyPercent() : 0)
+                .status(config.getAssignedAt() != null && config.getAssignedAt().isAfter(LocalDateTime.now()) 
+                        ? GroupAssignment.GroupAssignmentStatus.DRAFT 
+                        : GroupAssignment.GroupAssignmentStatus.PUBLISHED)
                 .build();
 
         return mapToResponseDTO(assignment, groupAssignmentRepository.save(deployment));
     }
 
     @Transactional(readOnly = true)
-    public List<AssignmentResponseDTO> getAssignmentsByGroup(UUID groupId) {
+    public List<AssignmentResponseDTO> getAssignmentsByGroup(UUID groupId, User user) {
+        project.TeamFive.ExLMS.group.entity.GroupMember member = groupMemberRepository.findByGroup_IdAndUser_Id(groupId, user.getId())
+                .orElseThrow(() -> new RuntimeException("Bạn không phải là thành viên của nhóm này!"));
+
+        boolean isInstructor = "OWNER".equals(member.getRole()) || "EDITOR".equals(member.getRole());
+
         return groupAssignmentRepository.findByGroup_Id(groupId).stream()
+                .filter(ga -> isInstructor || ga.getStatus() != GroupAssignment.GroupAssignmentStatus.DRAFT)
                 .map(ga -> mapToResponseDTO(ga.getAssignment(), ga))
                 .collect(Collectors.toList());
     }
@@ -116,6 +153,37 @@ public class AssignmentService {
 
         groupAssignmentRepository.deleteByAssignment_Id(id);
         assignmentRepository.delete(assignment);
+    }
+
+    @Transactional
+    public AssignmentResponseDTO updateAssignmentDeployment(UUID deploymentId, CreateAssignmentRequest request, User user) {
+        GroupAssignment deployment = groupAssignmentRepository.findById(deploymentId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đợt giao bài tập này!"));
+
+        if (request.getAssignedAt() != null) {
+            if (!request.getAssignedAt().equals(deployment.getAssignedAt())) validateDates(request.getAssignedAt(), null);
+            deployment.setAssignedAt(request.getAssignedAt());
+        }
+        if (request.getDueAt() != null) {
+            validateDates(deployment.getAssignedAt(), request.getDueAt());
+            deployment.setDueAt(request.getDueAt());
+        }
+        if (request.getAllowLate() != null) deployment.setAllowLate(request.getAllowLate());
+        if (request.getLatePenaltyPercent() != null) deployment.setLatePenaltyPercent(request.getLatePenaltyPercent());
+        
+        if (request.getStatus() != null) {
+            try {
+                deployment.setStatus(GroupAssignment.GroupAssignmentStatus.valueOf(request.getStatus()));
+            } catch (Exception e) {}
+        }
+
+        return mapToResponseDTO(deployment.getAssignment(), groupAssignmentRepository.save(deployment));
+    }
+
+    private void validateDates(java.time.LocalDateTime start, java.time.LocalDateTime end) {
+        if (start != null && end != null && end.isBefore(start)) {
+            throw new RuntimeException("Thời gian đóng đề không được nhỏ hơn thời gian bắt đầu!");
+        }
     }
 
     private AssignmentResponseDTO mapToResponseDTO(Assignment assignment, GroupAssignment deployment) {

@@ -9,6 +9,9 @@ import java.util.UUID;
 
 @Repository
 public interface CourseQuizRepository extends JpaRepository<CourseQuiz, UUID> {
-    List<CourseQuiz> findByCourse_Id(UUID courseId);
-    List<CourseQuiz> findByChapter_Id(UUID chapterId);
+    @org.springframework.data.jpa.repository.Query("SELECT cq FROM CourseQuiz cq JOIN FETCH cq.quiz WHERE cq.course.id = :courseId ORDER BY cq.orderIndex ASC")
+    List<CourseQuiz> findByCourse_Id(@org.springframework.data.repository.query.Param("courseId") java.util.UUID courseId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT cq FROM CourseQuiz cq JOIN FETCH cq.quiz WHERE cq.chapter.id = :chapterId ORDER BY cq.orderIndex ASC")
+    List<CourseQuiz> findByChapter_Id(@org.springframework.data.repository.query.Param("chapterId") java.util.UUID chapterId);
 }

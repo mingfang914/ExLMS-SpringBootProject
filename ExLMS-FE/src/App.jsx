@@ -30,6 +30,9 @@ import Profile from './pages/Profile'
 import CourseInventory from './pages/Inventory/CourseInventory'
 import AssignmentInventory from './pages/Inventory/AssignmentInventory'
 import QuizInventory from './pages/Inventory/QuizInventory'
+import InventoryCourseDetail from './pages/Inventory/CourseDetail'
+import InventoryAssignmentDetail from './pages/Inventory/AssignmentDetail'
+import InventoryQuizDetail from './pages/Inventory/QuizDetail'
 import Layout from './components/Layout'
 import { initSocket, disconnectSocket } from './services/socketService'
 import { setUser } from './store/authSlice'
@@ -104,12 +107,15 @@ function App() {
       {/* Inventory Routes */}
       <Route path="/inventory/courses" element={isAuthenticated ? <Layout><CourseInventory /></Layout> : <Navigate to="/" />} />
       <Route path="/inventory/courses/create" element={isAuthenticated ? <Layout><CourseEditor /></Layout> : <Navigate to="/" />} />
-      <Route path="/inventory/courses/edit/:id" element={isAuthenticated ? <Layout><CourseEditor /></Layout> : <Navigate to="/" />} />
+      <Route path="/inventory/courses/view/:id" element={isAuthenticated ? <Layout><InventoryCourseDetail /></Layout> : <Navigate to="/" />} />
+      <Route path="/inventory/courses/edit/:courseId" element={isAuthenticated ? <Layout><CourseEditor /></Layout> : <Navigate to="/" />} />
       <Route path="/inventory/assignments" element={isAuthenticated ? <Layout><AssignmentInventory /></Layout> : <Navigate to="/" />} />
       <Route path="/inventory/assignments/create" element={isAuthenticated ? <Layout><AssignmentForm /></Layout> : <Navigate to="/" />} />
+      <Route path="/inventory/assignments/view/:id" element={isAuthenticated ? <Layout><InventoryAssignmentDetail /></Layout> : <Navigate to="/" />} />
       <Route path="/inventory/assignments/edit/:id" element={isAuthenticated ? <Layout><AssignmentForm /></Layout> : <Navigate to="/" />} />
       <Route path="/inventory/quizzes" element={isAuthenticated ? <Layout><QuizInventory /></Layout> : <Navigate to="/" />} />
       <Route path="/inventory/quizzes/create" element={isAuthenticated ? <Layout><QuizEditor /></Layout> : <Navigate to="/" />} />
+      <Route path="/inventory/quizzes/view/:id" element={isAuthenticated ? <Layout><InventoryQuizDetail /></Layout> : <Navigate to="/" />} />
       <Route path="/inventory/quizzes/edit/:quizId" element={isAuthenticated ? <Layout><QuizEditor /></Layout> : <Navigate to="/" />} />
 
       {/* Fallback routes for other pages */}

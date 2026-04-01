@@ -26,7 +26,13 @@ import {
   School as CourseIcon,
   Assignment as AssignmentIcon,
   Quiz as QuizIcon,
+  Visibility as VisibilityIcon,
+  Shuffle as ShuffleIcon
 } from '@mui/icons-material'
+import { 
+  FormControl, InputLabel, Select, MenuItem, 
+  FormControlLabel, Switch 
+} from '@mui/material'
 import courseService from '../../services/courseService'
 import assignmentService from '../../services/assignmentService'
 import * as quizService from '../../services/quizService'
@@ -46,6 +52,10 @@ const InventoryDeploymentModal = ({ open, onClose, type, groupId, onDeploySucces
     closeAt: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString().slice(0, 16), // 2 hours
     startDate: new Date().toISOString().slice(0, 10),
     endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+    shuffleQuestions: false,
+    resultVisibility: 'IMMEDIATE',
+    allowLate: false,
+    latePenaltyPercent: 0,
   })
 
   useEffect(() => {
@@ -158,6 +168,23 @@ const InventoryDeploymentModal = ({ open, onClose, type, groupId, onDeploySucces
                     value={config.dueAt}
                     onChange={(e) => setConfig({...config, dueAt: e.target.value})}
                   />
+                  <FormControlLabel
+                    control={
+                      <Switch 
+                        checked={config.allowLate} 
+                        onChange={(e) => setConfig({...config, allowLate: e.target.checked})}
+                      />
+                    }
+                    label={<Typography variant="body2">Cho phép nộp muộn</Typography>}
+                  />
+                  {config.allowLate && (
+                    <TextField 
+                      label="Trừ điểm nộp muộn (%)" type="number" fullWidth 
+                      value={config.latePenaltyPercent}
+                      onChange={(e) => setConfig({...config, latePenaltyPercent: parseInt(e.target.value) || 0})}
+                      InputProps={{ endAdornment: '%' }}
+                    />
+                  )}
                 </>
               )}
               {type === 'quiz' && (
@@ -173,6 +200,28 @@ const InventoryDeploymentModal = ({ open, onClose, type, groupId, onDeploySucces
                     InputLabelProps={{ shrink: true }}
                     value={config.closeAt}
                     onChange={(e) => setConfig({...config, closeAt: e.target.value})}
+                  />
+                  <Divider sx={{ my: 1 }} />
+                  <FormControl fullWidth size="small">
+                    <InputLabel>Hiển thị kết quả</InputLabel>
+                    <Select
+                      value={config.resultVisibility}
+                      label="Hiển thị kết quả"
+                      onChange={(e) => setConfig({...config, resultVisibility: e.target.value})}
+                    >
+                      <MenuItem value="IMMEDIATE">Sau khi làm bài</MenuItem>
+                      <MenuItem value="AFTER_DEADLINE">Sau khi hết hạn</MenuItem>
+                      <MenuItem value="OPENED">Mở thủ công</MenuItem>
+                    </Select>
+                  </FormControl>
+                  <FormControlLabel
+                    control={
+                      <Switch 
+                        checked={config.shuffleQuestions} 
+                        onChange={(e) => setConfig({...config, shuffleQuestions: e.target.checked})}
+                      />
+                    }
+                    label={<Typography variant="body2">Trộn câu hỏi</Typography>}
                   />
                 </>
               )}

@@ -15,5 +15,6 @@ public interface GroupAssignmentRepository extends JpaRepository<GroupAssignment
     List<GroupAssignment> findByGroup_Id(UUID groupId);
     List<GroupAssignment> findByAssignment_Id(UUID assignmentId);
     List<GroupAssignment> findByStatusAndDueAtBefore(GroupAssignmentStatus status, LocalDateTime now);
+    List<GroupAssignment> findByStatusAndAssignedAtBefore(GroupAssignmentStatus status, LocalDateTime now);
     void deleteByAssignment_Id(UUID assignmentId);
 }

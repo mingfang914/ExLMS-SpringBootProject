@@ -22,6 +22,7 @@ import {
   Layers as LayersIcon,
   Delete as DeleteIcon,
   ContentPaste as ListIcon,
+  Edit as EditIcon,
 } from '@mui/icons-material'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
@@ -56,7 +57,6 @@ const QuizInventory = () => {
   return (
     <Box sx={{ p: 4 }}>
       <Box 
-        className="glass-card"
         sx={{ 
           p: 4, 
           mb: 4, 
@@ -64,17 +64,17 @@ const QuizInventory = () => {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          background: 'rgba(255, 255, 255, 0.03)',
-          border: '1px solid rgba(255, 255, 255, 0.05)'
+          background: 'var(--glass-bg)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid var(--glass-border)',
+          boxShadow: 'var(--glass-shadow)',
         }}
       >
         <Box>
           <Typography variant="h3" sx={{ 
             fontWeight: 900, 
             fontFamily: 'var(--font-heading)',
-            background: 'linear-gradient(135deg, #FFF 0%, #AAA 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
+            color: 'var(--color-text)',
             display: 'flex',
             alignItems: 'center',
             gap: 2
@@ -82,7 +82,7 @@ const QuizInventory = () => {
             <QuizIcon sx={{ fontSize: 48, color: '#10B981' }} />
             Ngân hàng Đề thi
           </Typography>
-          <Typography variant="body1" sx={{ color: 'var(--color-text-muted)', mt: 1 }}>
+          <Typography variant="body1" sx={{ color: 'var(--color-text-sec)', mt: 1 }}>
             Kho lưu trữ và quản lý các bộ câu hỏi, trắc nghiệm trực tuyến chuyên nghiệp.
           </Typography>
         </Box>
@@ -97,6 +97,7 @@ const QuizInventory = () => {
             fontSize: '1rem',
             background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
             color: '#FFF',
+            boxShadow: '0 8px 16px rgba(16, 185, 129, 0.3)',
             '&:hover': { background: '#059669' }
           }}
         >
@@ -127,14 +128,14 @@ const QuizInventory = () => {
                     <Card
                       sx={{
                         borderRadius: '24px',
-                        background: 'rgba(255, 255, 255, 0.03)',
-                        border: '1px solid rgba(255, 255, 255, 0.05)',
+                        background: 'var(--color-surface)',
+                        border: '1px solid var(--color-border)',
                         transition: 'all 0.3s ease',
                         position: 'relative',
                         overflow: 'visible',
                         '&:hover': {
                           transform: 'translateY(-10px)',
-                          boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
+                          boxShadow: 'var(--glass-shadow)',
                           borderColor: '#10B981',
                           '& .quiz-badge': { transform: 'scale(1.1)' }
                         }
@@ -150,44 +151,44 @@ const QuizInventory = () => {
                           left: 20,
                           transition: 'all 0.3s ease',
                           boxShadow: '0 8px 16px rgba(16, 185, 129, 0.3)',
-                          border: '4px solid #1c2128'
+                          border: '4px solid var(--color-bg)'
                         }}
                       >
                         <QuizIcon />
                       </Avatar>
 
                       <CardContent sx={{ pt: 6, p: 4 }}>
-                        <Typography variant="h6" sx={{ fontWeight: 800, mb: 1, color: '#FFF' }}>
+                        <Typography variant="h6" sx={{ fontWeight: 800, mb: 1, color: 'var(--color-text)' }}>
                           {quiz.title}
                         </Typography>
-                        <Typography variant="caption" sx={{ color: 'var(--color-text-muted)', display: 'block', mb: 3 }}>
+                        <Typography variant="caption" sx={{ color: 'var(--color-text-sec)', display: 'block', mb: 3 }}>
                           ID: {quiz.templateId.substring(0, 8).toUpperCase()}
                         </Typography>
 
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mb: 3 }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                             <TimeIcon sx={{ color: '#818CF8', fontSize: '1.2rem' }} />
-                            <Typography variant="body2" sx={{ color: '#FFF' }}>Thời gian: {formatTime(quiz.timeLimitSec)}</Typography>
+                            <Typography variant="body2" sx={{ color: 'var(--color-text)' }}>Thời gian: {formatTime(quiz.timeLimitSec)}</Typography>
                           </Box>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                             <LayersIcon sx={{ color: '#34D399', fontSize: '1.2rem' }} />
-                            <Typography variant="body2" sx={{ color: '#FFF' }}>Số lần nộp: kịch kim {quiz.maxAttempts}</Typography>
+                            <Typography variant="body2" sx={{ color: 'var(--color-text)' }}>Số lần nộp: kịch kim {quiz.maxAttempts}</Typography>
                           </Box>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                             <GradeIcon sx={{ color: '#FCD34D', fontSize: '1.2rem' }} />
-                            <Typography variant="body2" sx={{ color: '#FFF' }}>Điểm đạt: {quiz.passingScore}%</Typography>
+                            <Typography variant="body2" sx={{ color: 'var(--color-text)' }}>Điểm đạt: {quiz.passingScore}%</Typography>
                           </Box>
                         </Box>
 
-                        <Divider sx={{ mb: 3, borderColor: 'rgba(255,255,255,0.05)' }} />
+                        <Divider sx={{ mb: 3, borderColor: 'var(--color-border)' }} />
 
                         <Box sx={{ display: 'flex', gap: 1 }}>
                           <Button 
-                            fullWidth 
                             variant="contained" 
                             size="large"
-                            onClick={() => navigate(`/inventory/quizzes/edit/${quiz.templateId}`)}
+                            onClick={() => navigate(`/inventory/quizzes/view/${quiz.templateId}`)}
                             sx={{ 
+                              flex: 1,
                               borderRadius: '12px', 
                               fontWeight: 700, 
                               background: 'rgba(16, 185, 129, 0.1)', 
@@ -195,8 +196,14 @@ const QuizInventory = () => {
                               '&:hover': { background: '#10B981', color: '#FFF' }
                             }}
                           >
-                            Chỉnh sửa đề
+                            Xem đề
                           </Button>
+                          <IconButton 
+                            onClick={() => navigate(`/inventory/quizzes/edit/${quiz.templateId}`)}
+                            sx={{ background: 'rgba(255,255,255,0.05)', borderRadius: '12px', color: '#FFF' }}
+                          >
+                            <EditIcon />
+                          </IconButton>
                           <IconButton 
                             onClick={async () => {
                               if (window.confirm('Xóa bản mẫu trắc nghiệm này?')) {

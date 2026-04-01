@@ -12,6 +12,8 @@ import project.TeamFive.ExLMS.quiz.dto.response.QuizAttemptResponse;
 import project.TeamFive.ExLMS.quiz.dto.response.QuizStatsResponse;
 import project.TeamFive.ExLMS.quiz.service.QuizService;
 
+import project.TeamFive.ExLMS.quiz.service.QuizAttemptService;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -21,6 +23,12 @@ import java.util.UUID;
 public class QuizController {
 
     private final QuizService quizService;
+    private final QuizAttemptService quizAttemptService;
+
+    @GetMapping("/quizzes/{id}")
+    public ResponseEntity<QuizResponseDTO> getQuizById(@PathVariable UUID id) {
+        return ResponseEntity.ok(quizService.getQuizDeploymentById(id));
+    }
 
     @PostMapping("/groups/{groupId}/quizzes")
     public ResponseEntity<QuizResponseDTO> createQuiz(
@@ -33,44 +41,60 @@ public class QuizController {
     }
 
     @GetMapping("/groups/{groupId}/quizzes")
-    public ResponseEntity<List<QuizResponseDTO>> getQuizzesByGroup(@PathVariable UUID groupId) {
-        return ResponseEntity.ok(quizService.getQuizzesByGroup(groupId));
+    public ResponseEntity<List<QuizResponseDTO>> getQuizzesByGroup(
+            @PathVariable UUID groupId,
+            @AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(quizService.getQuizzesByGroup(groupId, user));
     }
 
-    @GetMapping("/quizzes/{id}")
-    public ResponseEntity<QuizResponseDTO> getQuizById(@PathVariable UUID id) {
-        return ResponseEntity.ok(quizService.getQuizDeploymentById(id));
-    }
-
-    // Attempt and Stats logic remains for further implementation
     @PostMapping("/quizzes/{id}/attempts")
     public ResponseEntity<QuizAttemptResponse> startAttempt(
             @PathVariable UUID id,
+            @RequestParam(defaultValue = "GROUP_QUIZ") String type,
             @AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(QuizAttemptResponse.builder().id(id).build());
+        // Implementation moved to QuizAttemptService
+        return ResponseEntity.ok(quizAttemptService.startAttempt(id, type, user));
     }
 
     @PostMapping("/quizzes/attempts/{attemptId}/submit")
     public ResponseEntity<QuizAttemptResponse> submitAttempt(
             @PathVariable UUID attemptId,
             @RequestBody QuizAttemptRequest request) {
-        return ResponseEntity.ok(QuizAttemptResponse.builder().id(attemptId).build());
+        return ResponseEntity.ok(quizAttemptService.submitAttempt(attemptId, request));
     }
 
     @GetMapping("/quizzes/attempts/{attemptId}/result")
     public ResponseEntity<QuizAttemptResponse> getAttemptResult(@PathVariable UUID attemptId) {
-        return ResponseEntity.ok(QuizAttemptResponse.builder().id(attemptId).build());
+        return ResponseEntity.ok(quizAttemptService.getAttemptResult(attemptId));
     }
 
     @GetMapping("/quizzes/{id}/my-attempts")
     public ResponseEntity<List<QuizAttemptResponse>> getMyAttempts(
             @PathVariable UUID id,
             @AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(List.of());
+        return ResponseEntity.ok(quizAttemptService.getMyAttempts(id, user));
     }
 
     @GetMapping("/quizzes/{id}/stats")
     public ResponseEntity<QuizStatsResponse> getQuizStats(@PathVariable UUID id) {
-        return ResponseEntity.ok(QuizStatsResponse.builder().quizId(id).build());
+        return ResponseEntity.ok(quizAttemptService.getQuizStats(id));
+    }
+
+    @PutMapping("/quizzes/{id}")
+    public ResponseEntity<QuizResponseDTO> updateQuiz(
+            @PathVariable UUID id,
+            @RequestBody CreateQuizRequest request,
+            @AuthenticationPrincipal User user) {
+        try {
+            return ResponseEntity.ok(quizService.updateQuizDeployment(id, request, user));
+        } catch (Exception e) {
+            return ResponseEntity.ok(quizService.updateTemplate(id, request, user));
+        }
+    }
+
+    @DeleteMapping("/quizzes/{id}")
+    public ResponseEntity<Void> deleteQuizDeployment(@PathVariable UUID id) {
+        quizService.deleteDeployment(id);
+        return ResponseEntity.noContent().build();
     }
 }

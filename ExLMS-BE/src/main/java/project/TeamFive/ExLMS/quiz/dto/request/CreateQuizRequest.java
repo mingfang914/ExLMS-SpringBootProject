@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import project.TeamFive.ExLMS.quiz.entity.Quiz;
+import project.TeamFive.ExLMS.quiz.entity.GroupQuiz;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -33,9 +34,10 @@ public class CreateQuizRequest {
     @Builder.Default
     private boolean shuffleQuestions = false;
     @Builder.Default
-    private Quiz.ResultVisibility resultVisibility = Quiz.ResultVisibility.IMMEDIATE;
+    private GroupQuiz.ResultVisibility resultVisibility = GroupQuiz.ResultVisibility.IMMEDIATE;
     private LocalDateTime openAt;
     private LocalDateTime closeAt;
+    private String status;
     private List<QuestionRequest> questions;
 
     @Data
