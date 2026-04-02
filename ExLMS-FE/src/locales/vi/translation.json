@@ -46,9 +46,13 @@
     "logout": "Đăng xuất",
     "sections": {
       "main": "DANH MỤC CHÍNH",
+      "inventory": "THƯ VIỆN CÁ NHÂN",
       "community": "CỘNG ĐỒNG",
       "admin": "QUẢN TRỊ VIÊN"
-    }
+    },
+    "courses_repo": "Kho Khóa học",
+    "assignments_repo": "Kho Bài tập",
+    "quizzes_repo": "Ngân hàng Đề thi"
   },
   "auth": {
     "signin": "Đăng nhập",
@@ -194,6 +198,23 @@
     },
     "count": "{{count}} nhóm",
     "no_matching": "Không tìm thấy nhóm phù hợp",
+    "course_status": {
+      "draft": "Bản nháp",
+      "published": "Đang diễn ra",
+      "ended": "Đã kết thúc",
+      "archived": "Chưa bắt đầu"
+    },
+    "assignment_types": {
+      "file": "Nộp tệp",
+      "text": "Nộp văn bản",
+      "mixed": "Cả hai"
+    },
+    "quiz_types": {
+      "single_choice": "Trắc nghiệm 1 đáp án",
+      "multiple_choice": "Trắc nghiệm nhiều đáp án",
+      "true_false": "Đúng / Sai",
+      "fill_blank": "Điền vào chỗ trống"
+    },
     "no_groups": "Chưa có nhóm nào",
     "search_no_results": "Không có nhóm nào khớp với \"{{searchTerm}}\". Thử tìm kiếm khác.",
     "be_first": "Hãy là người đầu tiên tạo nhóm học tập!",
@@ -313,6 +334,10 @@
     "title_edit": "Chỉnh sửa khóa học",
     "title_new": "Tạo khóa học mới",
     "create_subtitle": "Thêm một khóa học mới vào nhóm học tập để bắt đầu giảng dạy.",
+    "content_structure": "Cấu trúc & Học liệu",
+    "ready_to_build": "Sẵn sàng xây dựng cấu trúc!",
+    "save_to_start_building": "Vui lòng điền thông tin bản thiết kế và nhấn \"Lưu khóa học\" để bắt đầu tạo các chương, bài học và nhập trắc nghiệm.",
+    "save_and_start": "Lưu và Bắt đầu thiết kế",
     "course_info": "Thông tin khóa học",
     "course_name_label": "Tên khóa học *",
     "course_name_placeholder": "Ví dụ: Nhập môn Spring Boot",
@@ -354,7 +379,8 @@
       "chapter_saved": "Đã lưu chương thành công!",
       "lesson_deleted": "Đã xóa bài học thành công!",
       "lesson_saved": "Đã lưu bài học thành công!",
-      "save_course_before_chapter": "Vui lòng lưu khóa học trước khi thêm chương!"
+      "save_course_before_chapter": "Vui lòng lưu khóa học trước khi thêm chương!",
+      "save_regularly": "Hãy nhớ lưu thay đổi thường xuyên để không mất dữ liệu."
     },
     "errors": {
       "save_course_failed": "Lỗi khi lưu khóa học",
@@ -533,7 +559,9 @@
     "cancel_confirm_message": "Bạn có chắc chắn muốn hủy bài nộp này? Hành động này không thể hoàn tác.",
     "actions": {
       "grade": "Chấm điểm",
-      "download_file": "Tải tệp nộp"
+      "download_file": "Tải tệp nộp",
+      "submit_grade": "Lưu điểm số",
+      "preview_file": "Xem trước"
     },
     "messages": {
       "update_success": "Cập nhật bài nộp thành công!",
@@ -545,8 +573,15 @@
       "submit_failed": "Lỗi khi nộp bài",
       "cancel_failed": "Không thể hủy bài nộp",
       "grade_failed": "Lỗi khi chấm điểm",
-      "export_failed": "Lỗi khi xuất tệp Excel"
+      "export_failed": "Lỗi khi xuất tệp Excel",
+      "invalid_score": "Điểm số phải nằm trong khoảng từ 0 đến {{max}}"
     },
+    "dialog": {
+      "grade_title": "Chấm điểm bài nộp",
+      "preview_title": "Xem trước bài nộp"
+    },
+    "submission_content": "Nội dung sinh viên nộp",
+    "max_possible": "Điểm tối đa có thể đạt",
     "both": "Cả hai"
   },
   "assignment_form": {

@@ -48,9 +48,13 @@
     "logout": "Logout",
     "sections": {
       "main": "MAIN MENU",
+      "inventory": "PERSONAL LIBRARY",
       "community": "COMMUNITY",
       "admin": "ADMINISTRATION"
-    }
+    },
+    "courses_repo": "Course Repository",
+    "assignments_repo": "Assignment Repository",
+    "quizzes_repo": "Quiz Bank"
   },
   "auth": {
     "signin": "Sign In",
@@ -193,6 +197,23 @@
     "tabs": {
       "all": "All Groups",
       "mine": "My Groups"
+    },
+    "course_status": {
+      "draft": "Draft",
+      "published": "Published",
+      "ended": "Ended",
+      "archived": "Archived"
+    },
+    "assignment_types": {
+      "file": "File Submission",
+      "text": "Text Submission",
+      "mixed": "Mixed"
+    },
+    "quiz_types": {
+      "single_choice": "Single Choice",
+      "multiple_choice": "Multiple Choice",
+      "true_false": "True / False",
+      "fill_blank": "Fill in the Blank"
     },
     "count": "{{count}} groups",
     "no_matching": "No matching groups",
@@ -535,7 +556,9 @@
     "cancel_confirm_message": "Are you sure you want to cancel this submission? This action cannot be undone.",
     "actions": {
       "grade": "Grade",
-      "download_file": "Download File"
+      "download_file": "Download File",
+      "submit_grade": "Submit Grade",
+      "preview_file": "Preview File"
     },
     "messages": {
       "update_success": "Submission updated successfully!",
@@ -547,8 +570,15 @@
       "submit_failed": "Error submitting assignment",
       "cancel_failed": "Could not cancel submission",
       "grade_failed": "Error grading submission",
-      "export_failed": "Error exporting Excel file"
+      "export_failed": "Error exporting Excel file",
+      "invalid_score": "Score must be between 0 and {{max}}"
     },
+    "dialog": {
+      "grade_title": "Grade Submission",
+      "preview_title": "Submission Preview"
+    },
+    "submission_content": "Submission Content",
+    "max_possible": "Max Possible Score",
     "both": "Both"
   },
   "assignment_form": {

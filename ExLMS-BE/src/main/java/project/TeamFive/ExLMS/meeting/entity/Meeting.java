@@ -31,11 +31,6 @@ public class Meeting extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Builder.Default
-    @Enumerated(EnumType.STRING)
-    @Column(name = "meeting_type", nullable = false)
-    private MeetingType meetingType = MeetingType.VIDEO_CONFERENCE;
-
     @Column(length = 50)
     private String platform;
 
@@ -51,20 +46,15 @@ public class Meeting extends BaseEntity {
     @Column(name = "start_at", nullable = false)
     private LocalDateTime startAt;
 
-    @Builder.Default
-    @Column(name = "duration_minutes", nullable = false)
-    private int durationMinutes = 60;
+    @Column(name = "end_at", nullable = false)
+    private LocalDateTime endAt;
 
     @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private MeetingStatus status = MeetingStatus.SCHEDULED;
-
-    public enum MeetingType {
-        VIDEO_CONFERENCE, WEBINAR, RECORDING_ONLY
-    }
+    private MeetingStatus status = MeetingStatus.DRAFT;
 
     public enum MeetingStatus {
-        SCHEDULED, LIVE, ENDED, CANCELLED
+        DRAFT, PUBLISHED, CLOSED
     }
 }

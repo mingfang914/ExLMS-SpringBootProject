@@ -33,6 +33,11 @@ const icons = {
       <circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
     </svg>
   ),
+  inventory: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 20L4 20L4 4L20 4L20 20Z"/><path d="M4 9L20 9"/><path d="M9 4L9 20"/><path d="M15 4L15 20"/>
+    </svg>
+  ),
   courses: (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
@@ -43,6 +48,11 @@ const icons = {
       <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
       <polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
       <polyline points="10 9 9 9 8 9"/>
+    </svg>
+  ),
+  quizzes: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
     </svg>
   ),
   forum: (
@@ -80,9 +90,13 @@ const drawerWidth = 256
 
 const menuItems = [
   { key: 'dashboard',    icon: icons.dashboard,     path: '/',              section: 'main' },
-  { key: 'groups',       icon: icons.groups,        path: '/groups',        section: 'main', badge: null },
-  { key: 'courses',      icon: icons.courses,        path: '/courses',       section: 'main' },
-  { key: 'assignments',  icon: icons.assignments,    path: '/assignments',   section: 'main' },
+  { key: 'groups',       icon: icons.groups,        path: '/groups',        section: 'main' },
+  
+  // Inventory Section
+  { key: 'courses_repo',    icon: icons.courses,       path: '/inventory/courses',     section: 'inventory' },
+  { key: 'assignments_repo',icon: icons.assignments,   path: '/inventory/assignments', section: 'inventory' },
+  { key: 'quizzes_repo',    icon: icons.quizzes,       path: '/inventory/quizzes',     section: 'inventory' },
+
   { key: 'forum',        icon: icons.forum,          path: '/forum',         section: 'community' },
   { key: 'calendar',     icon: icons.calendar,       path: '/calendar',      section: 'community' },
   { key: 'notifications',icon: icons.notifications,  path: '/notifications', section: 'community' },
@@ -100,9 +114,10 @@ const Sidebar = () => {
   }
 
   const sections = {
-    main: { label: t('nav.sections.main') || 'MAIN MENU', items: allItems.filter(i => i.section === 'main') },
-    community: { label: t('nav.sections.community') || 'COMMUNITY', items: allItems.filter(i => i.section === 'community') },
-    ...(user?.role === 'ADMIN' ? { admin: { label: t('nav.sections.admin') || 'ADMINISTRATION', items: allItems.filter(i => i.section === 'admin') } } : {}),
+    main: { label: t('nav.sections.main'), items: allItems.filter(i => i.section === 'main') },
+    inventory: { label: t('nav.sections.inventory') || 'THƯ VIỆN CÁ NHÂN', items: allItems.filter(i => i.section === 'inventory') },
+    community: { label: t('nav.sections.community'), items: allItems.filter(i => i.section === 'community') },
+    ...(user?.role === 'ADMIN' ? { admin: { label: t('nav.sections.admin'), items: allItems.filter(i => i.section === 'admin') } } : {}),
   }
 
   const isActive = (path) =>

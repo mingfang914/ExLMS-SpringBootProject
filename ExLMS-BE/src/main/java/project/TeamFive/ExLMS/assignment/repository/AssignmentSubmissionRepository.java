@@ -10,8 +10,8 @@ import java.util.UUID;
 
 @Repository
 public interface AssignmentSubmissionRepository extends JpaRepository<AssignmentSubmission, UUID> {
-    List<AssignmentSubmission> findByAssignment_Id(UUID assignmentId);
-    List<AssignmentSubmission> findByAssignment_IdAndStudent_Id(UUID assignmentId, UUID studentId);
-    Optional<AssignmentSubmission> findTopByAssignment_IdAndStudent_IdOrderByAttemptNumberDesc(UUID assignmentId, UUID studentId);
-    long countByAssignment_IdAndStudent_Id(UUID assignmentId, UUID studentId);
+    List<AssignmentSubmission> findByGroupAssignment_Id(UUID groupAssignmentId);
+    List<AssignmentSubmission> findByGroupAssignment_IdAndStudent_Id(UUID groupAssignmentId, UUID studentId);
+    Optional<AssignmentSubmission> findTopByGroupAssignment_IdAndStudent_IdOrderByAttemptNumberDesc(UUID groupAssignmentId, UUID studentId);
+    long countByGroupAssignment_IdAndStudent_Id(UUID groupAssignmentId, UUID studentId);
 }

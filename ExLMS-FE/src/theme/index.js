@@ -107,7 +107,6 @@ export const buildTheme = (mode = 'dark') => {
     components: {
       MuiCssBaseline: {
         styleOverrides: `
-          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
           *, *::before, *::after { box-sizing: border-box; }
           html { scroll-behavior: smooth; }
           body {

@@ -20,13 +20,9 @@ const AssignmentForm = () => {
     title: '',
     description: '',
     maxScore: 100,
-    assignedAt: new Date().toISOString().slice(0, 16),
-    dueAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
     submissionType: 'FILE',
     allowedFileTypes: '.pdf,.docx,.zip',
     maxFileSizeMb: 50,
-    allowLate: false,
-    latePenaltyPercent: 0,
     status: 'PUBLISHED'
   });
 
@@ -39,11 +35,15 @@ const AssignmentForm = () => {
       const fetchAssignment = async () => {
         try {
           setFetching(true);
-          const data = await assignmentService.getAssignmentById(id);
+          let data;
+          if (groupId) {
+            data = await assignmentService.getAssignmentById(id);
+          } else {
+            // Inventory mode
+            data = await assignmentService.getTemplateById(id);
+          }
           setFormData({
-            ...data,
-            assignedAt: new Date(data.assignedAt).toISOString().slice(0, 16),
-            dueAt: new Date(data.dueAt).toISOString().slice(0, 16),
+            ...data
           });
         } catch (err) {
           setError(t('assignment_form.errors.load_failed'));
@@ -57,9 +57,15 @@ const AssignmentForm = () => {
 
   const handleChange = (e) => {
     const { name, value, checked, type } = e.target;
+    let finalValue = type === 'checkbox' ? checked : value;
+    
+    if (type === 'number') {
+      finalValue = value === '' ? null : parseInt(value);
+    }
+    
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: finalValue
     }));
   };
 
@@ -68,20 +74,30 @@ const AssignmentForm = () => {
     setLoading(true);
     setError(null);
 
-    // Basic validation
-    if (new Date(formData.dueAt) <= new Date(formData.assignedAt)) {
-      setError(t('assignment_form.errors.invalid_dates'));
-      setLoading(false);
-      return;
-    }
+    const payload = {
+      title: formData.title,
+      description: formData.description,
+      maxScore: formData.maxScore,
+      submissionType: formData.submissionType,
+      allowedFileTypes: formData.allowedFileTypes,
+      maxFileSizeMb: formData.maxFileSizeMb
+    };
 
     try {
       if (isEdit) {
-        await assignmentService.updateAssignment(id, formData);
-        alert(t('assignment_form.messages.update_success'));
+        if (groupId) {
+          await assignmentService.updateAssignment(id, payload);
+        } else {
+          await assignmentService.updateTemplate(id, payload);
+        }
+        alert(t('common.update_success'));
       } else {
-        await assignmentService.createAssignment(groupId, formData);
-        alert(t('assignment_form.messages.create_success'));
+        if (groupId) {
+          await assignmentService.createAssignment(groupId, payload);
+        } else {
+          await assignmentService.createTemplate(payload);
+        }
+        alert(t('common.create_success'));
       }
       navigate(-1);
     } catch (err) {
@@ -119,41 +135,16 @@ const AssignmentForm = () => {
                 label={t('assignment_form.title_label')}
                 fullWidth
                 required
-                value={formData.title}
+                value={formData.title || ''}
                 onChange={handleChange}
               />
             </Grid>
             <Grid item xs={12}>
               <Typography variant="subtitle2" gutterBottom>{t('assignment_detail.instructions')}</Typography>
               <CKEditorWrapper
-                value={formData.description}
+                value={formData.description || ''}
                 onChange={(val) => setFormData(prev => ({ ...prev, description: val }))}
                 placeholder={t('assignment_form.desc_placeholder')}
-              />
-            </Grid>
-            
-            <Grid item xs={12} sm={6}>
-              <TextField
-                name="assignedAt"
-                label={t('assignment_form.assigned_at_label')}
-                type="datetime-local"
-                fullWidth
-                required
-                value={formData.assignedAt}
-                onChange={handleChange}
-                InputLabelProps={{ shrink: true }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                name="dueAt"
-                label={t('assignments.due')}
-                type="datetime-local"
-                fullWidth
-                required
-                value={formData.dueAt}
-                onChange={handleChange}
-                InputLabelProps={{ shrink: true }}
               />
             </Grid>
 
@@ -163,7 +154,7 @@ const AssignmentForm = () => {
                 label={t('assignments.type')}
                 select
                 fullWidth
-                value={formData.submissionType}
+                value={formData.submissionType || 'FILE'}
                 onChange={handleChange}
               >
                 <MenuItem value="FILE">{t('assignments.type_file')}</MenuItem>
@@ -177,7 +168,7 @@ const AssignmentForm = () => {
                 label={t('assignments.max_score')}
                 type="number"
                 fullWidth
-                value={formData.maxScore}
+                value={formData.maxScore ?? 100}
                 onChange={handleChange}
               />
             </Grid>
@@ -189,7 +180,7 @@ const AssignmentForm = () => {
                 name="allowedFileTypes"
                 label={t('assignment_form.file_types_label')}
                 fullWidth
-                value={formData.allowedFileTypes}
+                value={formData.allowedFileTypes || ''}
                 onChange={handleChange}
                 disabled={formData.submissionType === 'TEXT'}
                 helperText={`${t('assignment_form.example')}: .pdf,.docx,.zip`}
@@ -201,37 +192,11 @@ const AssignmentForm = () => {
                 label={t('assignment_form.max_file_size_label')}
                 type="number"
                 fullWidth
-                value={formData.maxFileSizeMb}
+                value={formData.maxFileSizeMb ?? 50}
                 onChange={handleChange}
                 disabled={formData.submissionType === 'TEXT'}
               />
             </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <FormControlLabel
-                control={
-                  <Switch 
-                    name="allowLate" 
-                    checked={formData.allowLate} 
-                    onChange={handleChange} 
-                  />
-                }
-                label={t('assignment_detail.allow_late')}
-              />
-            </Grid>
-            {formData.allowLate && (
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  name="latePenaltyPercent"
-                  label={t('assignment_form.penalty_label')}
-                  type="number"
-                  fullWidth
-                  value={formData.latePenaltyPercent}
-                  onChange={handleChange}
-                  InputProps={{ endAdornment: <Typography variant="body2">%</Typography> }}
-                />
-              </Grid>
-            )}
 
             <Grid item xs={12} sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
               <Button onClick={() => navigate(-1)}>{t('common.cancel')}</Button>

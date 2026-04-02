@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react'
+import SockJS from 'sockjs-client'
+import { Client } from '@stomp/stompjs'
 import {
   Box,
   Typography,
@@ -23,7 +25,8 @@ import {
   DialogContentText,
   DialogActions,
   TextField,
-  MenuItem
+  MenuItem,
+  Stack
 } from '@mui/material'
 import {
   People as PeopleIcon,
@@ -36,12 +39,16 @@ import {
   Share as ShareIcon,
   Add as AddIcon,
   Edit as EditIcon,
-  Delete as DeleteIcon
+  Delete as DeleteIcon,
+  Quiz as QuizIcon,
+  Inventory2 as InventoryIcon,
+  Insights as TipsIcon,
 } from '@mui/icons-material'
 import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom'
 import groupService from '../../services/groupService'
 import courseService from '../../services/courseService'
 import assignmentService from '../../services/assignmentService'
+import * as quizService from '../../services/quizService'
 import meetingService from '../../services/meetingService'
 import { format } from 'date-fns'
 import { vi, enUS } from 'date-fns/locale'
@@ -49,6 +56,8 @@ import { useTranslation } from 'react-i18next'
 
 import GroupMembers from './components/GroupMembers'
 import GroupFeed from './components/GroupFeed'
+import InventoryDeploymentModal from '../Inventory/InventoryDeploymentModal'
+import DeploymentEditModal from './components/DeploymentEditModal'
 
 const GroupDetail = () => {
   const { t, i18n } = useTranslation()
@@ -56,6 +65,7 @@ const GroupDetail = () => {
   const [group, setGroup] = useState(null)
   const [courses, setCourses] = useState([])
   const [assignments, setAssignments] = useState([])
+  const [quizzes, setQuizzes] = useState([])
   const [meetings, setMeetings] = useState([]) 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -67,11 +77,68 @@ const GroupDetail = () => {
   const [editGroupData, setEditGroupData] = useState({ name: '', description: '', visibility: 'PUBLIC', category: 'General' })
   const [deleteConfirmText, setDeleteConfirmText] = useState('')
   const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false)
-  const [newMeetingData, setNewMeetingData] = useState({ title: '', description: '', startAt: '', durationMinutes: 60 })
+  const [newMeetingData, setNewMeetingData] = useState({ title: '', description: '', startAt: '', endAt: '', status: 'PUBLISHED' })
   const [editMeetingDialogOpen, setEditMeetingDialogOpen] = useState(false)
   const [editingMeeting, setEditingMeeting] = useState(null)
-  const [editMeetingData, setEditMeetingData] = useState({ title: '', description: '', startAt: '', durationMinutes: 60 })
+  const [editMeetingData, setEditMeetingData] = useState({ title: '', description: '', startAt: '', endAt: '', status: 'PUBLISHED' })
+  
+  const [deployModal, setDeployModal] = useState({ open: false, type: 'course' })
+  const [editDeployModal, setEditDeployModal] = useState({ open: false, type: 'course', resource: null })
   const navigate = useNavigate()
+  const stompClientRef = React.useRef(null)
+
+  const refreshData = React.useCallback(async () => {
+    try {
+      const [coursesData, asgnData, meetingsData, quizzesData] = await Promise.all([
+        courseService.getCoursesByGroupId(id),
+        assignmentService.getAssignmentsByGroup(id),
+        meetingService.getMeetingsByGroup(id),
+        quizService.getQuizzesByGroup(id)
+      ])
+      setCourses(coursesData)
+      setAssignments(asgnData)
+      setMeetings(meetingsData)
+      setQuizzes(quizzesData)
+    } catch (err) {
+      console.error('Error refreshing content:', err)
+    }
+  }, [id])
+
+  useEffect(() => {
+    // WebSocket setup
+    const socket = new SockJS('/api/ws')
+    const client = new Client({
+      webSocketFactory: () => socket,
+      debug: (str) => console.log('STOMP: ' + str),
+      reconnectDelay: 5000,
+      heartbeatIncoming: 4000,
+      heartbeatOutgoing: 4000,
+    })
+
+    client.onConnect = (frame) => {
+      console.log('STOMP Connected: ' + frame)
+      client.subscribe('/topic/resource-status', (message) => {
+        try {
+          const event = JSON.parse(message.body)
+          console.log('Resource Status Event:', event)
+          if (event.type === 'STATUS_CHANGED') {
+            refreshData()
+          }
+        } catch (err) {
+          console.error('Error parsing STOMP message', err)
+        }
+      })
+    }
+
+    client.activate()
+    stompClientRef.current = client
+
+    return () => {
+      if (stompClientRef.current) {
+        stompClientRef.current.deactivate()
+      }
+    }
+  }, [refreshData])
 
   useEffect(() => {
     const fetchGroupData = async () => {
@@ -88,14 +155,16 @@ const GroupDetail = () => {
 
         if (groupData.isJoined) {
           try {
-            const [coursesData, asgnData, meetingsData] = await Promise.all([
+            const [coursesData, asgnData, meetingsData, quizzesData] = await Promise.all([
               courseService.getCoursesByGroupId(id),
               assignmentService.getAssignmentsByGroup(id),
-              meetingService.getMeetingsByGroup(id)
+              meetingService.getMeetingsByGroup(id),
+              quizService.getQuizzesByGroup(id)
             ])
             setCourses(coursesData)
             setAssignments(asgnData)
             setMeetings(meetingsData)
+            setQuizzes(quizzesData)
           } catch (err) {
             console.error('Error fetching group content:', err)
           }
@@ -108,6 +177,22 @@ const GroupDetail = () => {
     }
     fetchGroupData()
   }, [id, t])
+
+
+
+  const handleDeleteResource = async (type, resId) => {
+    if (!window.confirm(t('common.confirm_delete'))) return
+    try {
+      if (type === 'course') await courseService.deleteCourse(id, resId)
+      else if (type === 'assignment') await assignmentService.deleteAssignment(resId)
+      else if (type === 'quiz') await quizService.deleteQuiz(resId)
+      
+      refreshData()
+      alert(t('common.success'))
+    } catch (err) {
+      alert(err.response?.data?.message || t('common.error'))
+    }
+  }
 
   const handleJoinGroup = async () => {
     try {
@@ -153,7 +238,7 @@ const GroupDetail = () => {
       const freshMeetings = await meetingService.getMeetingsByGroup(id)
       setMeetings(freshMeetings)
       setScheduleDialogOpen(false)
-      setNewMeetingData({ title: '', description: '', startAt: '', durationMinutes: 60 })
+      setNewMeetingData({ title: '', description: '', startAt: '', endAt: '', status: 'PUBLISHED' })
       alert(t('group_detail.meetings.schedule_success'))
     } catch (err) {
       alert(t('group_detail.meetings.schedule_failed'))
@@ -180,8 +265,9 @@ const GroupDetail = () => {
     setEditMeetingData({
       title: meeting.title,
       description: meeting.description || '',
-      startAt: formattedDate,
-      durationMinutes: meeting.durationMinutes
+      startAt: meeting.startAt ? new Date(meeting.startAt).toISOString().slice(0, 16) : '',
+      endAt: meeting.endAt ? new Date(meeting.endAt).toISOString().slice(0, 16) : '',
+      status: meeting.status || 'PUBLISHED'
     })
     setEditMeetingDialogOpen(true)
   }
@@ -242,6 +328,7 @@ const GroupDetail = () => {
             <Tab icon={<InfoIcon />} iconPosition="start" label={t('group_detail.tabs.overview')} />
             {group.isJoined && <Tab icon={<CourseIcon />} iconPosition="start" label={t('group_detail.tabs.courses')} />}
             {group.isJoined && <Tab icon={<AssignmentIcon />} iconPosition="start" label={t('group_detail.tabs.assignments')} />}
+            {group.isJoined && <Tab icon={<QuizIcon />} iconPosition="start" label="Kiểm tra" />}
             {group.isJoined && <Tab icon={<MeetingIcon />} iconPosition="start" label={t('group_detail.tabs.meetings')} />}
             {group.isJoined && <Tab icon={<ForumIcon />} iconPosition="start" label={t('group_detail.tabs.feed')} />}
             {group.isJoined && <Tab icon={<PeopleIcon />} iconPosition="start" label={t('group_detail.tabs.members')} />}
@@ -308,14 +395,16 @@ const GroupDetail = () => {
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
               <Typography variant="h5">{t('group_detail.tabs.courses')} in {group.name}</Typography>
               {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
-                <Button
-                  variant="contained"
-                  startIcon={<AddIcon />}
-                  component={RouterLink}
-                  to={`/groups/${id}/courses/create`}
-                >
-                  {t('group_detail.actions.create_course')}
-                </Button>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Button
+                    variant="contained"
+                    startIcon={<InventoryIcon />}
+                    onClick={() => setDeployModal({ open: true, type: 'course' })}
+                    sx={{ borderRadius: '12px', fontWeight: 700, background: 'linear-gradient(135deg, #6366F1, #4F46E5)' }}
+                  >
+                    Kết nối từ kho đồ
+                  </Button>
+                </Box>
               )}
             </Box>
             {courses.length === 0 ? (
@@ -326,18 +415,32 @@ const GroupDetail = () => {
               <Grid container spacing={3}>
                 {courses.map(course => (
                   <Grid item xs={12} sm={6} md={4} key={course.id}>
-                    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', borderRadius: 4, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
                       <CardMedia
                         component="img"
                         height="140"
                         image={course.thumbnailUrl || 'https://via.placeholder.com/300x150?text=Course'}
+                        sx={{ borderRadius: '16px 16px 0 0' }}
                       />
                       <CardContent sx={{ flexGrow: 1 }}>
-                        <Typography variant="h6">{course.title}</Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                        <Typography variant="h6" fontWeight={800}>{course.title}</Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mt: 1, mb: 2, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                           {course.description}
                         </Typography>
-                        <Chip label={course.status} size="small" sx={{ mt: 2 }} />
+                        <Stack spacing={1}>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <Typography variant="caption" color="text.secondary">Trạng thái</Typography>
+                            <Chip label={course.status} size="small" color={course.status === 'PUBLISHED' ? 'success' : 'default'} />
+                          </Box>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <Typography variant="caption" color="text.secondary">Ngày tạo</Typography>
+                            <Typography variant="caption" fontWeight={700}>{course.startDate ? format(new Date(course.startDate), 'dd/MM/yyyy') : '---'}</Typography>
+                          </Box>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <Typography variant="caption" color="text.secondary">Ngày kết thúc</Typography>
+                            <Typography variant="caption" fontWeight={700}>{course.endDate ? format(new Date(course.endDate), 'dd/MM/yyyy') : '---'}</Typography>
+                          </Box>
+                        </Stack>
                       </CardContent>
                       <Box sx={{ p: 2, pt: 0, display: 'flex', gap: 1 }}>
                         <Button
@@ -345,17 +448,28 @@ const GroupDetail = () => {
                           variant="contained"
                           component={RouterLink}
                           to={`/groups/${id}/courses/${course.id}/view`}
+                          disabled={course.status === 'CLOSED' && group.currentUserRole === 'MEMBER'}
+                          sx={{ borderRadius: '12px', fontWeight: 700 }}
                         >
-                          {t('group_detail.actions.learn_now')}
+                          {course.status === 'CLOSED' ? t('common.ended') : t('group_detail.actions.learn_now')}
                         </Button>
                         {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
-                          <Button
-                            variant="outlined"
-                            component={RouterLink}
-                            to={`/groups/${id}/courses/${course.id}/edit`}
+                          <IconButton
+                            color="primary"
+                            onClick={() => setEditDeployModal({ open: true, type: 'course', resource: course })}
+                            sx={{ bgcolor: 'rgba(99, 102, 241, 0.1)', '&:hover': { bgcolor: 'rgba(99, 102, 241, 0.2)' } }}
                           >
-                            {t('common.edit')}
-                          </Button>
+                            <EditIcon />
+                          </IconButton>
+                        )}
+                        {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
+                          <IconButton
+                            color="error"
+                            onClick={() => handleDeleteResource('course', course.id)}
+                            sx={{ bgcolor: 'rgba(239, 68, 68, 0.1)', '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.2)' } }}
+                          >
+                            <DeleteIcon />
+                          </IconButton>
                         )}
                       </Box>
                     </Card>
@@ -372,14 +486,16 @@ const GroupDetail = () => {
               <Typography variant="h5">{t('group_detail.tabs.assignments')}</Typography>
               <Box sx={{ display: 'flex', gap: 1 }}>
                 {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
-                  <Button
-                    variant="contained"
-                    startIcon={<AddIcon />}
-                    component={RouterLink}
-                    to={`/groups/${id}/assignments/create`}
-                  >
-                    {t('common.create')}
-                  </Button>
+                  <>
+                    <Button
+                      variant="contained"
+                      startIcon={<InventoryIcon />}
+                      onClick={() => setDeployModal({ open: true, type: 'assignment' })}
+                      sx={{ borderRadius: '12px', fontWeight: 700, background: 'linear-gradient(135deg, #FCD34D, #F59E0B)', color: '#000' }}
+                    >
+                      Kết nối từ kho đồ
+                    </Button>
+                  </>
                 )}
                 <Button
                   variant="outlined"
@@ -397,35 +513,83 @@ const GroupDetail = () => {
               </Paper>
             ) : (
               <Grid container spacing={2}>
-                {assignments.slice(0, 6).map((asgn) => (
+                {Array.isArray(assignments) && assignments.slice(0, 6).map((asgn) => (
                   <Grid item xs={12} key={asgn.id}>
                     <Card 
                       variant="outlined"
                       sx={{ 
-                        '&:hover': { boxShadow: 2, borderColor: 'primary.main' },
+                        '&:hover': { boxShadow: 4, borderColor: 'primary.main' },
                         transition: 'all 0.2s',
-                        borderRadius: 2
+                        borderRadius: 4,
+                        background: 'rgba(255,255,255,0.02)',
+                        border: '1px solid rgba(255,255,255,0.1)'
                       }}
                     >
-                      <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: '16px !important' }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                          <Avatar sx={{ bgcolor: 'primary.light', width: 40, height: 40 }}>
+                      <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: '20px !important' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
+                          <Avatar sx={{ bgcolor: 'rgba(252, 211, 77, 0.1)', color: '#FCD34D', width: 48, height: 48, borderRadius: 2 }}>
                             <AssignmentIcon />
                           </Avatar>
-                          <Box>
-                            <Typography variant="subtitle1" fontWeight="bold">{asgn.title}</Typography>
-                            <Typography variant="caption" color="textSecondary">
-                              {t('assignments.due')}: {format(new Date(asgn.dueAt), 'HH:mm dd/MM/yyyy')}
-                            </Typography>
+                          <Box sx={{ flex: 1 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                              <Typography variant="subtitle1" fontWeight="bold">{asgn.title}</Typography>
+                              <Chip label={asgn.status} size="small" variant="outlined" sx={{ height: 20, fontSize: '0.7rem' }} />
+                            </Box>
+                            <Grid container spacing={2} sx={{ mt: 0.5 }}>
+                              <Grid item>
+                                <Typography variant="caption" color="textSecondary" sx={{ display: 'flex', alignItems: 'center' }}>
+                                  Giao: {asgn.assignedAt ? format(new Date(asgn.assignedAt), 'HH:mm dd/MM') : '---'}
+                                </Typography>
+                              </Grid>
+                              <Grid item>
+                                <Typography variant="caption" color="error" sx={{ display: 'flex', alignItems: 'center', fontWeight: 700 }}>
+                                  Hạn: {asgn.dueAt ? format(new Date(asgn.dueAt), 'HH:mm dd/MM') : '---'}
+                                </Typography>
+                              </Grid>
+                              <Grid item>
+                                <Typography variant="caption" color="textSecondary">
+                                  Nộp muộn: <span style={{ color: asgn.allowLate ? '#10B981' : '#EF4444', fontWeight: 700 }}>{asgn.allowLate ? `Có (-${asgn.latePenaltyPercent}%)` : 'Không'}</span>
+                                </Typography>
+                              </Grid>
+                              <Grid item>
+                                <Typography variant="caption" color="textSecondary">
+                                  {asgn.submissionType} • {asgn.maxScore} pts
+                                </Typography>
+                              </Grid>
+                            </Grid>
                           </Box>
                         </Box>
-                        <Button 
-                          variant="text" 
-                          component={RouterLink} 
-                          to={`/groups/${id}/assignments/${asgn.id}`}
-                        >
-                          {t('group_detail.actions.details')}
-                        </Button>
+                        <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
+                          <Button 
+                            variant="contained" 
+                            component={RouterLink} 
+                            to={`/groups/${id}/assignments/${asgn.id}`}
+                            disabled={asgn.status === 'CLOSED' && !asgn.allowLate && group.currentUserRole === 'MEMBER'}
+                            sx={{ borderRadius: '12px', bgcolor: 'rgba(252, 211, 77, 0.1)', color: '#FCD34D', '&:hover': { bgcolor: 'rgba(252, 211, 77, 0.2)' } }}
+                          >
+                            {asgn.status === 'CLOSED' ? (asgn.allowLate ? 'Nộp muộn' : t('common.closed')) : t('group_detail.actions.details')}
+                          </Button>
+                          {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
+                            <IconButton 
+                              size="small" 
+                              color="primary"
+                              onClick={() => setEditDeployModal({ open: true, type: 'assignment', resource: asgn })}
+                              sx={{ bgcolor: 'rgba(99, 102, 241, 0.1)', '&:hover': { bgcolor: 'rgba(99, 102, 241, 0.2)' } }}
+                            >
+                              <EditIcon fontSize="small" />
+                            </IconButton>
+                          )}
+                          {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
+                            <IconButton 
+                              size="small" 
+                              color="error"
+                              onClick={() => handleDeleteResource('assignment', asgn.id)}
+                              sx={{ bgcolor: 'rgba(239, 68, 68, 0.1)', '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.2)' } }}
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          )}
+                        </Box>
                       </CardContent>
                     </Card>
                   </Grid>
@@ -443,6 +607,124 @@ const GroupDetail = () => {
         )}
 
         {activeTab === 3 && (
+          <Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+              <Typography variant="h5">Kiểm tra & Trắc nghiệm</Typography>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
+                  <>
+                    <Button
+                      variant="contained"
+                      startIcon={<InventoryIcon />}
+                      onClick={() => setDeployModal({ open: true, type: 'quiz' })}
+                      sx={{ borderRadius: '12px', fontWeight: 700, background: 'linear-gradient(135deg, #10B981, #059669)', color: '#FFF' }}
+                    >
+                      Kết nối từ kho đồ
+                    </Button>
+                  </>
+                )}
+              </Box>
+            </Box>
+
+            {quizzes.length === 0 ? (
+              <Paper sx={{ p: 5, textAlign: 'center', borderRadius: '24px', background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.1)' }}>
+                <Typography color="text.secondary">Chưa có bài kiểm tra nào được tổ chức trong nhóm này.</Typography>
+              </Paper>
+            ) : (
+              <Grid container spacing={3}>
+                {quizzes.map(quiz => (
+                  <Grid item xs={12} sm={6} md={4} key={quiz.id}>
+                    <Card sx={{ 
+                      borderRadius: '24px', 
+                      background: 'rgba(255,255,255,0.02)', 
+                      border: '1px solid rgba(255,255,255,0.05)',
+                      '&:hover': { borderColor: '#10B981', background: 'rgba(16, 185, 129, 0.05)' }
+                    }}>
+                      <CardContent sx={{ p: 4 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                          <Avatar sx={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10B981' }}>
+                            <QuizIcon />
+                          </Avatar>
+                          <Typography variant="h6" fontWeight={800}>{quiz.title}</Typography>
+                        </Box>
+                        
+                        <Grid container spacing={1} sx={{ mb: 3 }}>
+                          <Grid item xs={6}>
+                            <Typography variant="caption" color="text.secondary" display="block">Thời lượng</Typography>
+                            <Typography variant="body2" fontWeight={700}>{quiz.timeLimitSec / 60} phút</Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="caption" color="text.secondary" display="block">Số câu hỏi</Typography>
+                            <Typography variant="body2" fontWeight={700}>{quiz.questionCount || 0} câu</Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="caption" color="text.secondary" display="block">Lượt làm bài</Typography>
+                            <Typography variant="body2" fontWeight={700}>Tối đa {quiz.maxAttempts}</Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="caption" color="text.secondary" display="block">Điểm đạt</Typography>
+                            <Typography variant="body2" fontWeight={700}>{quiz.passingScore}/100</Typography>
+                          </Grid>
+                          {quiz.openAt && (
+                            <Grid item xs={12}>
+                              <Typography variant="caption" color="text.secondary" display="block">Thời gian mở</Typography>
+                              <Typography variant="body2" fontWeight={700}>{format(new Date(quiz.openAt), 'HH:mm dd/MM/yyyy')}</Typography>
+                            </Grid>
+                          )}
+                        </Grid>
+
+                        <Stack direction="row" spacing={1}>
+                          <Button 
+                            fullWidth 
+                            variant="contained" 
+                            component={RouterLink}
+                            to={`/groups/${id}/courses/placeholder-quiz/quiz/${quiz.id}/take`} 
+                            disabled={quiz.status === 'CLOSED' && (group.currentUserRole === 'MEMBER' || !group.currentUserRole)}
+                            sx={{ borderRadius: '12px', fontWeight: 700, background: 'rgba(16, 185, 129, 0.2)', color: '#10B981', '&:hover': { background: '#10B981', color: '#FFF' } }}
+                          >
+                            {quiz.status === 'CLOSED' ? 'Đã đóng' : 'Bắt đầu làm bài'}
+                          </Button>
+                          {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
+                            <>
+                              <Tooltip title="Thiết lập">
+                                <IconButton 
+                                  color="primary"
+                                  onClick={() => setEditDeployModal({ open: true, type: 'quiz', resource: quiz })}
+                                  sx={{ bgcolor: 'rgba(99, 102, 241, 0.1)', '&:hover': { bgcolor: 'rgba(99, 102, 241, 0.2)' } }}
+                                >
+                                  <EditIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Xem thống kê & lịch sử">
+                                <IconButton 
+                                  color="info"
+                                  component={RouterLink}
+                                  to={`/groups/${id}/courses/placeholder-quiz/quiz/${quiz.id}/stats`}
+                                  sx={{ bgcolor: 'rgba(30, 64, 175, 0.1)', '&:hover': { bgcolor: 'rgba(30, 64, 175, 0.2)' } }}
+                                >
+                                  <TipsIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                              <IconButton 
+                                color="error"
+                                onClick={() => handleDeleteResource('quiz', quiz.id)}
+                                sx={{ bgcolor: 'rgba(239, 68, 68, 0.1)', '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.2)' } }}
+                              >
+                                <DeleteIcon fontSize="small" />
+                              </IconButton>
+                            </>
+                          )}
+                        </Stack>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+            )}
+          </Box>
+        )}
+
+        {activeTab === 4 && (
           <Box>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
               <Typography variant="h5">{t('group_detail.tabs.meetings')}</Typography>
@@ -464,66 +746,74 @@ const GroupDetail = () => {
                   </Paper>
                 </Grid>
               ) : (
-                meetings.map((meeting) => (
-                  <Grid item xs={12} md={6} key={meeting.id}>
-                    <Paper 
-                      sx={{ 
-                        p: 3, 
-                        display: 'flex', 
-                        justifyContent: 'space-between', 
-                        alignItems: 'center',
-                        borderRadius: 2,
-                        '&:hover': { boxShadow: 4, borderColor: 'primary.main' },
-                        border: '1px solid',
-                        borderColor: 'divider'
-                      }}
-                    >
-                      <Box>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                          <Typography variant="h6" sx={{ fontWeight: 'bold' }}>{meeting.title}</Typography>
-                          {meeting.status === 'LIVE' && <Chip label="LIVE" color="error" size="small" />}
+                meetings.map((meeting) => {
+                  const startTime = new Date(meeting.startAt);
+                  const endTime = meeting.endAt ? new Date(meeting.endAt) : new Date(startTime.getTime() + (meeting.durationMinutes || 60) * 60000);
+                  const now = new Date();
+                  const isLive = meeting.status === 'PUBLISHED' && now >= startTime && now <= endTime;
+
+                  return (
+                    <Grid item xs={12} md={6} key={meeting.id}>
+                      <Paper 
+                        sx={{ 
+                          p: 3, 
+                          display: 'flex', 
+                          justifyContent: 'space-between', 
+                          alignItems: 'center',
+                          borderRadius: 2,
+                          '&:hover': { boxShadow: 4, borderColor: 'primary.main' },
+                          border: '1px solid',
+                          borderColor: isLive ? 'error.main' : 'divider'
+                        }}
+                      >
+                        <Box>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>{meeting.title}</Typography>
+                            {isLive && <Chip label="LIVE" color="error" size="small" />}
+                            {meeting.status === 'DRAFT' && <Chip label="DRAFT" variant="outlined" size="small" />}
+                          </Box>
+                          <Typography variant="body2" color="text.secondary">
+                            {format(new Date(meeting.startAt), 'HH:mm dd/MM/yyyy')}
+                          </Typography>
                         </Box>
-                        <Typography variant="body2" color="text.secondary">
-                          {format(new Date(meeting.startAt), 'HH:mm dd/MM/yyyy')}
-                        </Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
-                          <Box sx={{ display: 'flex', mr: 1 }}>
-                            {meeting.status === 'SCHEDULED' && (
-                              <Tooltip title={t('common.edit')}>
-                                <IconButton size="small" onClick={() => handleOpenEditMeeting(meeting)}>
-                                  <EditIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                            )}
-                            {meeting.status !== 'LIVE' && (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
+                            <Box sx={{ display: 'flex', mr: 1 }}>
+                              {meeting.status !== 'CLOSED' && (
+                                <Tooltip title={t('common.edit')}>
+                                  <IconButton size="small" onClick={() => handleOpenEditMeeting(meeting)}>
+                                    <EditIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                              )}
                               <Tooltip title={t('common.delete')}>
                                 <IconButton size="small" color="error" onClick={() => handleDeleteMeeting(meeting.id)}>
                                   <DeleteIcon fontSize="small" />
                                 </IconButton>
                               </Tooltip>
-                            )}
-                          </Box>
-                        )}
-                        <Button
-                          variant="contained"
-                          component={RouterLink}
-                          to={`/groups/${id}/meetings/${meeting.id}`}
-                        >
-                          {meeting.status === 'ENDED' ? t('group_detail.meetings.view_report') : t('group_detail.meetings.join')}
-                        </Button>
-                      </Box>
-                    </Paper>
-                  </Grid>
-                ))
+                            </Box>
+                          )}
+                          <Button
+                            variant="contained"
+                            component={RouterLink}
+                            to={`/groups/${id}/meetings/${meeting.id}`}
+                            disabled={meeting.status === 'DRAFT' && group.currentUserRole === 'MEMBER'}
+                            color={isLive ? 'error' : 'primary'}
+                          >
+                            {meeting.status === 'CLOSED' ? t('group_detail.meetings.view_report') : t('group_detail.meetings.join')}
+                          </Button>
+                        </Box>
+                      </Paper>
+                    </Grid>
+                  );
+                })
               )}
             </Grid>
           </Box>
         )}
 
         {/* Placeholder for other tabs */}
-        {activeTab === 4 && (
+        {activeTab === 5 && (
           <GroupFeed 
             groupId={id} 
             currentUserRole={group.currentUserRole}
@@ -533,12 +823,35 @@ const GroupDetail = () => {
           />
         )}
 
-        {activeTab === 5 && (
+        {activeTab === 6 && (
           <Paper sx={{ p: 3 }}>
             <GroupMembers groupId={id} groupRole={group.currentUserRole} />
           </Paper>
         )}
       </Box>
+
+      {/* Inventory Deployment Modal */}
+      <InventoryDeploymentModal 
+        open={deployModal.open}
+        onClose={() => setDeployModal({ ...deployModal, open: false })}
+        type={deployModal.type}
+        groupId={id}
+        onDeploySuccess={() => {
+          refreshData();
+          alert('Học liệu đã được kết nối thành công!');
+        }}
+      />
+
+      <DeploymentEditModal
+        open={editDeployModal.open}
+        onClose={() => setEditDeployModal({ ...editDeployModal, open: false })}
+        type={editDeployModal.type}
+        resource={editDeployModal.resource}
+        onUpdateSuccess={() => {
+          refreshData();
+          alert('Cập nhật thiết đặt thành công!');
+        }}
+      />
 
       {/* Share Dialog */}
       <Dialog open={shareDialogOpen} onClose={() => setShareDialogOpen(false)}>
@@ -614,10 +927,20 @@ const GroupDetail = () => {
               onChange={(e) => setNewMeetingData({...newMeetingData, startAt: e.target.value})} 
             />
             <TextField 
-              fullWidth label={t('group_detail.meetings.duration')} margin="normal" type="number" required
-              value={newMeetingData.durationMinutes} 
-              onChange={(e) => setNewMeetingData({...newMeetingData, durationMinutes: e.target.value})} 
+              fullWidth label={t('group_detail.meetings.end_time') || 'Thời gian kết thúc'} margin="normal" type="datetime-local" required
+              InputLabelProps={{ shrink: true }}
+              value={newMeetingData.endAt} 
+              onChange={(e) => setNewMeetingData({...newMeetingData, endAt: e.target.value})} 
             />
+            <TextField
+              fullWidth select label={t('group_detail.meeting_status') || 'Trạng thái'} margin="normal"
+              value={newMeetingData.status}
+              onChange={(e) => setNewMeetingData({...newMeetingData, status: e.target.value})}
+            >
+              <MenuItem value="DRAFT">Dành cho chủ nhóm (DRAFT)</MenuItem>
+              <MenuItem value="PUBLISHED">Công khai (PUBLISHED)</MenuItem>
+              <MenuItem value="CLOSED">Kết thúc (CLOSED)</MenuItem>
+            </TextField>
             <Button type="submit" variant="contained" fullWidth sx={{ mt: 3 }}>
               {t('common.create')}
             </Button>
@@ -647,10 +970,20 @@ const GroupDetail = () => {
               onChange={(e) => setEditMeetingData({...editMeetingData, startAt: e.target.value})} 
             />
             <TextField 
-              fullWidth label={t('group_detail.meetings.duration')} margin="normal" type="number" required
-              value={editMeetingData.durationMinutes} 
-              onChange={(e) => setEditMeetingData({...editMeetingData, durationMinutes: e.target.value})} 
+              fullWidth label={t('group_detail.meetings.end_time') || 'Thời gian kết thúc'} margin="normal" type="datetime-local" required
+              InputLabelProps={{ shrink: true }}
+              value={editMeetingData.endAt} 
+              onChange={(e) => setEditMeetingData({...editMeetingData, endAt: e.target.value})} 
             />
+            <TextField
+              fullWidth select label={t('group_detail.meeting_status') || 'Trạng thái'} margin="normal"
+              value={editMeetingData.status}
+              onChange={(e) => setEditMeetingData({...editMeetingData, status: e.target.value})}
+            >
+              <MenuItem value="DRAFT">Dành cho chủ nhóm (DRAFT)</MenuItem>
+              <MenuItem value="PUBLISHED">Công khai (PUBLISHED)</MenuItem>
+              <MenuItem value="CLOSED">Kết thúc (CLOSED)</MenuItem>
+            </TextField>
             <Button type="submit" variant="contained" fullWidth sx={{ mt: 3 }}>
               {t('common.save_changes')}
             </Button>

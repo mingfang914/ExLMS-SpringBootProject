@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/chapters/{chapterId}/lessons")
+@RequestMapping("/api/v1/chapters/{chapterId}/lessons")
 @RequiredArgsConstructor
 public class LessonController {
 
@@ -30,7 +30,6 @@ public class LessonController {
         return ResponseEntity.ok(lessonService.createLesson(
                 chapterId,
                 request.getTitle(),
-                request.getContentType(),
                 request.getContent(),
                 request.getResourceKey(),
                 request.getDurationSeconds()));

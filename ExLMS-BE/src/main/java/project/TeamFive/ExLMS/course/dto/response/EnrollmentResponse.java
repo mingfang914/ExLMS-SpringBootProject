@@ -21,7 +21,7 @@ public class EnrollmentResponse {
     public static EnrollmentResponse from(CourseEnrollment e) {
         return EnrollmentResponse.builder()
                 .id(e.getId())
-                .courseId(e.getCourse().getId())
+                .courseId(e.getGroupCourse().getId())
                 .userId(e.getUser().getId())
                 .progressPercent(e.getProgressPercent())
                 .completed(e.isCompleted())

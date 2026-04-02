@@ -18,8 +18,6 @@ import project.TeamFive.ExLMS.user.entity.User;
 import project.TeamFive.ExLMS.group.repository.GroupMemberRepository;
 import project.TeamFive.ExLMS.group.repository.StudyGroupRepository;
 import project.TeamFive.ExLMS.group.repository.GroupJoinRequestRepository;
-import project.TeamFive.ExLMS.group.repository.GroupMemberDetailViewRepository;
-import project.TeamFive.ExLMS.service.FileService;
 
 import java.util.stream.Collectors;
 import java.util.UUID;
@@ -30,9 +28,7 @@ public class StudyGroupService {
 
     private final StudyGroupRepository studyGroupRepository;
     private final GroupMemberRepository groupMemberRepository;
-    private final GroupMemberDetailViewRepository groupMemberDetailViewRepository;
     private final GroupJoinRequestRepository groupJoinRequestRepository;
-    private final FileService fileService;
 
     // Dùng Transactional để đảm bảo: Nếu lưu Nhóm thành công mà lưu Thành viên lỗi,
     // thì hủy (rollback) toàn bộ, không tạo ra rác trong DB
@@ -276,11 +272,26 @@ public class StudyGroupService {
 
     @Transactional(readOnly = true)
     public List<GroupMemberDetailView> getGroupMembers(UUID groupId) {
-        // Có thể thêm logic kiểm tra: Chỉ những ai là thành viên nhóm mới được xem danh
-        // sách này
-        // Hiện tại ta lấy trực tiếp từ View thông qua hàm bin_to_uuid16 mà DB đã cung
-        // cấp
-        return groupMemberDetailViewRepository.findByGroupId(groupId.toString());
+        // Fetch direct GroupMember entities which have reliable binary UUID mapping
+        List<GroupMember> groupMembers = groupMemberRepository.findByGroup_Id(groupId);
+        
+        return groupMembers.stream()
+                .map(gm -> {
+                    // Map to DTO/View-like object manually to fix binary UUID string matching issues
+                    GroupMemberDetailView view = new GroupMemberDetailView();
+                    User user = gm.getUser();
+                    view.setUserId(user.getId().toString());
+                    view.setGroupId(groupId.toString());
+                    view.setRole(gm.getRole());
+                    view.setStatus(gm.getStatus());
+                    view.setJoinedAt(gm.getJoinedAt());
+                    view.setFullName(user.getFullName());
+                    view.setEmail(user.getEmail());
+                    view.setPlatformRole(user.getRole().name());
+                    view.setAvatarKey(user.getAvatarKey());
+                    return view;
+                })
+                .collect(Collectors.toList());
     }
 
     // ==================== JOIN REQUEST (Gửi yêu cầu & Duyệt) ====================

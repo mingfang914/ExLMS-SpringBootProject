@@ -24,24 +24,23 @@ public class DashboardService {
                 .setParameter("userId", user.getId().toString())
                 .getSingleResult()).longValue();
 
-        // 2. Courses (Count courses inside groups the user is a member of)
+        // 2. Courses (Count active deployments in groups the user is a member of)
         long courses = ((Number) entityManager.createNativeQuery(
-                "SELECT COUNT(*) FROM courses c " +
-                "JOIN group_members gm ON c.group_id = gm.group_id " +
-                "WHERE gm.user_id = UNHEX(REPLACE(:userId, '-', '')) AND c.status = 'ACTIVE'")
+                "SELECT COUNT(*) FROM group_courses gc " +
+                "JOIN group_members gm ON gc.group_id = gm.group_id " +
+                "WHERE gm.user_id = UNHEX(REPLACE(:userId, '-', '')) AND gc.status = 'PUBLISHED'")
                 .setParameter("userId", user.getId().toString())
                 .getSingleResult()).longValue();
 
-        // 3. Pending Assignments (Assignments in user's groups with due_at in future)
+        // 3. Pending Assignments (Active deployments in user's groups with due_at in future)
         long pendingAssignments = ((Number) entityManager.createNativeQuery(
-                "SELECT COUNT(*) FROM assignments a " +
-                "JOIN courses c ON a.course_id = c.id " +
-                "JOIN group_members gm ON c.group_id = gm.group_id " +
-                "WHERE gm.user_id = UNHEX(REPLACE(:userId, '-', '')) AND a.due_at > NOW()")
+                "SELECT COUNT(*) FROM group_assignments ga " +
+                "JOIN group_members gm ON ga.group_id = gm.group_id " +
+                "WHERE gm.user_id = UNHEX(REPLACE(:userId, '-', '')) AND ga.due_at > NOW() AND ga.status = 'PUBLISHED'")
                 .setParameter("userId", user.getId().toString())
                 .getSingleResult()).longValue();
 
-        // 4. Upcoming Meetings (Meetings in user's groups with start_time in future)
+        // 4. Upcoming Meetings (Meetings in user's groups with start_at in future)
         long upcomingMeetings = ((Number) entityManager.createNativeQuery(
                 "SELECT COUNT(*) FROM meetings m " +
                 "JOIN group_members gm ON m.group_id = gm.group_id " +

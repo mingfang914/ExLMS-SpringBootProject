@@ -17,4 +17,6 @@ public interface QuizAttemptRepository extends JpaRepository<QuizAttempt, UUID> 
     long countByQuiz_IdAndUser_IdAndSubmittedAtIsNotNull(UUID quizId, UUID userId);
     Optional<QuizAttempt> findTopByQuiz_IdAndUser_IdOrderByAttemptNumberDesc(UUID quizId, UUID userId);
     List<QuizAttempt> findByQuizId(UUID quizId);
+    
+    List<QuizAttempt> findByDeploymentIdAndDeploymentType(byte[] deploymentId, QuizAttempt.DeploymentType deploymentType);
 }

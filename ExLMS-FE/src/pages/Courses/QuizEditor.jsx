@@ -12,6 +12,7 @@ import {
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import courseService from '../../services/courseService'
+import * as quizService from '../../services/quizService'
 
 const QuizEditor = () => {
   const { t } = useTranslation()
@@ -24,7 +25,6 @@ const QuizEditor = () => {
     { value: 'MULTIPLE_CHOICE', label: t('quizzes.types.multiple'), icon: <CheckBoxIcon /> },
     { value: 'TRUE_FALSE', label: t('quizzes.types.true_false'), icon: '✓/✗' },
     { value: 'FILL_BLANK', label: t('quizzes.types.fill_blank'), icon: '___' },
-    { value: 'SHORT_ANSWER', label: t('quizzes.types.short_answer'), icon: <ShortTextIcon /> },
   ]
 
   const emptyAnswer = () => ({ content: '', isCorrect: false, orderIndex: 0 })
@@ -34,9 +34,12 @@ const QuizEditor = () => {
   })
 
   const [quiz, setQuiz] = useState({
-    title: '', description: '',
-    timeLimitSec: null, maxAttempts: 1, passingScore: 50,
-    shuffleQuestions: false, resultVisibility: 'IMMEDIATE',
+    title: '',
+    description: '',
+    timeLimitSec: 3600,
+    maxAttempts: 1,
+    passingScore: 50,
+    chapterId: ''
   })
   const [questions, setQuestions] = useState([emptyQuestion()])
   const [loading, setLoading] = useState(isEdit)
@@ -47,21 +50,28 @@ const QuizEditor = () => {
     if (isEdit) {
       const loadQuiz = async () => {
         try {
-          const data = await courseService.getQuizById(quizId)
+          let data;
+          if (groupId || courseId) {
+            data = await courseService.getQuizById(quizId)
+          } else {
+            // Inventory mode
+            data = await quizService.getTemplateById(quizId)
+          }
+          
           setQuiz({
             title: data.title,
             description: data.description || '',
             timeLimitSec: data.timeLimitSec,
-            maxAttempts: data.maxAttempts,
-            passingScore: data.passingScore,
-            shuffleQuestions: data.shuffleQuestions,
-            resultVisibility: data.resultVisibility,
+            maxAttempts: data.maxAttempts || 1,
+            passingScore: data.passingScore || 50,
             chapterId: data.chapterId
           })
           if (data.questions && data.questions.length > 0) {
             setQuestions(data.questions.map(q => ({
               ...q,
-              answers: q.answers.map(a => ({ ...a, isCorrect: a.correct }))
+              questionType: q.questionType || 'SINGLE_CHOICE',
+              points: q.points || 1,
+              answers: (q.answers || []).map(a => ({ ...a, isCorrect: a.correct || false }))
             })))
           }
         } catch (e) {
@@ -129,10 +139,18 @@ const QuizEditor = () => {
         }))
       }
       if (isEdit) {
-        await courseService.updateQuiz(quizId, payload)
+        if (groupId || courseId) {
+          await courseService.updateQuiz(quizId, payload)
+        } else {
+          await quizService.updateTemplate(quizId, payload)
+        }
         showSnack(t('quizzes.messages.update_success'))
       } else {
-        await courseService.createQuiz(courseId, payload)
+        if (courseId) {
+          await courseService.createQuiz(courseId, payload)
+        } else {
+          await quizService.createTemplate(payload)
+        }
         showSnack(t('quizzes.messages.create_success'))
       }
       setTimeout(() => navigate(-1), 1000)
@@ -180,23 +198,7 @@ const QuizEditor = () => {
               onChange={e => updateQuiz('passingScore', Math.max(0, Math.min(100, parseInt(e.target.value) || 0)))} />
           </Box>
 
-          <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap', alignItems: 'center', p: 2, borderRadius: 2, bgcolor: 'var(--color-surface-2)', border: '1px solid var(--color-border)' }}>
-            <FormControlLabel
-              control={<Switch checked={quiz.shuffleQuestions}
-                onChange={e => updateQuiz('shuffleQuestions', e.target.checked)} color="primary" />}
-              label={<Typography variant="body2" fontWeight={600}>{t('quizzes.shuffle_questions_label')}</Typography>}
-            />
-            <Divider orientation="vertical" flexItem sx={{ mx: 1 }} />
-            <FormControl sx={{ minWidth: 260 }}>
-              <InputLabel>{t('quizzes.visibility_label')}</InputLabel>
-              <Select value={quiz.resultVisibility} label={t('quizzes.visibility_label')}
-                onChange={e => updateQuiz('resultVisibility', e.target.value)}>
-                <MenuItem value="IMMEDIATE">✨ {t('quizzes.visibility.immediate')}</MenuItem>
-                <MenuItem value="AFTER_DEADLINE">📅 {t('quizzes.visibility.after_deadline')}</MenuItem>
-                <MenuItem value="MANUAL">🔒 {t('quizzes.visibility.manual')}</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
+
         </Box>
       </Paper>
 
@@ -241,7 +243,11 @@ const QuizEditor = () => {
                   ))}
                 </Select>
               </FormControl>
-              <TextField label={t('quizzes.points_label')} type="number" sx={{ width: 80 }} value={q.points}
+              <TextField 
+                label={t('quizzes.points_label')} 
+                type="number" 
+                sx={{ width: 120 }} 
+                value={q.points}
                 inputProps={{ min: 1 }}
                 onChange={e => updateQuestion(qIdx, 'points', Math.max(1, parseInt(e.target.value) || 1))} />
             </Box>

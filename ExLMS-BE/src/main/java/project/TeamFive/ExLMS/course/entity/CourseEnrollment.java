@@ -17,8 +17,8 @@ import java.time.LocalDateTime;
 public class CourseEnrollment extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "course_id", nullable = false)
-    private Course course;
+    @JoinColumn(name = "group_course_id", nullable = false)
+    private GroupCourse groupCourse;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

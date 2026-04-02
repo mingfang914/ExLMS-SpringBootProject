@@ -60,7 +60,8 @@ public class MeetingService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Vui lòng đăng nhập!");
         }
         GroupMember member = groupMemberRepository.findByGroup_IdAndUser_Id(group.getId(), user.getId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "Bạn không phải là thành viên của nhóm này!"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN,
+                        "Bạn không phải là thành viên của nhóm này!"));
 
         if (!"OWNER".equals(member.getRole()) && !"EDITOR".equals(member.getRole())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,
@@ -83,12 +84,11 @@ public class MeetingService {
                 .createdBy(creator)
                 .title(request.getTitle())
                 .description(request.getDescription())
-                .meetingType(request.getMeetingType())
                 .platform("jitsi")
                 .joinUrl(jitsiUrl)
                 .startAt(request.getStartAt() != null ? request.getStartAt() : LocalDateTime.now())
-                .durationMinutes(request.getDurationMinutes())
-                .status(Meeting.MeetingStatus.SCHEDULED)
+                .endAt(request.getEndAt() != null ? request.getEndAt() : LocalDateTime.now().plusHours(1))
+                .status(request.getStatus() != null ? request.getStatus() : Meeting.MeetingStatus.DRAFT)
                 .build();
 
         meeting = meetingRepository.save(meeting);
@@ -111,17 +111,19 @@ public class MeetingService {
         Meeting meeting = meetingRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Meeting not found"));
 
-        if (meeting.getStatus() != Meeting.MeetingStatus.SCHEDULED) {
-            throw new RuntimeException("Chỉ có thể chỉnh sửa buổi họp khi đang ở trạng thái 'Đã lên lịch'");
+        if (meeting.getStatus() == Meeting.MeetingStatus.CLOSED) {
+            throw new RuntimeException("Không thể chỉnh sửa buổi họp đã kết thúc");
         }
 
         requireInstructorRole(meeting.getGroup(), instructor);
 
         meeting.setTitle(request.getTitle());
         meeting.setDescription(request.getDescription());
-        meeting.setMeetingType(request.getMeetingType());
         meeting.setStartAt(request.getStartAt());
-        meeting.setDurationMinutes(request.getDurationMinutes());
+        meeting.setEndAt(request.getEndAt());
+        if (request.getStatus() != null) {
+            meeting.setStatus(request.getStatus());
+        }
 
         meeting = meetingRepository.save(meeting);
 
@@ -136,7 +138,7 @@ public class MeetingService {
         Meeting meeting = meetingRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Meeting not found"));
 
-        if (meeting.getStatus() == Meeting.MeetingStatus.LIVE) {
+        if (meeting.getStatus() == Meeting.MeetingStatus.PUBLISHED && LocalDateTime.now().isAfter(meeting.getStartAt()) && LocalDateTime.now().isBefore(meeting.getEndAt())) {
             throw new RuntimeException("Không thể xóa buổi họp khi đang diễn ra!");
         }
 
@@ -145,47 +147,52 @@ public class MeetingService {
         // Notify through event for calendar sync delete
         eventPublisher.publishEvent(new MeetingCanceledEvent(this, id));
 
-        // Delete other associated data (attendance, questions, polls etc would be cascade or manual)
+        // Delete other associated data (attendance, questions, polls etc would be
+        // cascade or manual)
         // For simplicity, we assume cascading or we delete them here if needed
         meetingRepository.delete(meeting);
     }
 
     @Transactional
     public void startMeeting(UUID id, User instructor) {
-        if (instructor == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        if (instructor == null)
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         Meeting meeting = meetingRepository.findById(id).orElseThrow();
         requireInstructorRole(meeting.getGroup(), instructor);
 
-        if (meeting.getStatus() != Meeting.MeetingStatus.SCHEDULED) {
-            throw new RuntimeException("Buổi họp đã bắt đầu hoặc đã kết thúc.");
+        if (meeting.getStatus() == Meeting.MeetingStatus.CLOSED) {
+            throw new RuntimeException("Buổi họp đã kết thúc.");
         }
 
         // Allow starting 15 minutes early or anytime during
         LocalDateTime now = LocalDateTime.now();
         if (now.isBefore(meeting.getStartAt().minusMinutes(15))) {
-            throw new RuntimeException("Không thể bắt đầu buổi họp quá sớm. Vui lòng quay lại trước giờ bắt đầu 15 phút.");
+            throw new RuntimeException(
+                    "Không thể bắt đầu buổi họp quá sớm. Vui lòng quay lại trước giờ bắt đầu 15 phút.");
         }
 
-        meeting.setStatus(Meeting.MeetingStatus.LIVE);
+        meeting.setStatus(Meeting.MeetingStatus.PUBLISHED);
         meetingRepository.save(meeting);
         broadcast(id, "MEETING_STARTED", null);
     }
 
     @Transactional
     public void endMeeting(UUID id, User instructor) {
-        if (instructor == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        if (instructor == null)
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         Meeting meeting = meetingRepository.findById(id).orElseThrow();
         requireInstructorRole(meeting.getGroup(), instructor);
-        meeting.setStatus(Meeting.MeetingStatus.ENDED);
+        meeting.setStatus(Meeting.MeetingStatus.CLOSED);
         meetingRepository.save(meeting);
         broadcast(id, "MEETING_ENDED", null);
     }
 
     @Transactional
     public void recordAttendance(UUID meetingId, User user, boolean joining) {
-        if (user == null) return; // Silent return for attendance if no user
+        if (user == null)
+            return; // Silent return for attendance if no user
         Meeting meeting = meetingRepository.findById(meetingId).orElseThrow();
-        
+
         MeetingAttendance attendance = attendanceRepository.findByMeeting_IdAndUser_Id(meetingId, user.getId())
                 .orElse(MeetingAttendance.builder()
                         .meeting(meeting)
@@ -196,28 +203,32 @@ public class MeetingService {
 
         if (joining) {
             attendance.setJoinedAt(LocalDateTime.now());
+            attendance.setPresent(true);
         } else {
             attendance.setLeftAt(LocalDateTime.now());
             if (attendance.getJoinedAt() != null) {
                 long seconds = Duration.between(attendance.getJoinedAt(), attendance.getLeftAt()).getSeconds();
-                attendance.setDurationSec(attendance.getDurationSec() + (int) seconds);
+                if (seconds > 0) {
+                    attendance.setDurationSec(attendance.getDurationSec() + (int) seconds);
+                }
             }
         }
         attendanceRepository.save(attendance);
         broadcast(meetingId, joining ? "MEMBER_JOINED" : "MEMBER_LEFT", Map.of(
-            "userId", user.getId().toString(),
-            "fullName", user.getFullName(),
-            "joining", joining
-        ));
+                "userId", user.getId().toString(),
+                "fullName", user.getFullName(),
+                "joining", joining));
     }
 
     @Transactional
     public QuestionResponseDTO addQuestion(UUID meetingId, QuestionRequest request, User user) {
-        if (user == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        if (user == null)
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         System.out.println("Adding question for meeting: " + meetingId);
         Meeting meeting = meetingRepository.findById(meetingId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Meeting not found: " + meetingId));
-        
+                .orElseThrow(
+                        () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Meeting not found: " + meetingId));
+
         MeetingQuestion question = MeetingQuestion.builder()
                 .meeting(meeting)
                 .user(user)
@@ -310,17 +321,34 @@ public class MeetingService {
     public List<MeetingAttendanceResponseDTO> getAttendanceReport(UUID meetingId, User instructor) {
         Meeting meeting = meetingRepository.findById(meetingId).orElseThrow();
         requireInstructorRole(meeting.getGroup(), instructor);
-        return attendanceRepository.findByMeeting_Id(meetingId).stream()
-                .map(a -> MeetingAttendanceResponseDTO.builder()
-                        .id(a.getId())
-                        .userId(a.getUser().getId())
-                        .userName(a.getUser().getFullName())
-                        .joinedAt(a.getJoinedAt())
-                        .leftAt(a.getLeftAt())
-                        .durationSec(a.getDurationSec())
-                        .isPresent(a.isPresent())
-                        .build())
-                .collect(Collectors.toList());
+        
+        // Use a map to consolidate any existing duplicates (just in case)
+        Map<UUID, MeetingAttendanceResponseDTO> report = new java.util.HashMap<>();
+        
+        attendanceRepository.findByMeeting_Id(meetingId).forEach(a -> {
+            MeetingAttendanceResponseDTO dto = report.getOrDefault(a.getUser().getId(), 
+                MeetingAttendanceResponseDTO.builder()
+                    .id(a.getId())
+                    .userId(a.getUser().getId())
+                    .userName(a.getUser().getFullName())
+                    .joinedAt(a.getJoinedAt())
+                    .leftAt(a.getLeftAt())
+                    .durationSec(0)
+                    .isPresent(a.isPresent())
+                    .build());
+            
+            // Consolidate duration and keep logical status
+            dto.setDurationSec(dto.getDurationSec() + a.getDurationSec());
+            if (a.getLeftAt() == null) {
+                dto.setLeftAt(null); // Still in meeting
+            } else if (dto.getLeftAt() != null && a.getLeftAt().isAfter(dto.getLeftAt())) {
+                dto.setLeftAt(a.getLeftAt());
+            }
+            
+            report.put(a.getUser().getId(), dto);
+        });
+        
+        return new java.util.ArrayList<>(report.values());
     }
 
     private QuestionResponseDTO mapToQuestionDTO(MeetingQuestion q) {
@@ -364,15 +392,15 @@ public class MeetingService {
     public MeetingResponseDTO getMeetingById(UUID id, User user) {
         Meeting meeting = meetingRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy buổi họp"));
-        
+
         MeetingResponseDTO dto = MeetingResponseDTO.fromEntity(meeting);
-        
+
         if (user != null) {
             // Find user's role in this group
             groupMemberRepository.findByGroup_IdAndUser_Id(meeting.getGroup().getId(), user.getId())
                     .ifPresent(member -> dto.setCurrentUserRole(member.getRole()));
         }
-                
+
         return dto;
     }
 }

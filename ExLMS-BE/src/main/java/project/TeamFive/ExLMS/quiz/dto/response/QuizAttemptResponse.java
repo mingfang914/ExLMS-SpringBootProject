@@ -23,6 +23,7 @@ public class QuizAttemptResponse {
     private Integer passingScore; // Thêm trường này
     private LocalDateTime startedAt;
     private LocalDateTime submittedAt;
+    private String userName; // To display who made the attempt
     private List<QuestionResultResponse> responses; // Đổi tên từ results -> responses
 
     @Data

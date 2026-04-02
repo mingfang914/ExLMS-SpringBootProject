@@ -3,6 +3,8 @@ import {
   Box, Typography, Paper, Button, Container, Grid, 
   Divider, Chip, Avatar, CircularProgress, Alert 
 } from '@mui/material'
+import SockJS from 'sockjs-client'
+import { Client } from '@stomp/stompjs'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { 
@@ -24,24 +26,56 @@ const MeetingDetail = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  useEffect(() => {
-    const fetchMeeting = async () => {
-      try {
-        const data = await meetingService.getMeeting(id)
-        setMeeting(data)
-      } catch (err) {
-        setError('Không thể tải thông tin buổi họp')
-        console.error(err)
-      } finally {
-        setLoading(false)
-      }
+  const fetchMeeting = async () => {
+    try {
+      const data = await meetingService.getMeeting(id)
+      setMeeting(data)
+    } catch (err) {
+      setError('Không thể tải thông tin buổi họp')
+      console.error(err)
+    } finally {
+      setLoading(false)
     }
+  }
+
+  useEffect(() => {
     fetchMeeting()
+    
+    // Setup WebSocket
+    const socket = new SockJS('/api/ws')
+    const client = new Client({
+      webSocketFactory: () => socket,
+      debug: (str) => console.log('STOMP: ' + str),
+      reconnectDelay: 5000,
+      heartbeatIncoming: 4000,
+      heartbeatOutgoing: 4000,
+    })
+
+    client.onConnect = (frame) => {
+      console.log('STOMP Connected: ' + frame)
+      client.subscribe(`/topic/meeting/${id}`, (message) => {
+        try {
+          const event = JSON.parse(message.body)
+          console.log('Meeting Detail Event:', event)
+          if (event.type === 'MEETING_STARTED' || event.type === 'MEETING_ENDED') {
+            fetchMeeting()
+          }
+        } catch (err) {
+          console.error('Error parsing STOMP message', err)
+        }
+      })
+    }
+
+    client.activate()
+
+    return () => {
+      client.deactivate()
+    }
   }, [id])
 
   const handleJoin = async () => {
     try {
-      if (meeting.status === 'SCHEDULED' && isInstructor) {
+      if (meeting.status === 'DRAFT' && isInstructor) {
         // Validation: Allow starting 15 mins before
         const now = new Date()
         const startAt = new Date(meeting.startAt)
@@ -71,8 +105,9 @@ const MeetingDetail = () => {
 
   const isInstructor = user.role === 'ADMIN' || user.role === 'INSTRUCTOR' || 
                        meeting.currentUserRole === 'OWNER' || meeting.currentUserRole === 'EDITOR'
-  const isLive = meeting.status === 'LIVE'
-  const isPast = meeting.status === 'ENDED'
+  const isLive = meeting.status === 'PUBLISHED'
+  const isPast = meeting.status === 'CLOSED'
+  const isScheduled = meeting.status === 'DRAFT'
 
   return (
     <Container maxWidth="md" sx={{ mt: 4 }}>
@@ -85,8 +120,8 @@ const MeetingDetail = () => {
           <Grid item xs={12} md={8}>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, gap: 1 }}>
               <Chip 
-                label={meeting.status === 'LIVE' ? 'Đang diễn ra' : meeting.status === 'ENDED' ? 'Đã kết thúc' : 'Đã lên lịch'} 
-                color={meeting.status === 'LIVE' ? 'error' : 'default'}
+                label={meeting.status === 'PUBLISHED' ? 'Đang diễn ra' : meeting.status === 'CLOSED' ? 'Đã kết thúc' : 'Đã lên lịch'} 
+                color={meeting.status === 'PUBLISHED' ? 'error' : 'default'}
                 size="small"
                 sx={{ fontWeight: 'bold' }}
               />

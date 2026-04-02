@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1") // Đổi sang v1 cho thống nhất
+@RequestMapping("/api/v1")
 @RequiredArgsConstructor
 public class AssignmentController {
 
@@ -24,12 +24,14 @@ public class AssignmentController {
             @PathVariable UUID groupId,
             @RequestBody CreateAssignmentRequest request,
             @AuthenticationPrincipal User creator) {
-        return ResponseEntity.ok(assignmentService.createAssignment(groupId, request, creator));
+        // Create template and deploy it (retro-compatibility)
+        AssignmentResponseDTO template = assignmentService.createTemplate(request, creator);
+        return ResponseEntity.ok(assignmentService.deployToGroup(groupId, template.getTemplateId(), request, creator));
     }
 
     @GetMapping("/assignments/{id}")
     public ResponseEntity<AssignmentResponseDTO> getAssignmentById(@PathVariable UUID id) {
-        return ResponseEntity.ok(assignmentService.getAssignmentById(id));
+        return ResponseEntity.ok(assignmentService.getAssignmentDeploymentById(id));
     }
 
     @GetMapping("/groups/{groupId}/assignments")
@@ -39,26 +41,22 @@ public class AssignmentController {
         return ResponseEntity.ok(assignmentService.getAssignmentsByGroup(groupId, user));
     }
 
-    @GetMapping("/courses/{courseId}/assignments")
-    public ResponseEntity<List<AssignmentResponseDTO>> getAssignmentsByCourse(
-            @PathVariable UUID courseId,
-            @AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(assignmentService.getAssignmentsByCourse(courseId, user));
-    }
-
     @PutMapping("/assignments/{id}")
     public ResponseEntity<AssignmentResponseDTO> updateAssignment(
             @PathVariable UUID id,
             @RequestBody CreateAssignmentRequest request,
             @AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(assignmentService.updateAssignment(id, request, user));
+        try {
+            return ResponseEntity.ok(assignmentService.updateAssignmentDeployment(id, request, user));
+        } catch (Exception e) {
+            return ResponseEntity.ok(assignmentService.updateTemplate(id, request, user));
+        }
     }
 
     @DeleteMapping("/assignments/{id}")
     public ResponseEntity<Void> deleteAssignment(
-            @PathVariable UUID id,
-            @AuthenticationPrincipal User user) {
-        assignmentService.deleteAssignment(id, user);
+            @PathVariable UUID id) {
+        assignmentService.deleteAssignment(id);
         return ResponseEntity.noContent().build();
     }
 }

@@ -53,6 +53,10 @@ const MeetingRoom = () => {
   const roomName = location.state?.roomName || meeting?.joinUrl?.split('/').pop() || `exlms-meeting-${id}`
   const meetingTitle = meeting?.title || location.state?.title || t('common.loading')
   
+  const handleMeetingEnd = useCallback(() => {
+    navigate(`/groups/${groupId}/meetings/${id}`)
+  }, [navigate, groupId, id])
+
   const isInstructor = user?.role === 'ADMIN' || user?.role === 'INSTRUCTOR' || 
                        meeting?.currentUserRole === 'OWNER' || meeting?.currentUserRole === 'EDITOR'
 
@@ -76,10 +80,14 @@ const MeetingRoom = () => {
         const att = await meetingService.getAttendanceReport(id)
         setAttendance(Array.isArray(att) ? att : [])
       }
+      if (meetingData?.status === 'CLOSED') {
+        handleMeetingEnd();
+        return;
+      }
     } catch (err) {
       console.error('Error fetching room data', err)
     }
-  }, [id, user?.role])
+  }, [id, user?.role, handleMeetingEnd])
 
   const handleWebSocketEvent = useCallback((event) => {
     const { type, data } = event
@@ -178,9 +186,7 @@ const MeetingRoom = () => {
     }
   }, [id, fetchData, handleWebSocketEvent])
 
-  const handleMeetingEnd = useCallback(() => {
-    navigate(`/groups/${groupId}/meetings/${id}`)
-  }, [navigate, groupId, id])
+
 
   const handleSendQuestion = useCallback(async () => {
     if (!newQuestion.trim()) return
