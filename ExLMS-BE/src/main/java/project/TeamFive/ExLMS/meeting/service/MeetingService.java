@@ -84,12 +84,11 @@ public class MeetingService {
                 .createdBy(creator)
                 .title(request.getTitle())
                 .description(request.getDescription())
-                .meetingType(request.getMeetingType())
                 .platform("jitsi")
                 .joinUrl(jitsiUrl)
                 .startAt(request.getStartAt() != null ? request.getStartAt() : LocalDateTime.now())
-                .endAt(request.getStartAt() != null ? request.getStartAt().plusMinutes(request.getDurationMinutes()) : LocalDateTime.now().plusMinutes(request.getDurationMinutes()))
-                .status(Meeting.MeetingStatus.SCHEDULED)
+                .endAt(request.getEndAt() != null ? request.getEndAt() : LocalDateTime.now().plusHours(1))
+                .status(request.getStatus() != null ? request.getStatus() : Meeting.MeetingStatus.DRAFT)
                 .build();
 
         meeting = meetingRepository.save(meeting);
@@ -112,18 +111,18 @@ public class MeetingService {
         Meeting meeting = meetingRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Meeting not found"));
 
-        if (meeting.getStatus() != Meeting.MeetingStatus.SCHEDULED) {
-            throw new RuntimeException("Chỉ có thể chỉnh sửa buổi họp khi đang ở trạng thái 'Đã lên lịch'");
+        if (meeting.getStatus() == Meeting.MeetingStatus.CLOSED) {
+            throw new RuntimeException("Không thể chỉnh sửa buổi họp đã kết thúc");
         }
 
         requireInstructorRole(meeting.getGroup(), instructor);
 
         meeting.setTitle(request.getTitle());
         meeting.setDescription(request.getDescription());
-        meeting.setMeetingType(request.getMeetingType());
         meeting.setStartAt(request.getStartAt());
-        if (request.getStartAt() != null) {
-            meeting.setEndAt(request.getStartAt().plusMinutes(request.getDurationMinutes()));
+        meeting.setEndAt(request.getEndAt());
+        if (request.getStatus() != null) {
+            meeting.setStatus(request.getStatus());
         }
 
         meeting = meetingRepository.save(meeting);
@@ -139,7 +138,7 @@ public class MeetingService {
         Meeting meeting = meetingRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Meeting not found"));
 
-        if (meeting.getStatus() == Meeting.MeetingStatus.LIVE) {
+        if (meeting.getStatus() == Meeting.MeetingStatus.PUBLISHED && LocalDateTime.now().isAfter(meeting.getStartAt()) && LocalDateTime.now().isBefore(meeting.getEndAt())) {
             throw new RuntimeException("Không thể xóa buổi họp khi đang diễn ra!");
         }
 
@@ -161,8 +160,8 @@ public class MeetingService {
         Meeting meeting = meetingRepository.findById(id).orElseThrow();
         requireInstructorRole(meeting.getGroup(), instructor);
 
-        if (meeting.getStatus() != Meeting.MeetingStatus.SCHEDULED) {
-            throw new RuntimeException("Buổi họp đã bắt đầu hoặc đã kết thúc.");
+        if (meeting.getStatus() == Meeting.MeetingStatus.CLOSED) {
+            throw new RuntimeException("Buổi họp đã kết thúc.");
         }
 
         // Allow starting 15 minutes early or anytime during
@@ -172,7 +171,7 @@ public class MeetingService {
                     "Không thể bắt đầu buổi họp quá sớm. Vui lòng quay lại trước giờ bắt đầu 15 phút.");
         }
 
-        meeting.setStatus(Meeting.MeetingStatus.LIVE);
+        meeting.setStatus(Meeting.MeetingStatus.PUBLISHED);
         meetingRepository.save(meeting);
         broadcast(id, "MEETING_STARTED", null);
     }
@@ -183,7 +182,7 @@ public class MeetingService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         Meeting meeting = meetingRepository.findById(id).orElseThrow();
         requireInstructorRole(meeting.getGroup(), instructor);
-        meeting.setStatus(Meeting.MeetingStatus.ENDED);
+        meeting.setStatus(Meeting.MeetingStatus.CLOSED);
         meetingRepository.save(meeting);
         broadcast(id, "MEETING_ENDED", null);
     }
@@ -204,11 +203,14 @@ public class MeetingService {
 
         if (joining) {
             attendance.setJoinedAt(LocalDateTime.now());
+            attendance.setPresent(true);
         } else {
             attendance.setLeftAt(LocalDateTime.now());
             if (attendance.getJoinedAt() != null) {
                 long seconds = Duration.between(attendance.getJoinedAt(), attendance.getLeftAt()).getSeconds();
-                attendance.setDurationSec(attendance.getDurationSec() + (int) seconds);
+                if (seconds > 0) {
+                    attendance.setDurationSec(attendance.getDurationSec() + (int) seconds);
+                }
             }
         }
         attendanceRepository.save(attendance);
@@ -319,17 +321,34 @@ public class MeetingService {
     public List<MeetingAttendanceResponseDTO> getAttendanceReport(UUID meetingId, User instructor) {
         Meeting meeting = meetingRepository.findById(meetingId).orElseThrow();
         requireInstructorRole(meeting.getGroup(), instructor);
-        return attendanceRepository.findByMeeting_Id(meetingId).stream()
-                .map(a -> MeetingAttendanceResponseDTO.builder()
-                        .id(a.getId())
-                        .userId(a.getUser().getId())
-                        .userName(a.getUser().getFullName())
-                        .joinedAt(a.getJoinedAt())
-                        .leftAt(a.getLeftAt())
-                        .durationSec(a.getDurationSec())
-                        .isPresent(a.isPresent())
-                        .build())
-                .collect(Collectors.toList());
+        
+        // Use a map to consolidate any existing duplicates (just in case)
+        Map<UUID, MeetingAttendanceResponseDTO> report = new java.util.HashMap<>();
+        
+        attendanceRepository.findByMeeting_Id(meetingId).forEach(a -> {
+            MeetingAttendanceResponseDTO dto = report.getOrDefault(a.getUser().getId(), 
+                MeetingAttendanceResponseDTO.builder()
+                    .id(a.getId())
+                    .userId(a.getUser().getId())
+                    .userName(a.getUser().getFullName())
+                    .joinedAt(a.getJoinedAt())
+                    .leftAt(a.getLeftAt())
+                    .durationSec(0)
+                    .isPresent(a.isPresent())
+                    .build());
+            
+            // Consolidate duration and keep logical status
+            dto.setDurationSec(dto.getDurationSec() + a.getDurationSec());
+            if (a.getLeftAt() == null) {
+                dto.setLeftAt(null); // Still in meeting
+            } else if (dto.getLeftAt() != null && a.getLeftAt().isAfter(dto.getLeftAt())) {
+                dto.setLeftAt(a.getLeftAt());
+            }
+            
+            report.put(a.getUser().getId(), dto);
+        });
+        
+        return new java.util.ArrayList<>(report.values());
     }
 
     private QuestionResponseDTO mapToQuestionDTO(MeetingQuestion q) {

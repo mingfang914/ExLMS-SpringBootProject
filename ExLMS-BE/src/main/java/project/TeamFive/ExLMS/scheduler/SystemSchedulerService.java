@@ -63,25 +63,27 @@ public class SystemSchedulerService {
     }
 
     private void processMeetings(LocalDateTime now) {
-        // Start scheduled meetings
-        List<Meeting> toStart = meetingRepository.findByStatusAndStartAtBefore(
-                Meeting.MeetingStatus.SCHEDULED, now);
+        // 1. Open draft meetings that reached startAt
+        List<Meeting> toOpen = meetingRepository.findByStatusAndStartAtBefore(
+                Meeting.MeetingStatus.DRAFT, now);
         
-        for (Meeting meeting : toStart) {
-            log.info("SystemScheduler: Starting meeting '{}' (ID: {})", meeting.getTitle(), meeting.getId());
-            meeting.setStatus(Meeting.MeetingStatus.LIVE);
+        for (Meeting meeting : toOpen) {
+            log.info("SystemScheduler: Publishing meeting '{}' (ID: {})", meeting.getTitle(), meeting.getId());
+            meeting.setStatus(Meeting.MeetingStatus.PUBLISHED);
             meetingRepository.save(meeting);
+            broadcastStatusUpdate(meeting.getId(), "MEETING", "PUBLISHED");
             broadcast(meeting.getId(), "MEETING_STARTED", null);
         }
 
-        // End live meetings
-        List<Meeting> toEnd = meetingRepository.findByStatusAndEndAtBefore(
-                Meeting.MeetingStatus.LIVE, now);
+        // 2. Close published meetings that reached endAt
+        List<Meeting> toClose = meetingRepository.findByStatusAndEndAtBefore(
+                Meeting.MeetingStatus.PUBLISHED, now);
 
-        for (Meeting meeting : toEnd) {
-            log.info("SystemScheduler: Ending meeting '{}' (ID: {})", meeting.getTitle(), meeting.getId());
-            meeting.setStatus(Meeting.MeetingStatus.ENDED);
+        for (Meeting meeting : toClose) {
+            log.info("SystemScheduler: Closing meeting '{}' (ID: {})", meeting.getTitle(), meeting.getId());
+            meeting.setStatus(Meeting.MeetingStatus.CLOSED);
             meetingRepository.save(meeting);
+            broadcastStatusUpdate(meeting.getId(), "MEETING", "CLOSED");
             broadcast(meeting.getId(), "MEETING_ENDED", null);
         }
     }

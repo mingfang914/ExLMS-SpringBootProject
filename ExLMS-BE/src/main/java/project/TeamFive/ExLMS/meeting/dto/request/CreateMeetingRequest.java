@@ -17,9 +17,7 @@ public class CreateMeetingRequest {
     @NotBlank(message = "Title is required")
     private String title;
     private String description;
-    @Builder.Default
-    private Meeting.MeetingType meetingType = Meeting.MeetingType.VIDEO_CONFERENCE;
     private LocalDateTime startAt;
-    @Builder.Default
-    private int durationMinutes = 60;
+    private LocalDateTime endAt;
+    private Meeting.MeetingStatus status;
 }

@@ -77,10 +77,10 @@ const GroupDetail = () => {
   const [editGroupData, setEditGroupData] = useState({ name: '', description: '', visibility: 'PUBLIC', category: 'General' })
   const [deleteConfirmText, setDeleteConfirmText] = useState('')
   const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false)
-  const [newMeetingData, setNewMeetingData] = useState({ title: '', description: '', startAt: '', durationMinutes: 60 })
+  const [newMeetingData, setNewMeetingData] = useState({ title: '', description: '', startAt: '', endAt: '', status: 'PUBLISHED' })
   const [editMeetingDialogOpen, setEditMeetingDialogOpen] = useState(false)
   const [editingMeeting, setEditingMeeting] = useState(null)
-  const [editMeetingData, setEditMeetingData] = useState({ title: '', description: '', startAt: '', durationMinutes: 60 })
+  const [editMeetingData, setEditMeetingData] = useState({ title: '', description: '', startAt: '', endAt: '', status: 'PUBLISHED' })
   
   const [deployModal, setDeployModal] = useState({ open: false, type: 'course' })
   const [editDeployModal, setEditDeployModal] = useState({ open: false, type: 'course', resource: null })
@@ -238,7 +238,7 @@ const GroupDetail = () => {
       const freshMeetings = await meetingService.getMeetingsByGroup(id)
       setMeetings(freshMeetings)
       setScheduleDialogOpen(false)
-      setNewMeetingData({ title: '', description: '', startAt: '', durationMinutes: 60 })
+      setNewMeetingData({ title: '', description: '', startAt: '', endAt: '', status: 'PUBLISHED' })
       alert(t('group_detail.meetings.schedule_success'))
     } catch (err) {
       alert(t('group_detail.meetings.schedule_failed'))
@@ -265,8 +265,9 @@ const GroupDetail = () => {
     setEditMeetingData({
       title: meeting.title,
       description: meeting.description || '',
-      startAt: formattedDate,
-      durationMinutes: meeting.durationMinutes
+      startAt: meeting.startAt ? new Date(meeting.startAt).toISOString().slice(0, 16) : '',
+      endAt: meeting.endAt ? new Date(meeting.endAt).toISOString().slice(0, 16) : '',
+      status: meeting.status || 'PUBLISHED'
     })
     setEditMeetingDialogOpen(true)
   }
@@ -745,59 +746,67 @@ const GroupDetail = () => {
                   </Paper>
                 </Grid>
               ) : (
-                meetings.map((meeting) => (
-                  <Grid item xs={12} md={6} key={meeting.id}>
-                    <Paper 
-                      sx={{ 
-                        p: 3, 
-                        display: 'flex', 
-                        justifyContent: 'space-between', 
-                        alignItems: 'center',
-                        borderRadius: 2,
-                        '&:hover': { boxShadow: 4, borderColor: 'primary.main' },
-                        border: '1px solid',
-                        borderColor: 'divider'
-                      }}
-                    >
-                      <Box>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                          <Typography variant="h6" sx={{ fontWeight: 'bold' }}>{meeting.title}</Typography>
-                          {meeting.status === 'LIVE' && <Chip label="LIVE" color="error" size="small" />}
+                meetings.map((meeting) => {
+                  const startTime = new Date(meeting.startAt);
+                  const endTime = meeting.endAt ? new Date(meeting.endAt) : new Date(startTime.getTime() + (meeting.durationMinutes || 60) * 60000);
+                  const now = new Date();
+                  const isLive = meeting.status === 'PUBLISHED' && now >= startTime && now <= endTime;
+
+                  return (
+                    <Grid item xs={12} md={6} key={meeting.id}>
+                      <Paper 
+                        sx={{ 
+                          p: 3, 
+                          display: 'flex', 
+                          justifyContent: 'space-between', 
+                          alignItems: 'center',
+                          borderRadius: 2,
+                          '&:hover': { boxShadow: 4, borderColor: 'primary.main' },
+                          border: '1px solid',
+                          borderColor: isLive ? 'error.main' : 'divider'
+                        }}
+                      >
+                        <Box>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>{meeting.title}</Typography>
+                            {isLive && <Chip label="LIVE" color="error" size="small" />}
+                            {meeting.status === 'DRAFT' && <Chip label="DRAFT" variant="outlined" size="small" />}
+                          </Box>
+                          <Typography variant="body2" color="text.secondary">
+                            {format(new Date(meeting.startAt), 'HH:mm dd/MM/yyyy')}
+                          </Typography>
                         </Box>
-                        <Typography variant="body2" color="text.secondary">
-                          {format(new Date(meeting.startAt), 'HH:mm dd/MM/yyyy')}
-                        </Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
-                          <Box sx={{ display: 'flex', mr: 1 }}>
-                            {meeting.status === 'SCHEDULED' && (
-                              <Tooltip title={t('common.edit')}>
-                                <IconButton size="small" onClick={() => handleOpenEditMeeting(meeting)}>
-                                  <EditIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                            )}
-                            {meeting.status !== 'LIVE' && (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
+                            <Box sx={{ display: 'flex', mr: 1 }}>
+                              {meeting.status !== 'CLOSED' && (
+                                <Tooltip title={t('common.edit')}>
+                                  <IconButton size="small" onClick={() => handleOpenEditMeeting(meeting)}>
+                                    <EditIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                              )}
                               <Tooltip title={t('common.delete')}>
                                 <IconButton size="small" color="error" onClick={() => handleDeleteMeeting(meeting.id)}>
                                   <DeleteIcon fontSize="small" />
                                 </IconButton>
                               </Tooltip>
-                            )}
-                          </Box>
-                        )}
-                        <Button
-                          variant="contained"
-                          component={RouterLink}
-                          to={`/groups/${id}/meetings/${meeting.id}`}
-                        >
-                          {meeting.status === 'ENDED' ? t('group_detail.meetings.view_report') : t('group_detail.meetings.join')}
-                        </Button>
-                      </Box>
-                    </Paper>
-                  </Grid>
-                ))
+                            </Box>
+                          )}
+                          <Button
+                            variant="contained"
+                            component={RouterLink}
+                            to={`/groups/${id}/meetings/${meeting.id}`}
+                            disabled={meeting.status === 'DRAFT' && group.currentUserRole === 'MEMBER'}
+                            color={isLive ? 'error' : 'primary'}
+                          >
+                            {meeting.status === 'CLOSED' ? t('group_detail.meetings.view_report') : t('group_detail.meetings.join')}
+                          </Button>
+                        </Box>
+                      </Paper>
+                    </Grid>
+                  );
+                })
               )}
             </Grid>
           </Box>
@@ -918,10 +927,20 @@ const GroupDetail = () => {
               onChange={(e) => setNewMeetingData({...newMeetingData, startAt: e.target.value})} 
             />
             <TextField 
-              fullWidth label={t('group_detail.meetings.duration')} margin="normal" type="number" required
-              value={newMeetingData.durationMinutes} 
-              onChange={(e) => setNewMeetingData({...newMeetingData, durationMinutes: e.target.value})} 
+              fullWidth label={t('group_detail.meetings.end_time') || 'Thời gian kết thúc'} margin="normal" type="datetime-local" required
+              InputLabelProps={{ shrink: true }}
+              value={newMeetingData.endAt} 
+              onChange={(e) => setNewMeetingData({...newMeetingData, endAt: e.target.value})} 
             />
+            <TextField
+              fullWidth select label={t('group_detail.meeting_status') || 'Trạng thái'} margin="normal"
+              value={newMeetingData.status}
+              onChange={(e) => setNewMeetingData({...newMeetingData, status: e.target.value})}
+            >
+              <MenuItem value="DRAFT">Dành cho chủ nhóm (DRAFT)</MenuItem>
+              <MenuItem value="PUBLISHED">Công khai (PUBLISHED)</MenuItem>
+              <MenuItem value="CLOSED">Kết thúc (CLOSED)</MenuItem>
+            </TextField>
             <Button type="submit" variant="contained" fullWidth sx={{ mt: 3 }}>
               {t('common.create')}
             </Button>
@@ -951,10 +970,20 @@ const GroupDetail = () => {
               onChange={(e) => setEditMeetingData({...editMeetingData, startAt: e.target.value})} 
             />
             <TextField 
-              fullWidth label={t('group_detail.meetings.duration')} margin="normal" type="number" required
-              value={editMeetingData.durationMinutes} 
-              onChange={(e) => setEditMeetingData({...editMeetingData, durationMinutes: e.target.value})} 
+              fullWidth label={t('group_detail.meetings.end_time') || 'Thời gian kết thúc'} margin="normal" type="datetime-local" required
+              InputLabelProps={{ shrink: true }}
+              value={editMeetingData.endAt} 
+              onChange={(e) => setEditMeetingData({...editMeetingData, endAt: e.target.value})} 
             />
+            <TextField
+              fullWidth select label={t('group_detail.meeting_status') || 'Trạng thái'} margin="normal"
+              value={editMeetingData.status}
+              onChange={(e) => setEditMeetingData({...editMeetingData, status: e.target.value})}
+            >
+              <MenuItem value="DRAFT">Dành cho chủ nhóm (DRAFT)</MenuItem>
+              <MenuItem value="PUBLISHED">Công khai (PUBLISHED)</MenuItem>
+              <MenuItem value="CLOSED">Kết thúc (CLOSED)</MenuItem>
+            </TextField>
             <Button type="submit" variant="contained" fullWidth sx={{ mt: 3 }}>
               {t('common.save_changes')}
             </Button>

@@ -75,7 +75,7 @@ const MeetingDetail = () => {
 
   const handleJoin = async () => {
     try {
-      if (meeting.status === 'SCHEDULED' && isInstructor) {
+      if (meeting.status === 'DRAFT' && isInstructor) {
         // Validation: Allow starting 15 mins before
         const now = new Date()
         const startAt = new Date(meeting.startAt)
@@ -105,8 +105,9 @@ const MeetingDetail = () => {
 
   const isInstructor = user.role === 'ADMIN' || user.role === 'INSTRUCTOR' || 
                        meeting.currentUserRole === 'OWNER' || meeting.currentUserRole === 'EDITOR'
-  const isLive = meeting.status === 'LIVE'
-  const isPast = meeting.status === 'ENDED'
+  const isLive = meeting.status === 'PUBLISHED'
+  const isPast = meeting.status === 'CLOSED'
+  const isScheduled = meeting.status === 'DRAFT'
 
   return (
     <Container maxWidth="md" sx={{ mt: 4 }}>
@@ -119,8 +120,8 @@ const MeetingDetail = () => {
           <Grid item xs={12} md={8}>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, gap: 1 }}>
               <Chip 
-                label={meeting.status === 'LIVE' ? 'Đang diễn ra' : meeting.status === 'ENDED' ? 'Đã kết thúc' : 'Đã lên lịch'} 
-                color={meeting.status === 'LIVE' ? 'error' : 'default'}
+                label={meeting.status === 'PUBLISHED' ? 'Đang diễn ra' : meeting.status === 'CLOSED' ? 'Đã kết thúc' : 'Đã lên lịch'} 
+                color={meeting.status === 'PUBLISHED' ? 'error' : 'default'}
                 size="small"
                 sx={{ fontWeight: 'bold' }}
               />
