@@ -1,10 +1,21 @@
 import React, { useState } from 'react';
 import { createQuiz } from '../../services/quizService';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { 
+  Box, Typography, TextField, Button, Paper, Grid, 
+  MenuItem, Divider, CircularProgress, Alert,
+  Container, IconButton
+} from '@mui/material';
+import { ArrowBack as BackIcon, Save as SaveIcon } from '@mui/icons-material';
 
 const CreateQuiz = () => {
-    const { courseId } = useParams();
+    const { t } = useTranslation();
+    const { groupId } = useParams();
     const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    
     const [formData, setFormData] = useState({
         title: '',
         description: '',
@@ -16,41 +27,95 @@ const CreateQuiz = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await createQuiz({ ...formData, courseId });
-            navigate(`/courses/${courseId}/quizzes`);
-        } catch (error) {
-            console.error('Failed to create quiz:', error);
+            setLoading(true);
+            setError(null);
+            await createQuiz(groupId, formData);
+            alert(t('quizzes.messages.create_success') || 'Quiz created successfully');
+            navigate(`/groups/${groupId}?tab=quizzes`);
+        } catch (err) {
+            console.error('Failed to create quiz:', err);
+            setError(err.response?.data?.message || t('quizzes.errors.save_failed'));
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
-        <div className="p-6 max-w-3xl mx-auto">
-            <h1 className="text-2xl font-bold mb-6">Tạo Bài Kiểm Tra Mới</h1>
-            <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg shadow">
-                <div>
-                    <label className="block text-sm font-medium text-gray-700">Tiêu đề</label>
-                    <input type="text" required value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" />
-                </div>
-                <div>
-                    <label className="block text-sm font-medium text-gray-700">Mô tả</label>
-                    <textarea rows="3" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"></textarea>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Thời gian làm bài (Phút)</label>
-                        <input type="number" value={formData.timeLimitSec / 60} onChange={e => setFormData({...formData, timeLimitSec: parseInt(e.target.value) * 60})} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Điểm qua môn (%)</label>
-                        <input type="number" min="0" max="100" value={formData.passingScore} onChange={e => setFormData({...formData, passingScore: parseInt(e.target.value)})} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" />
-                    </div>
-                </div>
-                <div className="pt-4 border-t border-gray-200 flex justify-end">
-                    <button type="button" onClick={() => navigate(-1)} className="mr-3 px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Hủy</button>
-                    <button type="submit" className="px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">Tạo</button>
-                </div>
-            </form>
-        </div>
+        <Container maxWidth="md" sx={{ py: 4 }}>
+            <Button 
+                startIcon={<BackIcon />} 
+                onClick={() => navigate(-1)}
+                sx={{ mb: 2 }}
+            >
+                {t('common.back')}
+            </Button>
+
+            <Paper sx={{ p: 4, borderRadius: 3, boxShadow: 3 }}>
+                <Typography variant="h5" fontWeight="bold" gutterBottom>
+                    {t('quizzes.create_title')}
+                </Typography>
+                <Divider sx={{ my: 2 }} />
+
+                {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
+
+                <Box component="form" onSubmit={handleSubmit}>
+                    <Grid container spacing={3}>
+                        <Grid item xs={12}>
+                            <TextField
+                                label={t('quizzes.form.title')}
+                                fullWidth
+                                required
+                                value={formData.title}
+                                onChange={e => setFormData({...formData, title: e.target.value})}
+                            />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <TextField
+                                label={t('quizzes.form.description')}
+                                fullWidth
+                                multiline
+                                rows={3}
+                                value={formData.description}
+                                onChange={e => setFormData({...formData, description: e.target.value})}
+                            />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                            <TextField
+                                label={t('quizzes.form.time_limit') + ' (' + t('common.minutes') + ')'}
+                                type="number"
+                                fullWidth
+                                value={formData.timeLimitSec / 60}
+                                onChange={e => setFormData({...formData, timeLimitSec: parseInt(e.target.value) * 60})}
+                            />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                            <TextField
+                                label={t('quizzes.form.passing_score') + ' (%)'}
+                                type="number"
+                                inputProps={{ min: 0, max: 100 }}
+                                fullWidth
+                                value={formData.passingScore}
+                                onChange={e => setFormData({...formData, passingScore: parseInt(e.target.value)})}
+                            />
+                        </Grid>
+
+                        <Grid item xs={12} sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+                            <Button onClick={() => navigate(-1)} disabled={loading}>
+                                {t('common.cancel')}
+                            </Button>
+                            <Button 
+                                type="submit" 
+                                variant="contained" 
+                                startIcon={loading ? <CircularProgress size={20} /> : <SaveIcon />}
+                                disabled={loading}
+                            >
+                                {loading ? t('common.saving') : t('common.create')}
+                            </Button>
+                        </Grid>
+                    </Grid>
+                </Box>
+            </Paper>
+        </Container>
     );
 };
 

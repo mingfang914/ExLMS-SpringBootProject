@@ -17,7 +17,8 @@ public class FileController {
 
     @PostMapping("/upload")
     public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file) {
-        // Axios expects the raw string if the frontend parses response.data directly without an object wrapper
+        // Axios expects the raw string if the frontend parses response.data directly
+        // without an object wrapper
         String objectKey = fileService.uploadFile(file);
         return ResponseEntity.ok(objectKey);
     }
@@ -34,14 +35,15 @@ public class FileController {
             @RequestParam(required = false) String fileName) {
         try {
             io.minio.GetObjectResponse response = fileService.downloadFile(fileKey);
-            
+
             org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
             headers.add(org.springframework.http.HttpHeaders.CONTENT_TYPE, response.headers().get("Content-Type"));
-            
+
             if (fileName != null && !fileName.isEmpty()) {
-                headers.add(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"");
+                headers.add(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" + fileName + "\"");
             }
-            
+
             return ResponseEntity.ok()
                     .headers(headers)
                     .body(new org.springframework.core.io.InputStreamResource(response));
@@ -51,7 +53,8 @@ public class FileController {
     }
 
     @PutMapping("/{fileKey}")
-    public ResponseEntity<Map<String, String>> updateFile(@PathVariable String fileKey, @RequestParam("file") MultipartFile file) {
+    public ResponseEntity<Map<String, String>> updateFile(@PathVariable String fileKey,
+            @RequestParam("file") MultipartFile file) {
         String newKey = fileService.updateFile(fileKey, file);
         String url = fileService.getPresignedUrl(newKey);
         return ResponseEntity.ok(Map.of("fileKey", newKey, "url", url));

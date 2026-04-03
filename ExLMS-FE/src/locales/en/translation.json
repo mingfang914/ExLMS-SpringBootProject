@@ -1,0 +1,819 @@
+{
+  "common": {
+    "search": "Search...",
+    "save": "Save",
+    "save_changes": "Save Changes",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "actions": "Actions",
+    "loading": "Loading...",
+    "no_data": "No data",
+    "view_all": "View all",
+    "retry": "Retry",
+    "success": "Success",
+    "error": "Error",
+    "student": "Student",
+    "administrator": "Administrator",
+    "instructor": "Instructor",
+    "change_language": "Change language",
+    "language": "Language",
+    "this_week": "this week",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "next": "Next",
+    "confirm": "Confirm",
+    "back": "Back",
+    "create": "Create",
+    "details": "Details",
+    "close": "Close",
+    "groups": "Groups",
+    "group": "Group",
+    "confirm_delete": "Are you sure you want to delete this?",
+    "language_vi": "Vietnamese",
+    "language_en": "English",
+    "copy": "Copy"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "groups": "Study Groups",
+    "courses": "Courses",
+    "assignments": "Assignments",
+    "forum": "Forum",
+    "calendar": "Calendar",
+    "notifications": "Notifications",
+    "profile": "Profile",
+    "admin": "Admin",
+    "users": "Users",
+    "logout": "Logout",
+    "sections": {
+      "main": "MAIN MENU",
+      "inventory": "PERSONAL LIBRARY",
+      "community": "COMMUNITY",
+      "admin": "ADMINISTRATION"
+    },
+    "courses_repo": "Course Repository",
+    "assignments_repo": "Assignment Repository",
+    "quizzes_repo": "Quiz Bank"
+  },
+  "auth": {
+    "signin": "Sign In",
+    "signup": "Sign Up",
+    "email": "Email Address",
+    "password": "Password",
+    "forgot_password": "Forgot password?",
+    "no_account": "New to ExLMS?",
+    "has_account": "Already have an account?",
+    "create_account": "Create a free account",
+    "fullname": "Full Name",
+    "confirm_password": "Confirm Password",
+    "terms": "Terms of Service",
+    "signin_title": "Welcome back",
+    "signin_subtitle": "Sign in to continue your learning journey",
+    "signup_title": "Create your account",
+    "signup_subtitle": "Start your learning journey with ExLMS",
+    "i_am_a": "I am a",
+    "instructor": "Instructor",
+    "password_hint": "Min. 6 characters",
+    "repeat_password": "Repeat your password",
+    "already_has_account": "Already have an account?",
+    "signin_instead": "Sign In Instead",
+    "agreement": "By continuing, you agree to our",
+    "privacy": "Privacy Policy",
+    "and": "and",
+    "placeholder_password": "Enter your password",
+    "placeholder_password_hint": "Min. 6 characters",
+    "placeholder_repeat_password": "Repeat your password to confirm",
+    "account_created": "Account created! Please sign in.",
+    "passwords_not_match": "Passwords do not match.",
+    "password_too_short": "Password must be at least 6 characters.",
+    "registration_failed": "Registration failed. Please try again.",
+    "login_failed": "Login failed. Please check your credentials."
+  },
+  "landing": {
+    "hero_title": "Elevating Learning & Online Collaboration",
+    "hero_subtitle": "Professional scholarly solutions built for modern students and educators.",
+    "get_started": "Get Started",
+    "explore": "Outstanding Features",
+    "features": {
+      "courses": {
+        "title": "Learning & Lectures",
+        "description": "Smart management of courses, chapters and lessons, tracking progress with AI-driven analytics."
+      },
+      "meetings": {
+        "title": "Interactive Meetings",
+        "description": "Integrated HD video meeting rooms with real-time whiteboarding and group discussion support."
+      },
+      "groups": {
+        "title": "Collaborative Groups",
+        "description": "Private spaces for teams to collaborate, share documents and internal group feeds."
+      },
+      "quizzes": {
+        "title": "Assessments & Quizzes",
+        "description": "Create and take assessments instantly, get immediate feedback and performance scores."
+      },
+      "forum": {
+        "title": "Community Forum",
+        "description": "Vibrant academic community for students to ask questions and share knowledge with educators."
+      },
+      "calendar": {
+        "title": "Smart Calendar",
+        "description": "Organize your schedule scientifically, receiving push notifications for important learning events."
+      }
+    },
+    "about_title": "About ExLMS Project",
+    "about_subtitle": "ExLMS (Extended Learning Management System) is a next-generation learning management platform. Our mission is to bridge the gap between students and knowledge through modern collaborative tools.",
+    "about_description": "All-in-one: From Video Meetings and Document Management to Online Exam Systems, everything is integrated into a sleek and easy-to-use interface.",
+    "copyright": "© {{year}} ExLMS - Elevating Knowledge. Developed by Astatine."
+  },
+  "dashboard": {
+    "welcome": "Welcome back,",
+    "greetings": {
+      "morning": "Good morning",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening"
+    },
+    "description": "You have new notifications and assignments to complete.",
+    "learning_hours": "Learning Hours",
+    "this_week": "This Week",
+    "continue_learning": "Continue Learning",
+    "recent_activity": "Recent Activity",
+    "upcoming_meetings": "Upcoming Meetings",
+    "stats": {
+      "groups": "Groups joined",
+      "courses": "Courses active",
+      "assignments": "Assignments due",
+      "meetings": "Meetings"
+    },
+    "hero_desc": "What do you want to learn today?",
+    "total_learning_time": "Total: {{count}}h",
+    "completion_status": "Completed {{completed}} / {{total}} lessons",
+    "continue_learning_btn": "Continue Learning Now",
+    "view_all": "View All",
+    "activities": {
+      "new_assignment": "A new assignment has been posted in your group.",
+      "course_updated": "React JS course content has just been updated.",
+      "new_replies": "There are 3 new replies on your forum post."
+    }
+  },
+  "header": {
+    "search": "Search anything...",
+    "notifications": "Notifications",
+    "mark_all": "Mark all",
+    "all_caught_up": "All caught up!",
+    "view_all_notifs": "View all notifications",
+    "account": "Account",
+    "settings": "Settings",
+    "mark_as_read": "Mark as read"
+  },
+  "profile": {
+    "title": "My Profile",
+    "subtitle": "Manage your personal information and account settings",
+    "full_name": "Full Name",
+    "full_name_placeholder": "Your full name",
+    "email": "Email Address",
+    "email_hint": "Email cannot be changed",
+    "bio": "Bio / Introduction",
+    "bio_placeholder": "Tell others a bit about yourself, your interests, and what you're learning…",
+    "bio_limit": "{{count}} / 300 characters",
+    "save_changes": "Save Changes",
+    "update_success": "Profile updated successfully!",
+    "update_failed": "Could not save profile.",
+    "avatar_upload": "Upload New Avatar",
+    "avatar_hint": "JPG, PNG or GIF · Max 1MB",
+    "completion": "Profile Completion",
+    "completion_full_name": "Full name added",
+    "completion_bio": "Bio written",
+    "completion_avatar": "Avatar uploaded",
+    "personal_info": "Personal Information"
+  },
+  "groups": {
+    "title": "Study Groups",
+    "subtitle": "Connect, collaborate, and learn together",
+    "refresh": "Refresh",
+    "join_by_code": "Join by Code",
+    "create_group": "Create Group",
+    "search_placeholder": "Search by name or category…",
+    "tabs": {
+      "all": "All Groups",
+      "mine": "My Groups"
+    },
+    "course_status": {
+      "draft": "Draft",
+      "published": "Published",
+      "ended": "Ended",
+      "archived": "Archived"
+    },
+    "assignment_types": {
+      "file": "File Submission",
+      "text": "Text Submission",
+      "mixed": "Mixed"
+    },
+    "quiz_types": {
+      "single_choice": "Single Choice",
+      "multiple_choice": "Multiple Choice",
+      "true_false": "True / False",
+      "fill_blank": "Fill in the Blank"
+    },
+    "count": "{{count}} groups",
+    "no_matching": "No matching groups",
+    "no_groups": "No groups yet",
+    "search_no_results": "No groups match \"{{searchTerm}}\". Try a different search.",
+    "be_first": "Be the first to create a study group!",
+    "clear_search": "Clear Search",
+    "invite": {
+      "dialog_title": "Join with Invite Code",
+      "dialog_desc": "Enter the invite code shared by the group owner to join instantly.",
+      "input_placeholder": "e.g. ABC123",
+      "join_btn": "Join Group"
+    },
+    "errors": {
+      "fetch_failed": "Failed to fetch groups. Please try again later.",
+      "join_failed": "Failed to send join request.",
+      "invalid_code": "Invalid invite code or already joined."
+    },
+    "messages": {
+      "join_default": "I want to join this group.",
+      "join_sent": "Join request sent!",
+      "join_success": "Successfully joined the group!"
+    },
+    "create": {
+      "title": "Create Study Group",
+      "subtitle": "Groups are the core of ExLMS — share courses, organize meetings, and learn together.",
+      "back": "Back to Groups",
+      "name_label": "Group Name",
+      "name_placeholder": "e.g. Advanced Java Programming",
+      "desc_label": "Group Description",
+      "desc_placeholder": "Describe what this group is about, its goals, and who should join…",
+      "visibility_label": "Visibility",
+      "public_title": "Public",
+      "public_desc": "Anyone can find and request to join",
+      "private_title": "Private",
+      "private_desc": "By invite code only",
+      "category_label": "Category / Subject",
+      "category_placeholder": "Select a category",
+      "cover_label": "Cover Image",
+      "upload_btn": "Upload Cover",
+      "upload_success": "✓ Cover image uploaded",
+      "error_name_required": "Group name is required.",
+      "error_failed": "Failed to create group. Please try again."
+    }
+  },
+  "group_card": {
+    "public": "Public",
+    "private": "Private",
+    "no_desc": "No description provided.",
+    "members_count": "{{count}} members",
+    "by_owner": "by {{owner}}",
+    "view": "View",
+    "join": "Join"
+  },
+  "group_detail": {
+    "tabs": {
+      "overview": "Overview",
+      "courses": "Courses",
+      "assignments": "Assignments",
+      "meetings": "Meetings",
+      "feed": "Feed",
+      "members": "Members"
+    },
+    "owner": "Owner",
+    "founder": "Group Founder",
+    "details": "Group Details",
+    "visibility": "Visibility",
+    "created": "Created",
+    "recently": "Recently",
+    "language": "Language",
+    "manage": "Manage",
+    "share": "Share group",
+    "invite_dialog": {
+      "title": "Invite New Member",
+      "desc": "Send this invite code to friends or students to join this group.",
+      "copy": "Copy Code",
+      "close": "Close",
+      "copied": "Code copied!"
+    },
+    "danger_zone": {
+      "title": "Danger Zone (Delete Group)",
+      "desc": "To confirm deletion, please type the group name exactly: ",
+      "delete_btn": "DELETE THIS GROUP PERMANENTLY"
+    },
+    "meetings": {
+      "title": "Online Meetings",
+      "schedule": "Schedule Meeting",
+      "no_meetings": "No meetings scheduled yet.",
+      "live": "LIVE",
+      "view_report": "View Report",
+      "join": "Join",
+      "edit": "Edit Meeting",
+      "delete": "Delete Meeting",
+      "update_success": "Meeting updated!",
+      "update_failed": "Failed to update meeting!",
+      "delete_confirm": "Are you sure you want to delete this meeting?",
+      "delete_success": "Meeting deleted!",
+      "delete_failed": "Failed to delete meeting!",
+      "schedule_success": "Meeting scheduled!",
+      "schedule_failed": "Failed to schedule meeting!",
+      "description": "Description",
+      "start_time": "Start Time",
+      "duration": "Duration (minutes)"
+    },
+    "actions": {
+      "create_course": "Create Course",
+      "learn_now": "Learn Now",
+      "view_all": "View All",
+      "details": "Details",
+      "see_all_assignments": "See all {{count}} assignments"
+    },
+    "messages": {
+      "update_success": "Information updated successfully!"
+    },
+    "errors": {
+      "update_failed": "Update failed!"
+    }
+  },
+  "course_editor": {
+    "title_edit": "Edit Course",
+    "title_new": "Create New Course",
+    "create_subtitle": "Add a new course to your study group to start teaching.",
+    "course_info": "Course Information",
+    "course_name_label": "Course Name *",
+    "course_name_placeholder": "e.g. Introduction to Spring Boot",
+    "course_desc_label": "Description",
+    "course_desc_placeholder": "Describe what students will learn...",
+    "thumbnail_label": "Course Thumbnail",
+    "select_thumbnail": "Select Thumbnail",
+    "start_date_label": "Start Date",
+    "end_date_label": "End Date",
+    "status_label": "Status",
+    "status": {
+      "draft": "Draft",
+      "published": "Published",
+      "archived": "Archived"
+    },
+    "status_draft_hint": "Draft (Only you can see it)",
+    "status_published_hint": "Published (Available to all members)",
+    "save_course": "Save Course",
+    "creating": "Creating...",
+    "chapter_list": "Chapters ({{count}})",
+    "add_chapter": "Add Chapter",
+    "chapter_new_title": "New Chapter",
+    "chapter_name_label": "Chapter Name",
+    "lessons_in_chapter": "Lessons in Chapter",
+    "lesson_new_title": "New Lesson",
+    "lesson_name_label": "Lesson Name",
+    "add_lesson": "Add Lesson",
+    "add_quiz": "Create Quiz",
+    "quiz_label": "Quiz",
+    "quiz_desc": "{{time}} • {{count}} attempts",
+    "no_limit": "No limit",
+    "seconds": "seconds",
+    "no_content": "No content yet. Start by adding a chapter or quiz!",
+    "loading_editor": "Loading editor...",
+    "editor_placeholder": "Enter lesson content (Supports formatting, Video, Images)...",
+    "messages": {
+      "course_saved": "Course saved!",
+      "chapter_deleted": "Chapter deleted!",
+      "chapter_saved": "Chapter saved!",
+      "lesson_deleted": "Lesson deleted!",
+      "lesson_saved": "Lesson saved!",
+      "save_course_before_chapter": "Please save the course first!"
+    },
+    "errors": {
+      "save_course_failed": "Error saving course",
+      "create_chapter_failed": "Error creating chapter",
+      "delete_chapter_failed": "Error deleting chapter",
+      "save_chapter_failed": "Error saving chapter",
+      "create_lesson_failed": "Error creating lesson",
+      "delete_lesson_failed": "Error deleting lesson",
+      "save_lesson_failed": "Error saving lesson"
+    }
+  },
+  "group_course_detail": {
+    "enroll_success": "Successfully enrolled in the course!",
+    "enroll_failed": "Could not enroll in the course.",
+    "enroll_btn": "Enroll Now",
+    "mark_complete_btn": "Complete",
+    "mark_complete_failed": "Failed to mark lesson as complete.",
+    "download_file": "Download File",
+    "no_content": "No content provided.",
+    "not_found": "Course not found.",
+    "progress": "Progress: {{percent}}%",
+    "take_quiz": "Start Quiz →",
+    "quiz_requirement": "You need to <strong>enroll in the course</strong> to take this quiz.",
+    "enroll_to_take": "Enroll and take quiz now",
+    "chapter_title": "Chapter {{idx}}: {{title}}",
+    "lessons_list_placeholder": "Select a lesson from the list on the left to start learning"
+  },
+  "forum": {
+    "title": "Community Forum",
+    "subtitle": "Ask questions, share ideas, and help each other",
+    "new_post": "New Post",
+    "placeholder_search": "Search posts by title or content...",
+    "filtered_by": "Filtered by:",
+    "no_posts_found": "No posts found",
+    "no_posts_desc": "Be the first to start a discussion!",
+    "views": "views",
+    "browse_tags": "Browse Tags",
+    "guidelines_title": "Community Guidelines",
+    "accepted": "Accepted",
+    "reply": "Reply",
+    "accept": "Accept",
+    "comments": "Comments",
+    "replying_to": "Replying to",
+    "placeholder_comment": "Share your thoughts...",
+    "send_comment": "Send Comment",
+    "no_comments_yet": "No comments yet. Be the first to comment!",
+    "delete_post": "Delete Post",
+    "confirm_delete": "Are you sure you want to delete this post?",
+    "guidelines": {
+      "rule1": "Respect and help each other",
+      "rule2": "No spam or unauthorized promotion",
+      "rule3": "Use accurate tags for searchability",
+      "rule4": "Constructive and relevant discussions"
+    },
+    "back_to_forum": "Back to Forum",
+    "new_discussion": "New Discussion Post",
+    "edit_post": "Edit Post",
+    "create_subtitle": "Ask a question or share knowledge with the community",
+    "edit_subtitle": "Update your post content and tags",
+    "post_title_label": "Post Title *",
+    "post_title_placeholder": "e.g. How to configure Spring Security with JWT?",
+    "tags_label": "Tags",
+    "tags_hint": "Press Enter or comma to add (max 5)",
+    "tags_placeholder": "java, spring-boot, security…",
+    "tags_max_reached": "Maximum 5 tags reached",
+    "post_content_label": "Post Content *",
+    "post_content_placeholder": "Write your question or discussion in detail…",
+    "publish_post": "Publish Post",
+    "errors": {
+      "load_failed": "Failed to load posts",
+      "load_post_failed": "Failed to load post.",
+      "post_not_found": "Post does not exist.",
+      "title_content_required": "Title and content are required.",
+      "save_failed": "An error occurred while saving the post."
+    }
+  },
+  "calendar": {
+    "title": "Calendar",
+    "subtitle": "Manage your learning schedule, assignments, and meetings.",
+    "event_types": {
+      "meeting": "Meeting",
+      "assignment": "Assignment Due",
+      "quiz": "Quiz",
+      "course_start": "Course Start",
+      "course_end": "Course End",
+      "course_session": "Course Session",
+      "personal": "Personal",
+      "system": "System",
+      "group_event": "Group Event"
+    },
+    "sync_text": "Sync",
+    "syncing_text": "Syncing...",
+    "sync_desc": "Sync all assignments to calendar",
+    "views": {
+      "month": "Month",
+      "week": "Week",
+      "day": "Day",
+      "list": "List"
+    },
+    "event_dialog": {
+      "time_details": "Time Details",
+      "starts": "Starts",
+      "ends": "Ends",
+      "goto_event": "Go to Event"
+    }
+  },
+  "course_detail": {
+    "content": "Course Content",
+    "lessons_count": "{{count}} / {{total}} lessons",
+    "quiz_ready": "Ready to test your knowledge?",
+    "start_quiz": "Start Quiz",
+    "video_content": "Video content",
+    "doc_content": "Document content",
+    "select_to_begin": "Select a lesson to begin",
+    "focus_mode": "Focus Mode",
+    "no_desc": "No description provided for this lesson.",
+    "errors": {
+      "load_failed": "Could not load course data."
+    }
+  },
+  "assignments": {
+    "due": "Due",
+    "type": "Type",
+    "type_file": "File submission",
+    "type_text": "Text submission",
+    "max_score": "Max Score",
+    "status": {
+      "closed": "Closed",
+      "draft": "Draft",
+      "expired": "Expired",
+      "open": "Open"
+    },
+    "no_assignments_instructor": "No assignments yet. Create your first one!",
+    "no_assignments_student": "There are no assignments yet.",
+    "actions": {
+      "grade": "View & Grade"
+    },
+    "errors": {
+      "fetch_failed": "Could not load assignments",
+      "load_failed": "Could not load assignment details",
+      "not_found": "Assignment information not found"
+    }
+  },
+  "assignment_detail": {
+    "allow_late": "Allow late submission",
+    "penalty": "Penalty",
+    "export_excel": "Export Excel",
+    "instructions": "Instructions",
+    "submission_list": "Submission List",
+    "student": "Student",
+    "submitted_at": "Submitted At",
+    "attempt": "Attempt",
+    "attempt_no": "Attempt {{count}}",
+    "status": "Status",
+    "score": "Score",
+    "late": "Late",
+    "on_time": "On Time",
+    "graded": "Graded",
+    "awaiting_grade": "Awaiting Grade",
+    "your_submission": "Your Submission",
+    "text_content": "Text Content",
+    "enter_answer": "Enter your answer...",
+    "attachments": "Attachments",
+    "choose_file": "Choose file",
+    "file_size": "File Size",
+    "submitting": "Submitting...",
+    "update_btn": "Update Submission",
+    "submit_btn": "Submit Assignment",
+    "submission_history": "Submission History",
+    "feedback": "Feedback",
+    "grading_title": "Grade Submission",
+    "student_submission": "Student Submission",
+    "score_label": "Score",
+    "feedback_label": "Feedback / Comments",
+    "cancel_dialog_title": "Confirm Cancel Submission",
+    "cancel_confirm_message": "Are you sure you want to cancel this submission? This action cannot be undone.",
+    "actions": {
+      "grade": "Grade",
+      "download_file": "Download File",
+      "submit_grade": "Submit Grade",
+      "preview_file": "Preview File"
+    },
+    "messages": {
+      "update_success": "Submission updated successfully!",
+      "submit_success": "Assignment submitted successfully!",
+      "cancel_success": "Submission cancelled!",
+      "grade_success": "Grade saved successfully!"
+    },
+    "errors": {
+      "submit_failed": "Error submitting assignment",
+      "cancel_failed": "Could not cancel submission",
+      "grade_failed": "Error grading submission",
+      "export_failed": "Error exporting Excel file",
+      "invalid_score": "Score must be between 0 and {{max}}"
+    },
+    "dialog": {
+      "grade_title": "Grade Submission",
+      "preview_title": "Submission Preview"
+    },
+    "submission_content": "Submission Content",
+    "max_possible": "Max Possible Score",
+    "both": "Both"
+  },
+  "assignment_form": {
+    "title_new": "Create New Assignment",
+    "title_edit": "Edit Assignment",
+    "title_label": "Assignment Title",
+    "desc_placeholder": "Enter detailed instructions for this assignment...",
+    "assigned_at_label": "Assignment Date",
+    "advanced_config": "Advanced Configuration",
+    "file_types_label": "Allowed Formats",
+    "max_file_size_label": "Max File Size (MB)",
+    "penalty_label": "Late Penalty Percentage",
+    "saving": "Saving...",
+    "example": "Example",
+    "errors": {
+      "load_failed": "Could not load assignment information",
+      "invalid_dates": "Due date must be after assignment date",
+      "save_failed": "An error occurred while saving the assignment"
+    },
+    "messages": {
+      "update_success": "Assignment updated successfully!",
+      "create_success": "Assignment created successfully!"
+    }
+  },
+  "admin": {
+    "dashboard_title": "Admin Dashboard",
+    "dashboard_subtitle": "Platform overview and management tools",
+    "manage": "Manage",
+    "quick_actions": "Quick Actions",
+    "stats": {
+      "total_users": "Total Users",
+      "total_groups": "Study Groups",
+      "total_courses": "Total Courses",
+      "total_assignments": "Due Assignments"
+    },
+    "actions": {
+      "manage_users": "Manage Users"
+    },
+    "users": {
+      "title": "User Management",
+      "count": "{{count}} registered users",
+      "export_excel": "Export Excel",
+      "search_placeholder": "Search by name or email...",
+      "table": {
+        "user": "User",
+        "email": "Email",
+        "role": "Role",
+        "status": "Status",
+        "joined": "Joined"
+      },
+      "roles": {
+        "admin": "Admin",
+        "instructor": "Instructor",
+        "student": "Student"
+      },
+      "status": {
+        "active": "Active",
+        "pending": "Pending",
+        "suspended": "Suspended"
+      },
+      "actions": {
+        "activate": "Activate",
+        "suspend": "Suspend",
+        "change_role": "Change Role"
+      },
+      "dialogs": {
+        "role_title": "Change User Role",
+        "role_desc": "Select a new role for",
+        "status_title": "Confirm Status Change",
+        "status_desc1": "Are you sure you want to change the status of",
+        "status_desc2": "to"
+      },
+      "messages": {
+        "status_success": "Status updated successfully!",
+        "role_success": "Role updated successfully!"
+      },
+      "errors": {
+        "load_failed": "Failed to load users",
+        "update_failed": "Failed to update",
+        "export_failed": "Failed to export",
+        "no_users_found": "No users found"
+      }
+    }
+  },
+  "notifications": {
+    "just_now": "just now",
+    "mins_ago": "{{count}}m ago",
+    "hrs_ago": "{{count}}h ago",
+    "days_ago": "{{count}}d ago"
+  },
+  "quizzes": {
+    "list_title": "Quiz List",
+    "create_title": "Create New Quiz",
+    "edit_title": "Edit Quiz",
+    "create_btn": "Create Quiz",
+    "update_btn": "Update Quiz",
+    "take_quiz": "Take Quiz",
+    "submit_btn": "Submit Quiz",
+    "question": "Question",
+    "question_no": "Question {{count}}",
+    "no_quizzes": "No quizzes available.",
+    "no_limit": "No limit",
+    "config": "Quiz Configuration",
+    "title_label": "Quiz Title *",
+    "desc_label": "Description",
+    "time_limit_label": "Time Limit (seconds, empty = unlimited)",
+    "max_attempts_label": "Max Attempts",
+    "passing_score_label": "Passing Score (%)",
+    "shuffle_questions_label": "Shuffle question order",
+    "visibility_label": "Result Visibility",
+    "visibility": {
+      "immediate": "Immediately after submission",
+      "after_deadline": "After deadline",
+      "manual": "Manual (Instructor opens)"
+    },
+    "add_question": "Add Question",
+    "question_content_label": "Question Content *",
+    "question_type_label": "Question Type",
+    "points_label": "Points",
+    "delete_question": "Delete Question",
+    "answers_label": "Answers (select correct one by clicking ✓):",
+    "placeholder_answer": "Answer {{count}}",
+    "enter_question_placeholder": "Enter question content...",
+    "add_answer": "Add Answer",
+    "explanation_label": "Explanation (shown after submission)",
+    "types": {
+      "single": "Single Choice",
+      "multiple": "Multiple Choice",
+      "true_false": "True / False",
+      "fill_blank": "Fill in the Blank",
+      "short_answer": "Short Answer",
+      "correct_answer": "Correct Answer",
+      "true": "True",
+      "false": "False",
+      "enter_correct": "Enter correct answer..."
+    },
+    "short_answer_hint": "Short answer — instructor grades manually. No sample answer needed.",
+    "player": {
+      "points": "{{count}} points",
+      "current_question": "Question {{current}} / {{total}}",
+      "answered": "Answered: {{answered}}/{{total}}",
+      "prev_btn": "Previous",
+      "next_btn": "Next",
+      "submit_btn": "Submit ({{answered}}/{{total}})",
+      "finish_btn": "Finish & Submit",
+      "confirm_title": "Confirm Submission",
+      "confirm_desc": "You have answered <strong>{{count}}/{{total}}</strong> questions.",
+      "warning_unanswered": "{{count}} questions remaining. You cannot edit after submitting.",
+      "back_to_quiz": "Back to Quiz",
+      "confirm_submit_btn": "Confirm Submission",
+      "submitting": "Submitting...",
+      "no_questions": "This quiz has no questions yet.",
+      "start_failed": "Could not start quiz.",
+      "fill_blank_placeholder": "Fill in the blank...",
+      "short_answer_placeholder": "Write your answer..."
+    },
+    "result": {
+      "title_passed": "Congratulations! You passed",
+      "title_failed": "Sorry! You did not pass",
+      "score_needed": "Passing score: {{score}}%",
+      "details_title": "Submission Details",
+      "question_no": "Question {{count}}: {{content}}",
+      "your_answer": "Your answer:",
+      "empty_answer": "(Empty)",
+      "explanation_title": "Explanation:",
+      "back_to_course": "Back to Course",
+      "exit": "Exit",
+      "not_found": "Result not found.",
+      "load_failed": "Could not load quiz result"
+    },
+    "stats": {
+      "breadcrumb_edit": "Edit",
+      "title": "Quiz Statistics: {{title}}",
+      "total_attempts": "Total Attempts",
+      "avg_score": "Average Score",
+      "pass_rate": "Pass Rate",
+      "avg_time": "Average Time",
+      "distribution_title": "Score Distribution",
+      "attempts_unit": "attempts",
+      "wrong_questions_title": "Most Missed Questions",
+      "wrong_unit": "{{count}} missed ({{percent}}%)",
+      "updating": "Updating stats...",
+      "no_attempts": "No attempts yet.",
+      "load_failed": "Failed to load quiz statistics."
+    },
+    "messages": {
+      "create_success": "Quiz created successfully!",
+      "update_success": "Quiz updated successfully!",
+      "load_failed": "Failed to load quiz data",
+      "enter_title": "Please enter quiz title",
+      "submit_failed": "Submission failed"
+    },
+    "errors": {
+      "save_failed": "Error {{action}} quiz",
+      "create_action": "creating",
+      "update_action": "updating"
+    },
+    "table": {
+      "title": "Title",
+      "time_limit": "Time Limit",
+      "passing_score": "Passing Score",
+      "actions": "Actions"
+    }
+  },
+  "meetings": {
+    "leave_room": "Leave Room",
+    "live": "LIVE",
+    "end_meeting": "End Meeting",
+    "connecting": "Connecting to meeting room...",
+    "ended_by_instructor": "The meeting was ended by the instructor.",
+    "already_voted": "You have already voted!",
+    "poll_form_error": "Please fill in the question and all options.",
+    "joined_at": "Joined at:",
+    "left": "Left ({{count}} min)",
+    "joining": "Joining",
+    "instructor_only_attendance": "Only instructors can view the detailed attendance list.",
+    "you": "You",
+    "answered_by": "Answered by {{name}}:",
+    "answer": "Answer",
+    "no_questions": "No questions yet. Be the first to ask!",
+    "ask_question": "Ask a question...",
+    "create_poll": "Create new poll",
+    "answer_question_dialog": "Answer Question",
+    "answer_label": "Your Answer",
+    "send_answer": "Send Answer",
+    "create_poll_dialog": "Create New Poll",
+    "poll_question_label": "Poll Question",
+    "options_label": "Options:",
+    "option_placeholder": "Option {{count}}",
+    "add_option": "Add Option",
+    "create_poll_btn": "Create Poll",
+    "tabs": {
+      "members": "Members",
+      "qa": "Q&A",
+      "polls": "Polls"
+    }
+  }
+}

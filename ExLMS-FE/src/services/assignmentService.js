@@ -1,84 +1,86 @@
 import api from './api'
 
 const assignmentService = {
+  createAssignment: (groupId, data) => api.post(`/v1/groups/${groupId}/assignments`, data),
   getAssignmentsByGroup: async (groupId) => {
     const response = await api.get(`/v1/groups/${groupId}/assignments`)
     return response.data
   },
-
-  getAssignmentsByCourse: async (courseId) => {
-    const response = await api.get(`/v1/courses/${courseId}/assignments`)
+  getAssignmentById: async (id) => {
+    const response = await api.get(`/v1/assignments/${id}`)
+    return response.data
+  },
+  updateAssignment: async (id, data) => {
+    const response = await api.put(`/v1/assignments/${id}`, data)
+    return response.data
+  },
+  deleteAssignment: async (id) => {
+    const response = await api.delete(`/v1/assignments/${id}`)
     return response.data
   },
 
-  getAssignmentById: async (assignmentId) => {
-    const response = await api.get(`/v1/assignments/${assignmentId}`)
+  // ── Inventory & Deployment ──────────────────────────────────────────────────
+  getInventory: async () => {
+    const response = await api.get('/v1/inventory/assignments')
     return response.data
   },
 
-  createAssignment: async (groupId, assignmentData) => {
-    const response = await api.post(`/v1/groups/${groupId}/assignments`, assignmentData)
+  getTemplateById: async (id) => {
+    const response = await api.get(`/v1/inventory/assignments/${id}`)
     return response.data
   },
 
-  updateAssignment: async (assignmentId, assignmentData) => {
-    const response = await api.put(`/v1/assignments/${assignmentId}`, assignmentData)
+  createTemplate: async (assignmentData) => {
+    const response = await api.post('/v1/inventory/assignments', assignmentData);
+    return response.data;
+  },
+
+  updateTemplate: async (id, assignmentData) => {
+    const response = await api.put(`/v1/inventory/assignments/${id}`, assignmentData);
+    return response.data;
+  },
+
+  deleteTemplate: async (id) => {
+    const response = await api.delete(`/v1/inventory/assignments/${id}`)
     return response.data
   },
 
-  deleteAssignment: async (assignmentId) => {
-    const response = await api.delete(`/v1/assignments/${assignmentId}`)
+  deployToGroup: async (groupId, templateIds, config) => {
+    const response = await api.post(`/v1/inventory/assignments/deploy/${groupId}`, { templateIds, deploymentConfig: config })
     return response.data
   },
 
-  submitAssignment: async (assignmentId, formData) => {
-    const response = await api.post(`/v1/assignments/${assignmentId}/submit`, formData, {
+  // ── Submissions ─────────────────────────────────────────────────────────────
+  submitAssignment: async (id, formData) => {
+    const response = await api.post(`/v1/assignments/${id}/submit`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
     return response.data
   },
-
-  getMySubmissions: async (assignmentId) => {
-    const response = await api.get(`/v1/assignments/${assignmentId}/my-submissions`)
+  getMySubmissions: async (id) => {
+    const response = await api.get(`/v1/assignments/${id}/my-submissions`)
     return response.data
   },
-
-  updateSubmission: async (submissionId, formData) => {
-    const response = await api.put(`/v1/submissions/${submissionId}`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    })
+  getAllSubmissions: async (id) => {
+    const response = await api.get(`/v1/assignments/${id}/submissions`)
     return response.data
   },
-
-  deleteSubmission: async (submissionId) => {
-    const response = await api.delete(`/v1/submissions/${submissionId}`)
-    return response.data
-  },
-
-  getSubmissionDetails: async (submissionId) => {
-    const response = await api.get(`/v1/submissions/${submissionId}`)
-    return response.data
-  },
-
-  getAllSubmissions: async (assignmentId) => {
-    const response = await api.get(`/v1/assignments/${assignmentId}/submissions`)
-    return response.data
-  },
-
   gradeSubmission: async (submissionId, gradeData) => {
     const response = await api.post(`/v1/submissions/${submissionId}/grade`, gradeData)
     return response.data
   },
-
-  bulkGrade: async (assignmentId, scoresMap) => {
-    const response = await api.post(`/v1/assignments/${assignmentId}/bulk-grade`, scoresMap)
+  updateSubmission: async (id, formData) => {
+    const response = await api.put(`/v1/submissions/${id}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
     return response.data
   },
-
-  exportGrades: async (assignmentId) => {
-    const response = await api.get(`/v1/assignments/${assignmentId}/export-grades`, {
-      responseType: 'blob'
-    })
+  deleteSubmission: async (id) => {
+    const response = await api.delete(`/v1/submissions/${id}`)
+    return response.data
+  },
+  exportGrades: async (id) => {
+    const response = await api.get(`/v1/assignments/${id}/export-grades`, { responseType: 'blob' })
     return response.data
   }
 }

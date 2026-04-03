@@ -46,10 +46,12 @@ import {
 import CKEditorWrapper from '../../../components/Common/CKEditorWrapper'
 import groupFeedService from '../../../services/groupFeedService'
 import { formatDistanceToNow } from 'date-fns'
-import { vi } from 'date-fns/locale'
+import { vi, enUS } from 'date-fns/locale'
+import { useTranslation } from 'react-i18next'
 import { motion, AnimatePresence } from 'framer-motion'
 
 const GroupFeed = ({ groupId, currentUserRole, groupCourses = [], groupAssignments = [], groupMeetings = [] }) => {
+  const { t, i18n } = useTranslation()
   const [posts, setPosts] = useState([])
   const [loading, setLoading] = useState(true)
   const [filterType, setFilterType] = useState('')
@@ -103,17 +105,17 @@ const GroupFeed = ({ groupId, currentUserRole, groupCourses = [], groupAssignmen
       setLinkedEntity(null)
       setIsCreating(false)
     } catch (err) {
-      alert('Lỗi khi đăng bài!')
+      alert(t('common.error'))
     }
   }
 
   const handleDeletePost = async (postId) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa bài viết này?')) {
+    if (window.confirm(t('common.confirm_delete'))) {
       try {
         await groupFeedService.deletePost(groupId, postId)
         setPosts(posts.filter(p => p.id !== postId))
       } catch (err) {
-        alert('Lỗi khi xóa bài viết!')
+        alert(t('common.error'))
       }
     }
   }
@@ -123,7 +125,7 @@ const GroupFeed = ({ groupId, currentUserRole, groupCourses = [], groupAssignmen
       await groupFeedService.togglePinPost(groupId, postId)
       setPosts(posts.map(p => p.id === postId ? { ...p, pinned: !p.pinned } : p))
     } catch (err) {
-      alert('Lỗi khi ghim bài viết!')
+      alert(t('common.error'))
     }
   }
 
@@ -150,16 +152,16 @@ const GroupFeed = ({ groupId, currentUserRole, groupCourses = [], groupAssignmen
   const getAvatarUrl = (key) => key ? `/api/files/download/${key}` : null
 
   const formatDate = (dateInput) => {
-    if (!dateInput) return 'Vừa xong'
+    const locale = i18n.language === 'vi' ? vi : enUS
+    if (!dateInput) return t('forum.time_just_now')
     try {
-      // Handle array format if backend returns [y, m, d, h, m, s]
       if (Array.isArray(dateInput)) {
         const [y, mon, d, h, min, s] = dateInput
-        return formatDistanceToNow(new Date(y, mon - 1, d, h, min, s), { addSuffix: true, locale: vi })
+        return formatDistanceToNow(new Date(y, mon - 1, d, h, min, s), { addSuffix: true, locale })
       }
-      return formatDistanceToNow(new Date(dateInput), { addSuffix: true, locale: vi })
+      return formatDistanceToNow(new Date(dateInput), { addSuffix: true, locale })
     } catch (err) {
-      return 'Vừa xong'
+      return t('forum.time_just_now')
     }
   }
 
@@ -168,34 +170,34 @@ const GroupFeed = ({ groupId, currentUserRole, groupCourses = [], groupAssignmen
       {/* Category Filters */}
       <Stack direction="row" spacing={1} sx={{ mb: 3, overflowX: 'auto', pb: 1 }}>
         <Chip 
-          label="Tất cả" 
+          label={t('common.all')} 
           onClick={() => setFilterType('')} 
           color={filterType === '' ? 'primary' : 'default'} 
           variant={filterType === '' ? 'filled' : 'outlined'}
         />
         <Chip 
-          label="Khóa học" 
+          label={t('group_detail.tabs.courses')} 
           onClick={() => setFilterType('COURSE')} 
           color={filterType === 'COURSE' ? 'primary' : 'default'}
           variant={filterType === 'COURSE' ? 'filled' : 'outlined'}
           icon={<CourseIcon />}
         />
         <Chip 
-          label="Bài tập" 
+          label={t('group_detail.tabs.assignments')} 
           onClick={() => setFilterType('ASSIGNMENT')} 
           color={filterType === 'ASSIGNMENT' ? 'primary' : 'default'}
           variant={filterType === 'ASSIGNMENT' ? 'filled' : 'outlined'}
           icon={<AssignmentIcon />}
         />
         <Chip 
-          label="Buổi họp" 
+          label={t('group_detail.tabs.meetings')} 
           onClick={() => setFilterType('MEETING')} 
           color={filterType === 'MEETING' ? 'primary' : 'default'}
           variant={filterType === 'MEETING' ? 'filled' : 'outlined'}
           icon={<MeetingIcon />}
         />
         <Chip 
-          label="Ghim" 
+          label={t('forum.pinned')} 
           onClick={() => setFilterType('NOTICE')} 
           color={filterType === 'NOTICE' ? 'primary' : 'default'}
           variant={filterType === 'NOTICE' ? 'filled' : 'outlined'}
@@ -220,7 +222,7 @@ const GroupFeed = ({ groupId, currentUserRole, groupCourses = [], groupAssignmen
                 '&:hover': { bgcolor: 'grey.200' }
               }}
             >
-              <Typography color="text.secondary">Bạn đang nghĩ gì...</Typography>
+              <Typography color="text.secondary">{t('forum.placeholder')}</Typography>
             </Box>
           </Box>
         ) : (
@@ -255,8 +257,8 @@ const GroupFeed = ({ groupId, currentUserRole, groupCourses = [], groupAssignmen
                 Gắn liên kết
               </Button>
               <Box sx={{ display: 'flex', gap: 1 }}>
-                <Button onClick={() => setIsCreating(false)}>Hủy</Button>
-                <Button variant="contained" onClick={handleCreatePost} disabled={!newPostContent.trim()}>Đăng bài</Button>
+                <Button onClick={() => setIsCreating(false)}>{t('common.cancel')}</Button>
+                <Button variant="contained" onClick={handleCreatePost} disabled={!newPostContent.trim()}>{t('common.create')}</Button>
               </Box>
             </Box>
           </Box>
@@ -269,7 +271,7 @@ const GroupFeed = ({ groupId, currentUserRole, groupCourses = [], groupAssignmen
           <Box sx={{ textAlign: 'center', py: 5 }}><CircularProgress /></Box>
         ) : posts.length === 0 ? (
           <Paper sx={{ p: 5, textAlign: 'center', borderRadius: 3 }}>
-            <Typography color="text.secondary">Chưa có bài viết nào trong mục này.</Typography>
+            <Typography color="text.secondary">{t('forum.no_posts')}</Typography>
           </Paper>
         ) : (
           posts.map((post) => (
@@ -292,7 +294,7 @@ const GroupFeed = ({ groupId, currentUserRole, groupCourses = [], groupAssignmen
 
       {hasMore && !loading && (
         <Box sx={{ textAlign: 'center', mt: 2 }}>
-          <Button onClick={() => fetchPosts()}>Tải thêm</Button>
+          <Button onClick={() => fetchPosts()}>{t('common.load_more')}</Button>
         </Box>
       )}
 
@@ -339,6 +341,7 @@ const GroupFeed = ({ groupId, currentUserRole, groupCourses = [], groupAssignmen
 }
 
 const PostItem = ({ post, currentUser, currentUserRole, onDelete, onTogglePin, onToggleReaction, groupId, formatDate, setPosts, posts }) => {
+  const { t } = useTranslation()
   const [comments, setComments] = useState([])
   const [showComments, setShowComments] = useState(false)
   const [newComment, setNewComment] = useState('')
@@ -552,10 +555,10 @@ const PostItem = ({ post, currentUser, currentUserRole, onDelete, onTogglePin, o
               startIcon={post.reactionCount > 0 ? <ThumbUpIcon color="primary" /> : <ThumbUpOutlinedIcon />}
               onClick={() => onToggleReaction(post.id)}
             >
-              {post.reactionCount || 'Thích'}
+              {post.reactionCount || t('forum.actions.like')}
             </Button>
             <Button size="small" startIcon={<CommentIcon />} onClick={handleFetchComments}>
-              {post.commentCount || 'Bình luận'}
+              {post.commentCount || t('forum.actions.comment')}
             </Button>
           </Box>
         </Box>

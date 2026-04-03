@@ -18,26 +18,28 @@ public class MeetingResponseDTO {
     private String title;
     private String description;
     private UUID groupId;
-    private Meeting.MeetingType meetingType;
     private String platform;
     private String joinUrl;
     private LocalDateTime startAt;
+    private LocalDateTime endAt;
     private int durationMinutes;
     private Meeting.MeetingStatus status;
     private String currentUserRole;
 
     public static MeetingResponseDTO fromEntity(Meeting meeting) {
-        return MeetingResponseDTO.builder()
-                .id(meeting.getId())
-                .title(meeting.getTitle())
-                .description(meeting.getDescription())
-                .groupId(meeting.getGroup().getId())
-                .meetingType(meeting.getMeetingType())
-                .platform(meeting.getPlatform())
-                .joinUrl(meeting.getJoinUrl())
-                .startAt(meeting.getStartAt())
-                .durationMinutes(meeting.getDurationMinutes())
-                .status(meeting.getStatus())
-                .build();
+        MeetingResponseDTO dto = new MeetingResponseDTO();
+        dto.setId(meeting.getId());
+        dto.setTitle(meeting.getTitle());
+        dto.setDescription(meeting.getDescription());
+        dto.setGroupId(meeting.getGroup().getId());
+        dto.setPlatform(meeting.getPlatform());
+        dto.setJoinUrl(meeting.getJoinUrl());
+        dto.setStartAt(meeting.getStartAt());
+        dto.setEndAt(meeting.getEndAt());
+        if (meeting.getStartAt() != null && meeting.getEndAt() != null) {
+            dto.setDurationMinutes((int) java.time.Duration.between(meeting.getStartAt(), meeting.getEndAt()).toMinutes());
+        }
+        dto.setStatus(meeting.getStatus());
+        return dto;
     }
 }

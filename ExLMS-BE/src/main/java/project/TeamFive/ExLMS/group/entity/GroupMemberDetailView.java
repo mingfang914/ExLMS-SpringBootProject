@@ -4,15 +4,19 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.Getter;
+import lombok.*;
 import org.hibernate.annotations.Immutable;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Immutable // Cực kỳ quan trọng: Báo cho Hibernate biết đây là View, cấm thao tác INSERT/UPDATE
+@Immutable
 @Table(name = "v_group_members_detail")
 @Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class GroupMemberDetailView {
 
     // Trong View không có ID riêng, ta mượn user_id làm ID tạm để Hibernate không báo lỗi

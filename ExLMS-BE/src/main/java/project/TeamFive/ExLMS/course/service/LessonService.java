@@ -24,19 +24,29 @@ public class LessonService {
     private final CourseEnrollmentRepository enrollmentRepository;
     private final LessonProgressRepository progressRepository;
     private final GroupMemberRepository groupMemberRepository;
+    private final GroupCourseRepository groupCourseRepository;
 
     private void requireInstructorRole(CourseChapter chapter, User user) {
-        var member = groupMemberRepository.findByGroup_IdAndUser_Id(
-                chapter.getCourse().getGroup().getId(), user.getId())
-                .orElseThrow(() -> new RuntimeException("Bạn không phải thành viên nhóm!"));
-        if (!"OWNER".equals(member.getRole()) && !"EDITOR".equals(member.getRole())) {
-            throw new RuntimeException("Chỉ OWNER/EDITOR mới được quản lý bài học!");
+        // Find if this course template is deployed in any group where the user is an instructor
+        List<GroupCourse> deployments = groupCourseRepository.findByCourse_Id(chapter.getCourse().getId());
+        
+        boolean isInstructor = false;
+        for (GroupCourse deployment : deployments) {
+            var member = groupMemberRepository.findByGroup_IdAndUser_Id(deployment.getGroup().getId(), user.getId());
+            if (member.isPresent() && ("OWNER".equals(member.get().getRole()) || "EDITOR".equals(member.get().getRole()))) {
+                isInstructor = true;
+                break;
+            }
+        }
+
+        if (!isInstructor && !chapter.getCourse().getCreatedBy().getId().equals(user.getId())) {
+             throw new RuntimeException("Bạn không có quyền quản lý nội dung của khóa học này!");
         }
     }
 
     @Transactional
     public LessonResponse createLesson(UUID chapterId, String title,
-            String contentType, String content, String resourceKey, Integer durationSeconds) {
+            String content, String resourceKey, Integer durationSeconds) {
         User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         CourseChapter chapter = chapterRepository.findById(chapterId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy chương học!"));
@@ -50,7 +60,7 @@ public class LessonService {
                 .contentType(CourseLesson.ContentType.DOCUMENT)
                 .content(content)
                 .resourceKey(resourceKey)
-                .durationSeconds(durationSeconds)
+                .durationSeconds(durationSeconds != null ? durationSeconds : 0)
                 .orderIndex(nextOrder)
                 .build();
         return mapToResponse(lessonRepository.save(lesson));
@@ -89,19 +99,28 @@ public class LessonService {
         return "Đã xóa bài học!";
     }
 
-    /**
-     * Đánh dấu bài học hoàn thành + tính lại progress_percent của enrollment
-     */
     @Transactional
     public String markLessonComplete(UUID lessonId) {
         User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         CourseLesson lesson = lessonRepository.findById(lessonId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bài học!"));
 
-        UUID courseId = lesson.getChapter().getCourse().getId();
-        CourseEnrollment enrollment = enrollmentRepository
-                .findByCourse_IdAndUser_Id(courseId, currentUser.getId())
-                .orElseThrow(() -> new RuntimeException("Bạn chưa đăng ký khóa học này!"));
+        Course template = lesson.getChapter().getCourse();
+        
+        // Find if user is enrolled in any deployment of this course
+        CourseEnrollment enrollment = null;
+        List<GroupCourse> deployments = groupCourseRepository.findByCourse_Id(template.getId());
+        for (GroupCourse deployment : deployments) {
+            var e = enrollmentRepository.findByGroupCourse_IdAndUser_Id(deployment.getId(), currentUser.getId());
+            if (e.isPresent()) {
+                enrollment = e.get();
+                break;
+            }
+        }
+
+        if (enrollment == null) {
+            throw new RuntimeException("Bạn chưa đăng ký khóa học này trong bất kỳ nhóm nào!");
+        }
 
         // Tạo hoặc cập nhật LessonProgress
         LessonProgress progress = progressRepository
@@ -116,17 +135,16 @@ public class LessonService {
             progress.setCompletedAt(LocalDateTime.now());
             progressRepository.save(progress);
 
-            // Tính lại progress_percent
+            // Re-calculate progress
             long completedCount = progressRepository.countByEnrollment_IdAndCompletedTrue(enrollment.getId());
 
-            // Lấy tổng tất cả lessons trong course
-            var allChapters = chapterRepository.findByCourse_IdOrderByOrderIndexAsc(courseId);
-            long totalCourseLessons = allChapters.stream()
+            // Get total lessons in course template
+            var allChapters = chapterRepository.findByCourse_IdOrderByOrderIndexAsc(template.getId());
+            long totalLessons = allChapters.stream()
                     .mapToLong(c -> lessonRepository.findByChapter_IdOrderByOrderIndexAsc(c.getId()).size())
                     .sum();
 
-            int percent = totalCourseLessons > 0
-                    ? (int) (completedCount * 100 / totalCourseLessons) : 0;
+            int percent = totalLessons > 0 ? (int) (completedCount * 100 / totalLessons) : 0;
             enrollment.setProgressPercent(Math.min(percent, 100));
 
             if (enrollment.getProgressPercent() >= 80 && !enrollment.isCompleted()) {

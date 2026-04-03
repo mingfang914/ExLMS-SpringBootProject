@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/groups/{groupId}/courses")
+@RequestMapping("/api/v1/groups/{groupId}/courses")
 @RequiredArgsConstructor
 public class CourseController {
 
@@ -32,25 +32,25 @@ public class CourseController {
         return ResponseEntity.ok(courseService.getCoursesByGroupId(groupId));
     }
 
-    @GetMapping("/{courseId}")
+    @GetMapping("/{deploymentId}")
     public ResponseEntity<CourseResponse> getCourseById(
             @PathVariable UUID groupId,
-            @PathVariable UUID courseId) {
-        return ResponseEntity.ok(courseService.getCourseById(courseId));
+            @PathVariable UUID deploymentId) {
+        return ResponseEntity.ok(courseService.getCourseDeploymentById(deploymentId));
     }
 
-    @PutMapping("/{courseId}")
+    @PutMapping("/{deploymentId}")
     public ResponseEntity<CourseResponse> updateCourse(
             @PathVariable UUID groupId,
-            @PathVariable UUID courseId,
+            @PathVariable UUID deploymentId,
             @RequestBody CourseRequest request) {
-        return ResponseEntity.ok(courseService.updateCourse(courseId, request));
+        return ResponseEntity.ok(courseService.updateCourseDeployment(deploymentId, request));
     }
 
-    @DeleteMapping("/{courseId}")
+    @DeleteMapping("/{deploymentId}")
     public ResponseEntity<String> deleteCourse(
             @PathVariable UUID groupId,
-            @PathVariable UUID courseId) {
-        return ResponseEntity.ok(courseService.deleteCourse(courseId));
+            @PathVariable UUID deploymentId) {
+        return ResponseEntity.ok(courseService.deleteCourseDeployment(deploymentId));
     }
 }

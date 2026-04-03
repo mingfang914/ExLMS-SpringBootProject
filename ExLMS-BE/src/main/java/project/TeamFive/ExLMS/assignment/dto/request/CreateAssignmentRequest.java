@@ -1,12 +1,11 @@
 package project.TeamFive.ExLMS.assignment.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import project.TeamFive.ExLMS.assignment.entity.Assignment;
-
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -18,17 +17,26 @@ public class CreateAssignmentRequest {
     @NotBlank(message = "Title is required")
     private String title;
     private String description;
-    private UUID courseId;
-    @Builder.Default
-    private int maxScore = 100;
+    private UUID groupId;
+    private UUID courseId; // For matching Chapter if needed
+    
+    @JsonProperty("maxScore")
+    private Integer maxScore;
+    
+    private LocalDateTime assignedAt;
     private LocalDateTime dueAt;
-    @Builder.Default
-    private Assignment.SubmissionType submissionType = Assignment.SubmissionType.FILE;
+    
+    @JsonProperty("submissionType")
+    private String submissionType;
+    
+    @JsonProperty("allowedFileTypes")
     private String allowedFileTypes;
-    @Builder.Default
-    private int maxFileSizeMb = 50;
-    @Builder.Default
-    private boolean allowLate = false;
-    @Builder.Default
-    private int latePenaltyPercent = 0;
+    
+    @JsonProperty("maxFileSizeMb")
+    private Integer maxFileSizeMb;
+    
+    private Boolean allowLate;
+    private Integer latePenaltyPercent;
+    
+    private String status; // DRAFT, PUBLISHED, CLOSED
 }

@@ -8,7 +8,6 @@ import project.TeamFive.ExLMS.course.entity.Course;
 import project.TeamFive.ExLMS.course.entity.CourseChapter;
 import project.TeamFive.ExLMS.course.repository.CourseChapterRepository;
 import project.TeamFive.ExLMS.course.repository.CourseRepository;
-import project.TeamFive.ExLMS.group.repository.GroupMemberRepository;
 import project.TeamFive.ExLMS.course.dto.response.ChapterResponse;
 import project.TeamFive.ExLMS.user.entity.User;
 
@@ -23,13 +22,10 @@ public class ChapterService {
 
     private final CourseChapterRepository chapterRepository;
     private final CourseRepository courseRepository;
-    private final GroupMemberRepository groupMemberRepository;
 
     private void requireInstructorRole(Course course, User user) {
-        var member = groupMemberRepository.findByGroup_IdAndUser_Id(course.getGroup().getId(), user.getId())
-                .orElseThrow(() -> new RuntimeException("Bạn không phải thành viên nhóm!"));
-        if (!"OWNER".equals(member.getRole()) && !"EDITOR".equals(member.getRole())) {
-            throw new RuntimeException("Chỉ OWNER/EDITOR mới được quản lý chương học!");
+        if (!course.getCreatedBy().getId().equals(user.getId()) && !"ADMIN".equals(user.getRole().name())) {
+            throw new RuntimeException("Chỉ người tạo khóa học hoặc Admin mới được quản lý chương học của bản phát hành gốc!");
         }
     }
 

@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import LandingPage from './pages/LandingPage'
 import Dashboard from './pages/Dashboard'
 import GroupList from './pages/Groups/GroupList'
 import GroupDetail from './pages/Groups/GroupDetail'
@@ -26,6 +27,12 @@ import Calendar from './pages/Calendar'
 import Notifications from './pages/Notifications'
 import Users from './pages/Admin/Users'
 import Profile from './pages/Profile'
+import CourseInventory from './pages/Inventory/CourseInventory'
+import AssignmentInventory from './pages/Inventory/AssignmentInventory'
+import QuizInventory from './pages/Inventory/QuizInventory'
+import InventoryCourseDetail from './pages/Inventory/CourseDetail'
+import InventoryAssignmentDetail from './pages/Inventory/AssignmentDetail'
+import InventoryQuizDetail from './pages/Inventory/QuizDetail'
 import Layout from './components/Layout'
 import { initSocket, disconnectSocket } from './services/socketService'
 import { setUser } from './store/authSlice'
@@ -65,42 +72,53 @@ function App() {
               <Dashboard />
             </Layout>
           ) : (
-            <Navigate to="/login" />
+            <LandingPage />
           )
         }
       />
       
       {/* Protected Routes */}
-      <Route path="/groups" element={isAuthenticated ? <Layout><GroupList /></Layout> : <Navigate to="/login" />} />
-      <Route path="/groups/create" element={isAuthenticated ? <Layout><CreateGroup /></Layout> : <Navigate to="/login" />} />
-      <Route path="/groups/:id" element={isAuthenticated ? <Layout><GroupDetail /></Layout> : <Navigate to="/login" />} />
-      <Route path="/groups/:groupId/courses/create" element={isAuthenticated ? <Layout><CourseEditor /></Layout> : <Navigate to="/login" />} />
-      <Route path="/groups/:groupId/courses/:courseId/edit" element={isAuthenticated ? <Layout><CourseEditor /></Layout> : <Navigate to="/login" />} />
-      <Route path="/groups/:groupId/courses/:courseId/view" element={isAuthenticated ? <Layout><GroupCourseDetail /></Layout> : <Navigate to="/login" />} />
-      <Route path="/groups/:groupId/courses/:courseId/quiz/create" element={isAuthenticated ? <Layout><QuizEditor /></Layout> : <Navigate to="/login" />} />
-      <Route path="/groups/:groupId/courses/:courseId/quiz/:quizId/edit" element={isAuthenticated ? <Layout><QuizEditor /></Layout> : <Navigate to="/login" />} />
-      <Route path="/groups/:groupId/courses/:courseId/quiz/:quizId/take" element={isAuthenticated ? <Layout><QuizPlayer /></Layout> : <Navigate to="/login" />} />
-      <Route path="/groups/:groupId/courses/:courseId/quiz/attempts/:attemptId/result" element={isAuthenticated ? <Layout><QuizResult /></Layout> : <Navigate to="/login" />} />
-      <Route path="/groups/:groupId/courses/:id" element={isAuthenticated ? <Layout><CourseDetail /></Layout> : <Navigate to="/login" />} />
-      <Route path="/groups/:groupId/meetings/:id" element={isAuthenticated ? <Layout><MeetingDetail /></Layout> : <Navigate to="/login" />} />
-      <Route path="/groups/:groupId/meetings/:id/room" element={isAuthenticated ? <MeetingRoom /> : <Navigate to="/login" />} />
-      <Route path="/groups/:groupId/assignments" element={isAuthenticated ? <Layout><AssignmentList /></Layout> : <Navigate to="/login" />} />
-      <Route path="/groups/:groupId/assignments/create" element={isAuthenticated ? <Layout><AssignmentForm /></Layout> : <Navigate to="/login" />} />
-      <Route path="/groups/:groupId/assignments/:id/edit" element={isAuthenticated ? <Layout><AssignmentForm /></Layout> : <Navigate to="/login" />} />
-      <Route path="/groups/:groupId/assignments/:id" element={isAuthenticated ? <Layout><AssignmentDetail /></Layout> : <Navigate to="/login" />} />
-      <Route path="/forum" element={isAuthenticated ? <Layout><ForumList /></Layout> : <Navigate to="/login" />} />
-      <Route path="/forum/create" element={isAuthenticated ? <Layout><CreateForumPost /></Layout> : <Navigate to="/login" />} />
-      <Route path="/forum/edit/:id" element={isAuthenticated ? <Layout><CreateForumPost /></Layout> : <Navigate to="/login" />} />
-      <Route path="/forum/posts/:id" element={isAuthenticated ? <Layout><ForumPostDetail /></Layout> : <Navigate to="/login" />} />
-      <Route path="/calendar" element={isAuthenticated ? <Layout><Calendar /></Layout> : <Navigate to="/login" />} />
-      <Route path="/notifications" element={isAuthenticated ? <Layout><Notifications /></Layout> : <Navigate to="/login" />} />
-      <Route path="/admin/users" element={isAuthenticated ? <Layout><Users /></Layout> : <Navigate to="/login" />} />
-      <Route path="/profile" element={isAuthenticated ? <Layout><Profile /></Layout> : <Navigate to="/login" />} />
+      <Route path="/groups" element={isAuthenticated ? <Layout><GroupList /></Layout> : <Navigate to="/" />} />
+      <Route path="/groups/create" element={isAuthenticated ? <Layout><CreateGroup /></Layout> : <Navigate to="/" />} />
+      <Route path="/groups/:id" element={isAuthenticated ? <Layout><GroupDetail /></Layout> : <Navigate to="/" />} />
+      <Route path="/groups/:groupId/courses/create" element={isAuthenticated ? <Layout><CourseEditor /></Layout> : <Navigate to="/" />} />
+      <Route path="/groups/:groupId/courses/:courseId/edit" element={isAuthenticated ? <Layout><CourseEditor /></Layout> : <Navigate to="/" />} />
+      <Route path="/groups/:groupId/courses/:courseId/view" element={isAuthenticated ? <Layout><GroupCourseDetail /></Layout> : <Navigate to="/" />} />
+      <Route path="/groups/:groupId/courses/:courseId/quiz/create" element={isAuthenticated ? <Layout><QuizEditor /></Layout> : <Navigate to="/" />} />
+      <Route path="/groups/:groupId/courses/:courseId/quiz/:quizId/edit" element={isAuthenticated ? <Layout><QuizEditor /></Layout> : <Navigate to="/" />} />
+      <Route path="/groups/:groupId/courses/:courseId/quiz/:quizId/take" element={isAuthenticated ? <Layout><QuizPlayer /></Layout> : <Navigate to="/" />} />
+      <Route path="/groups/:groupId/courses/:courseId/quiz/attempts/:attemptId/result" element={isAuthenticated ? <Layout><QuizResult /></Layout> : <Navigate to="/" />} />
+      <Route path="/groups/:groupId/courses/:id" element={isAuthenticated ? <Layout><CourseDetail /></Layout> : <Navigate to="/" />} />
+      <Route path="/groups/:groupId/meetings/:id" element={isAuthenticated ? <Layout><MeetingDetail /></Layout> : <Navigate to="/" />} />
+      <Route path="/groups/:groupId/meetings/:id/room" element={isAuthenticated ? <MeetingRoom /> : <Navigate to="/" />} />
+      <Route path="/groups/:groupId/assignments" element={isAuthenticated ? <Layout><AssignmentList /></Layout> : <Navigate to="/" />} />
+      <Route path="/groups/:groupId/assignments/create" element={isAuthenticated ? <Layout><AssignmentForm /></Layout> : <Navigate to="/" />} />
+      <Route path="/groups/:groupId/assignments/:id/edit" element={isAuthenticated ? <Layout><AssignmentForm /></Layout> : <Navigate to="/" />} />
+      <Route path="/groups/:groupId/assignments/:id" element={isAuthenticated ? <Layout><AssignmentDetail /></Layout> : <Navigate to="/" />} />
+      <Route path="/forum" element={isAuthenticated ? <Layout><ForumList /></Layout> : <Navigate to="/" />} />
+      <Route path="/forum/create" element={isAuthenticated ? <Layout><CreateForumPost /></Layout> : <Navigate to="/" />} />
+      <Route path="/forum/edit/:id" element={isAuthenticated ? <Layout><CreateForumPost /></Layout> : <Navigate to="/" />} />
+      <Route path="/forum/posts/:id" element={isAuthenticated ? <Layout><ForumPostDetail /></Layout> : <Navigate to="/" />} />
+      <Route path="/calendar" element={isAuthenticated ? <Layout><Calendar /></Layout> : <Navigate to="/" />} />
+      <Route path="/notifications" element={isAuthenticated ? <Layout><Notifications /></Layout> : <Navigate to="/" />} />
+      <Route path="/admin/users" element={isAuthenticated ? <Layout><Users /></Layout> : <Navigate to="/" />} />
+      <Route path="/profile" element={isAuthenticated ? <Layout><Profile /></Layout> : <Navigate to="/" />} />
+
+      {/* Inventory Routes */}
+      <Route path="/inventory/courses" element={isAuthenticated ? <Layout><CourseInventory /></Layout> : <Navigate to="/" />} />
+      <Route path="/inventory/courses/create" element={isAuthenticated ? <Layout><CourseEditor /></Layout> : <Navigate to="/" />} />
+      <Route path="/inventory/courses/view/:id" element={isAuthenticated ? <Layout><InventoryCourseDetail /></Layout> : <Navigate to="/" />} />
+      <Route path="/inventory/courses/edit/:courseId" element={isAuthenticated ? <Layout><CourseEditor /></Layout> : <Navigate to="/" />} />
+      <Route path="/inventory/assignments" element={isAuthenticated ? <Layout><AssignmentInventory /></Layout> : <Navigate to="/" />} />
+      <Route path="/inventory/assignments/create" element={isAuthenticated ? <Layout><AssignmentForm /></Layout> : <Navigate to="/" />} />
+      <Route path="/inventory/assignments/view/:id" element={isAuthenticated ? <Layout><InventoryAssignmentDetail /></Layout> : <Navigate to="/" />} />
+      <Route path="/inventory/assignments/edit/:id" element={isAuthenticated ? <Layout><AssignmentForm /></Layout> : <Navigate to="/" />} />
+      <Route path="/inventory/quizzes" element={isAuthenticated ? <Layout><QuizInventory /></Layout> : <Navigate to="/" />} />
+      <Route path="/inventory/quizzes/create" element={isAuthenticated ? <Layout><QuizEditor /></Layout> : <Navigate to="/" />} />
+      <Route path="/inventory/quizzes/view/:id" element={isAuthenticated ? <Layout><InventoryQuizDetail /></Layout> : <Navigate to="/" />} />
+      <Route path="/inventory/quizzes/edit/:quizId" element={isAuthenticated ? <Layout><QuizEditor /></Layout> : <Navigate to="/" />} />
 
       {/* Fallback routes for other pages */}
-      <Route path="/courses" element={isAuthenticated ? <Layout><div>Courses Page</div></Layout> : <Navigate to="/login" />} />
-      <Route path="/assignments" element={isAuthenticated ? <Layout><div>Assignments Page</div></Layout> : <Navigate to="/login" />} />
-      
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   )

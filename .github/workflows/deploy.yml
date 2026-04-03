@@ -29,5 +29,25 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             cd /home/ubuntu/ExLMS/ExLMS-SpringBootProject
+            
+            # Tạo file .env từ secrets (Lưu ý: Bạn cần đặt các key này trong GitHub Settings)
+            echo "VITE_GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" > .env
+            echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> .env
+            echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
+            
+            echo "DB_URL=${{ secrets.DB_URL }}" >> .env
+            echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> .env
+            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+            
+            echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" >> .env
+            
+            echo "MINIO_URL=${{ secrets.MINIO_URL }}" >> .env
+            echo "MINIO_ROOT_USER=${{ secrets.MINIO_ROOT_USER }}" >> .env
+            echo "MINIO_ROOT_PASSWORD=${{ secrets.MINIO_ROOT_PASSWORD }}" >> .env
+            echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" >> .env
+            
+            # Cấu hình log levels
+            echo "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=DEBUG" >> .env
+            
             # Chỉ build lại backend và frontend, không đụng tới database để tránh mất dữ liệu
             docker compose up -d --build lms-backend lms-frontend
