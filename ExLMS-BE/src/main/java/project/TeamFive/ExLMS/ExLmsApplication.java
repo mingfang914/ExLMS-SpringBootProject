@@ -7,7 +7,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EnableScheduling
-public class ExLmsApplication {
+public class ExLmsApplication { // cap nhat
 
 	public static void main(String[] args) {
 		// Load .env from project root or current dir
