@@ -43,6 +43,7 @@ const container = {
     opacity: 1,
     transition: { staggerChildren: 0.1 }
   }
+
 }
 
 const item = {
@@ -82,6 +83,7 @@ const StatCard = ({ icon, label, value, color }) => (
   </Box>
 )
 
+
 const Profile = () => {
   const { t } = useTranslation()
   const { user } = useSelector((state) => state.auth)
@@ -93,11 +95,16 @@ const Profile = () => {
   const [successMsg, setSuccessMsg] = useState('')
   const [errorMsg, setErrorMsg] = useState('')
 
+
   useEffect(() => {
     const load = async () => {
       setLoading(true)
       try {
-        const res = await api.get('/users/me')
+        const [userRes, statsRes] = await Promise.all([
+          api.get('/users/me'),
+          api.get('/dashboard/stats')
+        ])
+
         setProfileData({
           fullName: res.data.fullName || '',
           bio: res.data.bio || '',
@@ -105,6 +112,7 @@ const Profile = () => {
         })
       } catch (err) {
         console.error('Failed to load profile:', err)
+
       } finally {
         setLoading(false)
       }
@@ -322,9 +330,39 @@ const Profile = () => {
                 </Stack>
               </form>
             </Box>
-          </motion.div>
-        </Grid>
+          </Box>
+        </Box>
+      </motion.div>
 
+      {/* ── Statistics Row ─────────────────────────────────────── */}
+      <motion.div variants={item}>
+        <Box className="stats-container">
+          <StatCard
+            icon={<BookIcon />}
+            label={t('dashboard.stats.courses')}
+            value={stats.coursesInProgress || 0}
+            colorClass="stat-card--indigo"
+          />
+          <StatCard
+            icon={<CheckCircleIcon />}
+            label={t('common.course_completion')}
+            value={`${Math.round(stats.averageCompletion || 0)}%`}
+            colorClass="stat-card--green"
+          />
+          <StatCard
+            icon={<AwardIcon />}
+            label={t('common.achievement')}
+            value={(stats.totalAchievement || 0).toLocaleString()}
+            colorClass="stat-card--amber"
+          />
+          <StatCard
+            icon={<UserIcon />}
+            label={t('common.members_since')}
+            value={profileData.createdAt ? new Date(profileData.createdAt).toLocaleDateString(undefined, { month: 'short', year: 'numeric' }) : '---'}
+            colorClass="stat-card--cyan"
+          />
+        </Box>
+      </motion.div>
         {/* ── Right Column: Stats & Completion ───────────────────── */}
         <Grid item xs={12} md={5}>
           <Stack spacing={4}>
@@ -366,6 +404,7 @@ const Profile = () => {
               }}>
                 <Typography sx={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '1.125rem', color: 'var(--color-text)', mb: 3 }}>
                   Hoạt động & Thành tựu
+
                 </Typography>
                 <Stack spacing={2}>
                   <StatCard icon={<CourseIcon />} label="Khóa học" value="12" color="#6366F1" />
@@ -374,7 +413,6 @@ const Profile = () => {
                 </Stack>
               </Box>
             </motion.div>
-
             {/* Reward Badges Preview */}
             <motion.div variants={item}>
               <Box sx={{ 
@@ -394,8 +432,31 @@ const Profile = () => {
               </Box>
             </motion.div>
           </Stack>
+
         </Grid>
       </Grid>
+
+      {/* ── Toast Messages ─────────────────────────────────────── */}
+      <Box sx={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 2000, width: '90%', maxWidth: 400 }}>
+        {successMsg && (
+          <Alert
+            severity="success"
+            sx={{ borderRadius: '12px', bgcolor: 'rgba(34,197,94,0.9)', backdropFilter: 'blur(10px)', color: 'white', '& .MuiAlert-icon': { color: 'white' } }}
+            onClose={() => setSuccessMsg('')}
+          >
+            {successMsg}
+          </Alert>
+        )}
+        {errorMsg && (
+          <Alert
+            severity="error"
+            sx={{ borderRadius: '12px', bgcolor: 'rgba(239,68,68,0.9)', backdropFilter: 'blur(10px)', color: 'white', '& .MuiAlert-icon': { color: 'white' } }}
+            onClose={() => setErrorMsg('')}
+          >
+            {errorMsg}
+          </Alert>
+        )}
+      </Box>
     </Box>
   )
 }

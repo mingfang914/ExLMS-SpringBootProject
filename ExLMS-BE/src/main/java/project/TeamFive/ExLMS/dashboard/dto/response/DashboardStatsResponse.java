@@ -10,4 +10,6 @@ public class DashboardStatsResponse {
     private long coursesInProgress;
     private long pendingAssignments;
     private long upcomingMeetings;
+    private long totalAchievement;
+    private double averageCompletion;
 }
