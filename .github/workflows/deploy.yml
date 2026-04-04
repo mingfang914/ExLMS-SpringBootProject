@@ -104,3 +104,4 @@ jobs:
             
             # Dọn dẹp các bản build/layer cũ bị thừa để giải phóng dung lượng SSD
             docker image prune -a -f
+            
