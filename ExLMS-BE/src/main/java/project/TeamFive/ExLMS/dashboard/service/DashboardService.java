@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import project.TeamFive.ExLMS.dashboard.dto.response.DashboardStatsResponse;
 import project.TeamFive.ExLMS.user.entity.User;
+import project.TeamFive.ExLMS.user.entity.Role;
 
 @Service
 @RequiredArgsConstructor
@@ -24,14 +25,20 @@ public class DashboardService {
                 .setParameter("userId", user.getId().toString())
                 .getSingleResult()).longValue();
 
-        // 2. Courses (Count active deployments in groups the user is a member of)
-        long courses = ((Number) entityManager.createNativeQuery(
-                "SELECT COUNT(*) FROM group_courses gc " +
-                "JOIN group_members gm ON gc.group_id = gm.group_id " +
-                "WHERE gm.user_id = UNHEX(REPLACE(:userId, '-', '')) AND gc.status = 'PUBLISHED'")
-                .setParameter("userId", user.getId().toString())
-                .getSingleResult()).longValue();
-
+        // 2. Courses (Role-aware: Created for Instructor, Enrolled for Student)
+        long courses;
+        if (user.getRole() == Role.INSTRUCTOR) {
+            courses = ((Number) entityManager.createNativeQuery(
+                    "SELECT COUNT(*) FROM courses WHERE created_by = UNHEX(REPLACE(:userId, '-', ''))")
+                    .setParameter("userId", user.getId().toString())
+                    .getSingleResult()).longValue();
+        } else {
+            courses = ((Number) entityManager.createNativeQuery(
+                    "SELECT COUNT(*) FROM course_enrollments WHERE user_id = UNHEX(REPLACE(:userId, '-', ''))")
+                    .setParameter("userId", user.getId().toString())
+                    .getSingleResult()).longValue();
+        }
+        
         // 3. Pending Assignments (Active deployments in user's groups with due_at in future)
         long pendingAssignments = ((Number) entityManager.createNativeQuery(
                 "SELECT COUNT(*) FROM group_assignments ga " +
@@ -48,11 +55,34 @@ public class DashboardService {
                 .setParameter("userId", user.getId().toString())
                 .getSingleResult()).longValue();
 
+        // 5. Total Achievement (Sum of Assignment and Quiz scores)
+        long assignmentScore = ((Number) entityManager.createNativeQuery(
+                "SELECT COALESCE(SUM(ag.score), 0) FROM assignment_grades ag " +
+                "JOIN assignment_submissions asub ON ag.submission_id = asub.id " +
+                "WHERE asub.student_id = UNHEX(REPLACE(:userId, '-', ''))")
+                .setParameter("userId", user.getId().toString())
+                .getSingleResult()).longValue();
+
+        long quizScore = ((Number) entityManager.createNativeQuery(
+                "SELECT COALESCE(SUM(score), 0) FROM quiz_attempts " +
+                "WHERE user_id = UNHEX(REPLACE(:userId, '-', ''))")
+                .setParameter("userId", user.getId().toString())
+                .getSingleResult()).longValue();
+
+        // 6. Average Completion
+        double averageCompletion = ((Number) entityManager.createNativeQuery(
+                "SELECT COALESCE(AVG(progress_percent), 0) FROM course_enrollments " +
+                "WHERE user_id = UNHEX(REPLACE(:userId, '-', ''))")
+                .setParameter("userId", user.getId().toString())
+                .getSingleResult()).doubleValue();
+
         return DashboardStatsResponse.builder()
                 .joinedGroups(joinedGroups)
                 .coursesInProgress(courses)
                 .pendingAssignments(pendingAssignments)
                 .upcomingMeetings(upcomingMeetings)
+                .totalAchievement(assignmentScore + quizScore)
+                .averageCompletion(averageCompletion)
                 .build();
     }
 }
