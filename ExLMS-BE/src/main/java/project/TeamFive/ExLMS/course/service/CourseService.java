@@ -20,7 +20,7 @@ import project.TeamFive.ExLMS.course.repository.GroupCourseRepository;
 import project.TeamFive.ExLMS.group.repository.GroupMemberRepository;
 import project.TeamFive.ExLMS.group.repository.StudyGroupRepository;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -44,15 +44,19 @@ public class CourseService {
         }
     }
 
-    private void validateDates(LocalDate start, LocalDate end) {
+    private void validateDates(LocalDateTime start, LocalDateTime end, boolean isNew) {
+        LocalDateTime now = LocalDateTime.now();
+        if (isNew && start != null && start.isBefore(now.minusSeconds(10))) { 
+             throw new RuntimeException("Thời gian bắt đầu không được nhỏ hơn thời gian hiện tại!");
+        }
         if (start != null && end != null && end.isBefore(start)) {
-            throw new RuntimeException("Ngày kết thúc không được nhỏ hơn ngày bắt đầu!");
+            throw new RuntimeException("Thời gian kết thúc không được nhỏ hơn thời gian bắt đầu!");
         }
     }
 
-    private GroupCourse.GroupCourseStatus determineInitialStatus(LocalDate startDate, LocalDate endDate) {
-        LocalDate today = LocalDate.now();
-        if (startDate != null && startDate.isAfter(today)) {
+    private GroupCourse.GroupCourseStatus determineInitialStatus(LocalDateTime startDate, LocalDateTime endDate) {
+        LocalDateTime now = LocalDateTime.now();
+        if (startDate != null && startDate.isAfter(now)) {
             return GroupCourse.GroupCourseStatus.DRAFT;
         } else {
             return GroupCourse.GroupCourseStatus.PUBLISHED;
@@ -66,7 +70,7 @@ public class CourseService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy nhóm học tập!"));
 
         requireInstructorRole(group, currentUser);
-        validateDates(request.getStartDate(), request.getEndDate());
+        validateDates(request.getStartDate(), request.getEndDate(), true);
 
         String thumbnailKey = request.getThumbnailKey();
         if (thumbnailKey == null || thumbnailKey.trim().isEmpty()) {
@@ -106,7 +110,7 @@ public class CourseService {
         boolean isInstructor = "OWNER".equals(member.getRole()) || "EDITOR".equals(member.getRole());
 
         return groupCourseRepository.findByGroup_Id(groupId).stream()
-                .filter(gc -> isInstructor || gc.getStatus() != GroupCourse.GroupCourseStatus.DRAFT)
+                .filter(gc -> isInstructor || (gc.getStatus() != GroupCourse.GroupCourseStatus.DRAFT && gc.getStatus() != GroupCourse.GroupCourseStatus.CLOSED))
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
@@ -136,27 +140,39 @@ public class CourseService {
         User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         requireInstructorRole(deployment.getGroup(), currentUser);
 
+        // RÀNG BUỘC: Nếu đã CLOSED thì không cho sửa bất cứ thứ gì
+        if (deployment.getStatus() == GroupCourse.GroupCourseStatus.CLOSED) {
+            throw new RuntimeException("Lớp học đã kết thúc (CLOSED), không thể chỉnh sửa thông tin!");
+        }
+
         Course template = deployment.getCourse();
         if (request.getTitle() != null) template.setTitle(request.getTitle());
         if (request.getDescription() != null) template.setDescription(request.getDescription());
         if (request.getThumbnailKey() != null) template.setThumbnailKey(request.getThumbnailKey());
         courseRepository.save(template);
 
-        if (request.getStartDate() != null) {
-            if (!request.getStartDate().equals(deployment.getStartDate())) validateDates(request.getStartDate(), null);
-            deployment.setStartDate(request.getStartDate());
+        // RÀNG BUỘC: Không được sửa StartDate sau khi đã tạo
+        if (request.getStartDate() != null && !request.getStartDate().isEqual(deployment.getStartDate())) {
+            throw new RuntimeException("Không được phép thay đổi thời gian bắt đầu sau khi đã triển khai!");
         }
+
         if (request.getEndDate() != null) {
-            validateDates(deployment.getStartDate(), request.getEndDate());
+            validateDates(deployment.getStartDate(), request.getEndDate(), false);
             deployment.setEndDate(request.getEndDate());
         }
+
+        // Chỉ cho phép chuyển đổi giữa DRAFT và PUBLISHED (System sẽ tự chuyển qua CLOSED)
         if (request.getStatus() != null) {
+            String newStatus = request.getStatus();
+            if ("CLOSED".equals(newStatus)) {
+                 throw new RuntimeException("Không thể chuyển trạng thái sang CLOSED thủ công bằng chức năng này!");
+            }
             try {
-                deployment.setStatus(GroupCourse.GroupCourseStatus.valueOf(request.getStatus()));
+                deployment.setStatus(GroupCourse.GroupCourseStatus.valueOf(newStatus));
             } catch (Exception e) {}
         }
-        deployment = groupCourseRepository.save(deployment);
 
+        deployment = groupCourseRepository.save(deployment);
         eventPublisher.publishEvent(new CourseUpdatedEvent(this, deployment));
         return mapToResponse(deployment);
     }
@@ -168,6 +184,10 @@ public class CourseService {
 
         User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         requireInstructorRole(deployment.getGroup(), currentUser);
+
+        if (deployment.getStatus() == GroupCourse.GroupCourseStatus.CLOSED) {
+            throw new RuntimeException("Dữ liệu lớp học đã kết thúc (CLOSED) sẽ được lưu trữ làm lịch sử, không thể xóa!");
+        }
 
         groupCourseRepository.delete(deployment);
         eventPublisher.publishEvent(new CourseDeletedEvent(this, deploymentId));

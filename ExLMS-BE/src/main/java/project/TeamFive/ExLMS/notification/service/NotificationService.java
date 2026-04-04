@@ -1,7 +1,6 @@
 package project.TeamFive.ExLMS.notification.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import project.TeamFive.ExLMS.user.entity.User;
@@ -19,7 +18,6 @@ import java.util.stream.Collectors;
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
-    private final SimpMessagingTemplate messagingTemplate;
 
     @Transactional(readOnly = true)
     public List<NotificationResponseDTO> getNotificationsForUser(User user) {
@@ -53,12 +51,6 @@ public class NotificationService {
                 .sourceEntityId(sourceEntityId)
                 .sourceEntityType(sourceEntityType)
                 .build();
-        Notification savedNotification = notificationRepository.save(notification);
-        System.out.println("DEBUG: Notification saved. Sending STOMP message to /user/" + recipient.getEmail() + "/queue/notifications");
-        messagingTemplate.convertAndSendToUser(
-                recipient.getEmail(),
-                "/queue/notifications",
-                NotificationResponseDTO.fromEntity(savedNotification)
-        );
+        notificationRepository.save(notification);
     }
 }

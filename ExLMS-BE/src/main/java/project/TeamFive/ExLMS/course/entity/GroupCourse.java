@@ -5,7 +5,7 @@ import lombok.*;
 import project.TeamFive.ExLMS.entity.BaseEntity;
 import project.TeamFive.ExLMS.group.entity.StudyGroup;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "group_courses")
@@ -25,10 +25,10 @@ public class GroupCourse extends BaseEntity {
     private Course course;
 
     @Column(name = "start_date")
-    private LocalDate startDate;
+    private LocalDateTime startDate;
 
     @Column(name = "end_date")
-    private LocalDate endDate;
+    private LocalDateTime endDate;
 
     @Builder.Default
     @Column(nullable = false)

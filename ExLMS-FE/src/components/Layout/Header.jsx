@@ -366,14 +366,9 @@ const Header = () => {
                   </ListItemAvatar>
                   <ListItemText
                     primary={
-                      <Box>
-                        <Typography sx={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--color-text)', mb: '1px' }}>
-                          {notif.title}
-                        </Typography>
-                        <Typography sx={{ fontSize: '0.75rem', color: 'var(--color-text-sec)', lineHeight: 1.35 }}>
-                          {notif.body}
-                        </Typography>
-                      </Box>
+                      <Typography sx={{ fontSize: '0.8125rem', fontWeight: notif.read ? 400 : 600, color: 'var(--color-text)', lineHeight: 1.4, mb: '2px' }}>
+                        {notif.message}
+                      </Typography>
                     }
                     secondary={
                       <Typography sx={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)' }}>
@@ -456,15 +451,15 @@ const Header = () => {
           {user?.role && (
             <Box sx={{ mt: 1.5 }}>
               <Chip
-                label={user.role === 'ADMIN' ? t('admin.users.roles.admin') : t('admin.users.roles.student')}
+                label={user.role === 'ADMIN' ? 'Administrator' : (user.role === 'INSTRUCTOR' ? 'Instructor' : 'Student')}
                 size="small"
                 sx={{
                   height: 20,
                   fontSize: '0.625rem',
                   fontWeight: 700,
-                  bgcolor: user.role === 'ADMIN' ? 'rgba(239,68,68,0.12)' : 'rgba(99,102,241,0.12)',
-                  color: user.role === 'ADMIN' ? '#FCA5A5' : '#818CF8',
-                  border: `1px solid ${user.role === 'ADMIN' ? 'rgba(239,68,68,0.25)' : 'rgba(99,102,241,0.25)'}`,
+                  bgcolor: user.role === 'ADMIN' ? 'rgba(239,68,68,0.12)' : (user.role === 'INSTRUCTOR' ? 'rgba(16,185,129,0.12)' : 'rgba(99,102,241,0.12)'),
+                  color: user.role === 'ADMIN' ? '#FCA5A5' : (user.role === 'INSTRUCTOR' ? '#6EE7B7' : '#818CF8'),
+                  border: `1px solid ${user.role === 'ADMIN' ? 'rgba(239,68,68,0.25)' : (user.role === 'INSTRUCTOR' ? 'rgba(16,185,129,0.25)' : 'rgba(99,102,241,0.25)')}`,
                   '& .MuiChip-label': { px: '8px' },
                 }}
               />

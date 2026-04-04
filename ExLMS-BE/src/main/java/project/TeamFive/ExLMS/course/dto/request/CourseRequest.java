@@ -1,7 +1,7 @@
 package project.TeamFive.ExLMS.course.dto.request;
 
 import lombok.Data;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 public class CourseRequest {
@@ -9,6 +9,6 @@ public class CourseRequest {
     private String description;
     private String status;
     private String thumbnailKey;
-    private LocalDate startDate;
-    private LocalDate endDate;
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
 }

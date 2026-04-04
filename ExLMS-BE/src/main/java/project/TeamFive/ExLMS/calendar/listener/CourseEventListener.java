@@ -1,5 +1,6 @@
 package project.TeamFive.ExLMS.calendar.listener;
 
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -94,8 +95,8 @@ public class CourseEventListener {
                 .user(member.getUser())
                 .title((isStart ? "Course Start: " : "Course End: ") + template.getTitle())
                 .description(template.getDescription())
-                .startAt(isStart ? deployment.getStartDate().atStartOfDay() : deployment.getEndDate().atStartOfDay())
-                .endAt(isStart ? deployment.getStartDate().atTime(23, 59, 59) : deployment.getEndDate().atTime(23, 59, 59))
+                .startAt(isStart ? deployment.getStartDate().toLocalDate().atStartOfDay() : deployment.getEndDate().toLocalDate().atStartOfDay())
+                .endAt(isStart ? deployment.getStartDate().toLocalDate().atTime(23, 59, 59) : deployment.getEndDate().toLocalDate().atTime(23, 59, 59))
                 .eventType(isStart ? CalendarEvent.EventType.COURSE_START : CalendarEvent.EventType.COURSE_END)
                 .color("#10B981") // Green for courses
                 .sourceEntityId(deployment.getId())

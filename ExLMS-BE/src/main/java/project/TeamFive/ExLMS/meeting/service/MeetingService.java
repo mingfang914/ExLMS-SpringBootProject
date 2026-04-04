@@ -76,16 +76,16 @@ public class MeetingService {
 
         requireInstructorRole(group, creator);
 
-        String roomName = group.getName().replaceAll("\\s+", "-") + "-" + UUID.randomUUID().toString().substring(0, 8);
-        String jitsiUrl = "https://meet.jit.si/" + roomName;
+        String roomName = group.getName().replaceAll("\\s+", "-").toLowerCase() + "-" + UUID.randomUUID().toString().substring(0, 8);
+        String joinUrl = roomName; // For LiveKit, we just need the room name
 
         Meeting meeting = Meeting.builder()
                 .group(group)
                 .createdBy(creator)
                 .title(request.getTitle())
                 .description(request.getDescription())
-                .platform("jitsi")
-                .joinUrl(jitsiUrl)
+                .platform("livekit")
+                .joinUrl(joinUrl)
                 .startAt(request.getStartAt() != null ? request.getStartAt() : LocalDateTime.now())
                 .endAt(request.getEndAt() != null ? request.getEndAt() : LocalDateTime.now().plusHours(1))
                 .status(request.getStatus() != null ? request.getStatus() : Meeting.MeetingStatus.DRAFT)
