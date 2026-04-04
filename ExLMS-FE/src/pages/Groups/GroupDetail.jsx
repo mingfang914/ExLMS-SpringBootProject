@@ -28,7 +28,6 @@ import {
   MenuItem,
   Stack
 } from '@mui/material'
-import { alpha } from '@mui/material/styles'
 import {
   People as PeopleIcon,
   Info as InfoIcon,
@@ -306,206 +305,85 @@ const GroupDetail = () => {
   if (!group) return <Alert severity="warning">Group not found.</Alert>
 
   return (
-    <Box sx={{ pb: 8 }}>
-      {/* ── Immersive Group Header ────────────────────────────────── */}
-      <Box 
-        sx={{ 
-          position: 'relative', 
-          mb: 6, 
-          borderRadius: { xs: 0, sm: '24px' }, 
-          overflow: 'hidden',
-          boxShadow: '0 24px 80px rgba(0,0,0,0.4)',
-          background: 'var(--color-surface-2)',
-          border: '1px solid var(--color-border)',
-        }}
-      >
-        {/* Cover Image with Depth */}
+    <Box>
+      {/* Group Header */}
+      <Paper sx={{ p: 0, mb: 4, borderRadius: 2, overflow: 'hidden' }}>
         <Box
           sx={{
-            height: { xs: 220, md: 280 },
-            position: 'relative',
-            backgroundImage: `url(${group.coverUrl || 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=2070&auto=format&fit=crop'})`,
+            height: 200,
+            backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${group.coverUrl || 'https://via.placeholder.com/1200x300?text=Group+Cover'})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
+            display: 'flex',
+            alignItems: 'flex-end',
+            p: 4
           }}
         >
-          <Box 
-            sx={{ 
-              position: 'absolute', 
-              inset: 0, 
-              background: 'linear-gradient(to top, rgba(13,17,23,1) 0%, rgba(13,17,23,0.4) 50%, transparent 100%)' 
-            }} 
-          />
-          
-          {/* Metadata floating top right */}
-          <Box sx={{ position: 'absolute', top: 24, right: 24, display: 'flex', gap: 1.5 }}>
-            <Chip 
-              label={group.visibility} 
-              size="small" 
-              sx={{ 
-                bgcolor: 'rgba(255,255,255,0.1)', 
-                backdropFilter: 'blur(10px)', 
-                color: 'white', 
-                fontWeight: 800, 
-                fontSize: '0.625rem',
-                border: '1px solid rgba(255,255,255,0.1)',
-                textTransform: 'uppercase',
-              }} 
-            />
-            <Chip 
-              label={group.category} 
-              size="small" 
-              sx={{ 
-                bgcolor: alpha('#6366F1', 0.2), 
-                backdropFilter: 'blur(10px)', 
-                color: '#818CF8', 
-                fontWeight: 800, 
-                fontSize: '0.625rem',
-                border: '1px solid rgba(99,102,241,0.2)',
-                textTransform: 'uppercase',
-              }} 
-            />
-          </Box>
-        </Box>
-        
-        {/* Profile Info Overlay */}
-        <Box sx={{ px: { xs: 3, md: 5 }, mt: { xs: -6, md: -8 }, position: 'relative', zIndex: 2, pb: 4 }}>
-          <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: { xs: 2, md: 4 }, flexWrap: 'wrap' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', color: 'white' }}>
             <Avatar
-              sx={{ 
-                width: { xs: 100, md: 140 }, 
-                height: { xs: 100, md: 140 }, 
-                border: '6px solid var(--color-surface-2)', 
-                fontSize: '3rem', 
-                fontWeight: 900,
-                background: 'linear-gradient(135deg, #6366F1, #22D3EE)',
-                boxShadow: '0 12px 32px rgba(0,0,0,0.5)',
-              }}
+              sx={{ width: 100, height: 100, border: '4px solid white', mr: 3, bgcolor: 'primary.main' }}
             >
               {group.name.charAt(0)}
             </Avatar>
-            <Box sx={{ flex: 1, minWidth: 300, pb: 1 }}>
-              <Typography 
-                variant="h2" 
-                sx={{ 
-                  fontFamily: 'var(--font-heading)', 
-                  fontWeight: 900, 
-                  fontSize: { xs: '2rem', md: '2.75rem' }, 
-                  color: 'var(--color-text)',
-                  letterSpacing: '-0.04em',
-                  lineHeight: 1.1,
-                  mb: 1.5,
-                  textShadow: '0 4px 12px rgba(0,0,0,0.3)',
-                }}
-              >
-                {group.name}
+            <Box>
+              <Typography variant="h3" sx={{ fontWeight: 'bold' }}>
+                {group.name} 
+                <Typography variant="caption" sx={{ opacity: 0.5, ml: 1, color: 'inherit' }}>v1.0.2</Typography>
               </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, color: 'var(--color-text-muted)' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <PeopleIcon sx={{ fontSize: 18, color: 'var(--color-primary-lt)' }} />
-                  <Typography variant="body2" sx={{ fontWeight: 700, color: 'var(--color-text-sec)' }}>
-                    {t('group_card.members_count', { count: group.memberCount })}
-                  </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 1 }}>
+                <Chip label={group.category} size="small" sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }} />
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <PeopleIcon sx={{ fontSize: 18, mr: 0.5 }} />
+                  <Typography variant="body2">{t('group_card.members_count', { count: group.memberCount })}</Typography>
                 </Box>
-                <Divider orientation="vertical" flexItem sx={{ height: 16, my: 'auto', borderColor: 'rgba(255,255,255,0.1)' }} />
-                <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                  {t('group_detail.owner')}: <strong style={{ color: 'var(--color-text)' }}>{group.ownerName}</strong>
-                </Typography>
               </Box>
-            </Box>
-            
-            <Box sx={{ display: 'flex', gap: 1.5, pb: 1 }}>
-              {!group.isJoined ? (
-                <Button 
-                  variant="contained" 
-                  onClick={handleJoinGroup}
-                  sx={{ 
-                    height: 48, px: 4, borderRadius: '14px', 
-                    fontWeight: 800, background: 'linear-gradient(135deg, #6366F1, #4F46E5)',
-                    boxShadow: '0 8px 24px rgba(79, 70, 229, 0.4)',
-                  }}
-                >
-                  {t('group_card.join')}
-                </Button>
-              ) : (
-                <>
-                  {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
-                    <>
-                      <Tooltip title={t('group_detail.share')}>
-                        <IconButton sx={{ bgcolor: 'rgba(255,255,255,0.05)', borderRadius: '12px' }} onClick={() => setShareDialogOpen(true)}>
-                          <ShareIcon sx={{ color: 'var(--color-text-sec)' }} />
-                        </IconButton>
-                      </Tooltip>
-                      {group.currentUserRole === 'OWNER' && (
-                        <Button 
-                          variant="outlined" 
-                          startIcon={<SettingsIcon />} 
-                          onClick={() => setManageDialogOpen(true)}
-                          sx={{ height: 48, px: 3, borderRadius: '14px', borderColor: 'var(--color-border)', fontWeight: 700 }}
-                        >
-                          {t('group_detail.manage')}
-                        </Button>
-                      )}
-                    </>
-                  )}
-                  {group.currentUserRole !== 'OWNER' && (
-                    <Button
-                      variant="outlined"
-                      color="error"
-                      startIcon={<LeaveIcon />}
-                      onClick={handleLeaveGroup}
-                      sx={{ height: 48, px: 3, borderRadius: '14px', fontWeight: 700 }}
-                    >
-                      {t('group_detail.leave')}
-                    </Button>
-                  )}
-                </>
-              )}
             </Box>
           </Box>
         </Box>
         
-        <Divider sx={{ borderColor: 'rgba(255,255,255,0.05)' }} />
-        
-        {/* Premium Navigation Tabs */}
-        <Box sx={{ bgcolor: 'rgba(13,17,23,0.3)', px: { xs: 2, md: 4 } }}>
-          <Tabs 
-            value={activeTab} 
-            onChange={(e, val) => setActiveTab(val)}
-            variant="scrollable"
-            scrollButtons="auto"
-            sx={{
-              minHeight: 64,
-              '& .MuiTabs-indicator': {
-                height: 4,
-                borderRadius: '4px 4px 0 0',
-                background: 'linear-gradient(90deg, #6366F1, #22D3EE)',
-                boxShadow: '0 -4px 12px rgba(99,102,241,0.5)',
-              },
-              '& .MuiTab-root': {
-                minHeight: 64,
-                textTransform: 'none',
-                fontSize: '0.9375rem',
-                fontWeight: 700,
-                color: 'var(--color-text-muted)',
-                px: { xs: 2, md: 3 },
-                transition: 'all 0.2s',
-                '&.Mui-selected': { color: 'var(--color-text)' },
-                '&:hover': { color: 'var(--color-text)', bgcolor: 'rgba(255,255,255,0.02)' },
-              },
-            }}
-          >
-            <Tab icon={<InfoIcon sx={{ fontSize: 20 }} />} iconPosition="start" label={t('group_detail.tabs.overview')} />
-            {group.isJoined && <Tab icon={<CourseIcon sx={{ fontSize: 20 }} />} iconPosition="start" label={t('group_detail.tabs.courses')} />}
-            {group.isJoined && <Tab icon={<AssignmentIcon sx={{ fontSize: 20 }} />} iconPosition="start" label={t('group_detail.tabs.assignments')} />}
-            {group.isJoined && <Tab icon={<QuizIcon sx={{ fontSize: 20 }} />} iconPosition="start" label="Kiểm tra" />}
-            {group.isJoined && <Tab icon={<MeetingIcon sx={{ fontSize: 20 }} />} iconPosition="start" label={t('group_detail.tabs.meetings')} />}
-            {group.isJoined && <Tab icon={<ForumIcon sx={{ fontSize: 20 }} />} iconPosition="start" label={t('group_detail.tabs.feed')} />}
-            {group.isJoined && <Tab icon={<PeopleIcon sx={{ fontSize: 20 }} />} iconPosition="start" label={t('group_detail.tabs.members')} />}
+        <Box sx={{ p: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 3 }}>
+          <Tabs value={activeTab} onChange={(e, val) => setActiveTab(val)}>
+            <Tab icon={<InfoIcon />} iconPosition="start" label={t('group_detail.tabs.overview')} />
+            {group.isJoined && <Tab icon={<CourseIcon />} iconPosition="start" label={t('group_detail.tabs.courses')} />}
+            {group.isJoined && <Tab icon={<AssignmentIcon />} iconPosition="start" label={t('group_detail.tabs.assignments')} />}
+            {group.isJoined && <Tab icon={<QuizIcon />} iconPosition="start" label="Kiểm tra" />}
+            {group.isJoined && <Tab icon={<MeetingIcon />} iconPosition="start" label={t('group_detail.tabs.meetings')} />}
+            {group.isJoined && <Tab icon={<ForumIcon />} iconPosition="start" label={t('group_detail.tabs.feed')} />}
+            {group.isJoined && <Tab icon={<PeopleIcon />} iconPosition="start" label={t('group_detail.tabs.members')} />}
           </Tabs>
-
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            {!group.isJoined ? (
+              <Button variant="contained" color="secondary" onClick={handleJoinGroup}>
+                {t('group_card.join')}
+              </Button>
+            ) : (
+              <>
+                {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
+                  <>
+                    <Tooltip title={t('group_detail.share')}>
+                      <IconButton onClick={() => setShareDialogOpen(true)}><ShareIcon /></IconButton>
+                    </Tooltip>
+                    {group.currentUserRole === 'OWNER' && (
+                      <Button variant="contained" startIcon={<SettingsIcon />} onClick={() => setManageDialogOpen(true)}>{t('group_detail.manage')}</Button>
+                    )}
+                  </>
+                )}
+                {group.currentUserRole !== 'OWNER' && (
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    startIcon={<LeaveIcon />}
+                    onClick={handleLeaveGroup}
+                    sx={{ borderRadius: '12px', fontWeight: 700 }}
+                  >
+                    Rời nhóm
+                  </Button>
+                )}
+              </>
+            )}
+          </Box>
         </Box>
-      </Box>
+      </Paper>
 
       {/* Tab Content */}
       <Box>
@@ -559,118 +437,105 @@ const GroupDetail = () => {
               )}
             </Box>
             {courses.length === 0 ? (
-              <Paper sx={{ p: 8, textAlign: 'center', borderRadius: '24px', bgcolor: 'rgba(255,255,255,0.02)', border: '1px dashed var(--color-border)' }}>
+              <Paper sx={{ p: 5, textAlign: 'center' }}>
                 <Typography color="text.secondary">{t('groups.no_groups')}</Typography>
               </Paper>
             ) : (
-              <Grid container spacing={3.5}>
-                {courses.map(course => {
-                  if (course.status === 'CLOSED' && group.currentUserRole === 'MEMBER') return null;
-                  return (
-                    <Grid item xs={12} sm={6} md={4} key={course.id}>
-                      <motion.div whileHover={{ y: -6 }} transition={{ duration: 0.3 }}>
-                        <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', borderRadius: '20px', background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', overflow: 'hidden' }}>
-                          <Box sx={{ position: 'relative', height: 160 }}>
-                            <CardMedia
-                              component="img"
-                              sx={{ height: '100%', objectFit: 'cover' }}
-                              image={course.thumbnailUrl || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop'}
-                            />
-                            <Box sx={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, var(--color-surface-2), transparent)' }} />
-                            <Chip 
-                              label={course.status} 
-                              size="small" 
-                              sx={{ 
-                                position: 'absolute', top: 12, right: 12,
-                                bgcolor: course.status === 'PUBLISHED' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255,255,255,0.1)',
-                                color: course.status === 'PUBLISHED' ? '#34D399' : '#FFF',
-                                fontWeight: 800, fontSize: '0.625rem',
-                                backdropFilter: 'blur(8px)',
-                                border: '1px solid rgba(255,255,255,0.1)',
-                              }} 
-                            />
+              <Grid container spacing={3}>
+                  {courses.map(course => {
+                    // Ẩn luôn card đối với member nếu đã CLOSED
+                    if (course.status === 'CLOSED' && group.currentUserRole === 'MEMBER') return null;
+                    
+                    return (
+                      <Grid item xs={12} sm={6} md={4} key={course.id}>
+                    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', borderRadius: 4, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                      <CardMedia
+                        component="img"
+                        height="140"
+                        image={course.thumbnailUrl || 'https://via.placeholder.com/300x150?text=Course'}
+                        sx={{ borderRadius: '16px 16px 0 0' }}
+                      />
+                      <CardContent sx={{ flexGrow: 1 }}>
+                        <Typography variant="h6" fontWeight={800}>{course.title}</Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mt: 1, mb: 2, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                          {course.description}
+                        </Typography>
+                        <Stack spacing={1}>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <Typography variant="caption" color="text.secondary">Trạng thái</Typography>
+                            <Chip label={course.status} size="small" color={course.status === 'PUBLISHED' ? 'success' : 'default'} />
                           </Box>
-                          <CardContent sx={{ flexGrow: 1, px: 3, pt: 1 }}>
-                            <Typography variant="h6" sx={{ fontWeight: 800, mb: 1, lineHeight: 1.3 }}>{course.title}</Typography>
-                            <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', height: '3em' }}>
-                              {course.description}
-                            </Typography>
-                            <Stack spacing={1.5}>
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <Typography variant="caption" sx={{ color: 'var(--color-text-muted)', fontWeight: 600 }}>{t('common.created')}</Typography>
-                                <Typography variant="caption" sx={{ fontWeight: 700 }}>{course.startDate ? format(new Date(course.startDate), 'dd MMM, yyyy') : '---'}</Typography>
-                              </Box>
-                              <Box sx={{ height: 1, bgcolor: 'rgba(255,255,255,0.03)' }} />
-                            </Stack>
-                          </CardContent>
-                          <Box sx={{ p: 2.5, pt: 0, display: 'flex', gap: 1 }}>
-                            <Button
-                              fullWidth
-                              variant="contained"
-                              component={RouterLink}
-                              to={`/groups/${id}/courses/${course.id}/view`}
-                              disabled={course.status === 'CLOSED' && group.currentUserRole === 'MEMBER'}
-                              sx={{ 
-                                borderRadius: '12px', fontWeight: 800, height: 40,
-                                background: 'linear-gradient(135deg, #6366F1, #4F46E5)',
-                              }}
-                            >
-                              {course.status === 'CLOSED' ? t('common.ended') : t('group_detail.actions.learn_now')}
-                            </Button>
-                            {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
-                              <IconButton
-                                size="small"
-                                onClick={() => setEditDeployModal({ open: true, type: 'course', resource: course })}
-                                sx={{ bgcolor: 'rgba(255,255,255,0.05)', borderRadius: '10px', color: 'var(--color-text-sec)' }}
-                              >
-                                <EditIcon fontSize="small" />
-                              </IconButton>
-                            )}
-                            {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
-                              <IconButton
-                                size="small"
-                                color="error"
-                                onClick={() => handleDeleteResource('course', course.id)}
-                                sx={{ bgcolor: 'rgba(239, 68, 68, 0.1)', '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.2)' }, borderRadius: '10px' }}
-                              >
-                                <DeleteIcon fontSize="small" />
-                              </IconButton>
-                            )}
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <Typography variant="caption" color="text.secondary">Ngày tạo</Typography>
+                            <Typography variant="caption" fontWeight={700}>{course.startDate ? format(new Date(course.startDate), 'dd/MM/yyyy') : '---'}</Typography>
                           </Box>
-                        </Card>
-                      </motion.div>
-                    </Grid>
-                  );
-                })}
-              </Grid>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <Typography variant="caption" color="text.secondary">Ngày kết thúc</Typography>
+                            <Typography variant="caption" fontWeight={700}>{course.endDate ? format(new Date(course.endDate), 'dd/MM/yyyy') : '---'}</Typography>
+                          </Box>
+                        </Stack>
+                      </CardContent>
+                      <Box sx={{ p: 2, pt: 0, display: 'flex', gap: 1 }}>
+                        {!(course.status === 'CLOSED' && group.currentUserRole === 'MEMBER') && (
+                          <Button
+                            fullWidth
+                            variant="contained"
+                            component={RouterLink}
+                            to={`/groups/${id}/courses/${course.id}/view`}
+                            sx={{ borderRadius: '12px', fontWeight: 700 }}
+                          >
+                             {t('group_detail.actions.learn_now')}
+                          </Button>
+                        )}
+                        {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && course.status !== 'CLOSED' && (
+                          <IconButton
+                            color="primary"
+                            onClick={() => setEditDeployModal({ open: true, type: 'course', resource: course })}
+                            sx={{ bgcolor: 'rgba(99, 102, 241, 0.1)', '&:hover': { bgcolor: 'rgba(99, 102, 241, 0.2)' } }}
+                          >
+                            <EditIcon />
+                          </IconButton>
+                        )}
+                        {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && course.status !== 'CLOSED' && (
+                          <IconButton
+                            color="error"
+                            onClick={() => handleDeleteResource('course', course.id)}
+                            sx={{ bgcolor: 'rgba(239, 68, 68, 0.1)', '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.2)' } }}
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        )}
+                      </Box>
+                    </Card>
+                  </Grid>
+                );
+              })}
+            </Grid>
             )}
           </Box>
         )}
         
         {activeTab === 2 && (
           <Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-              <Typography variant="h5" sx={{ fontFamily: 'var(--font-heading)', fontWeight: 800 }}>{t('group_detail.tabs.assignments')}</Typography>
-              <Box sx={{ display: 'flex', gap: 1.5 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+              <Typography variant="h5">{t('group_detail.tabs.assignments')}</Typography>
+              <Box sx={{ display: 'flex', gap: 1 }}>
                 {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
-                  <Button
-                    variant="contained"
-                    startIcon={<InventoryIcon />}
-                    onClick={() => setDeployModal({ open: true, type: 'assignment' })}
-                    sx={{ 
-                      borderRadius: '12px', fontWeight: 800, 
-                      background: 'linear-gradient(135deg, #FCD34D, #F59E0B)', color: '#000',
-                      boxShadow: '0 4px 12px rgba(245, 158, 11, 0.2)',
-                    }}
-                  >
-                    Kết nối từ kho đồ
-                  </Button>
+                  <>
+                    <Button
+                      variant="contained"
+                      startIcon={<InventoryIcon />}
+                      onClick={() => setDeployModal({ open: true, type: 'assignment' })}
+                      sx={{ borderRadius: '12px', fontWeight: 700, background: 'linear-gradient(135deg, #FCD34D, #F59E0B)', color: '#000' }}
+                    >
+                      Kết nối từ kho đồ
+                    </Button>
+                  </>
                 )}
                 <Button
                   variant="outlined"
                   component={RouterLink}
                   to={`/groups/${id}/assignments`}
-                  sx={{ borderRadius: '12px', fontWeight: 700, borderColor: 'var(--color-border)' }}
                 >
                   {t('group_detail.actions.view_all')}
                 </Button>
@@ -678,83 +543,90 @@ const GroupDetail = () => {
             </Box>
             
             {assignments.length === 0 ? (
-              <Box sx={{ p: 8, textAlign: 'center', borderRadius: '24px', bgcolor: 'rgba(255,255,255,0.02)', border: '1px dashed var(--color-border)' }}>
+              <Paper sx={{ p: 5, textAlign: 'center' }}>
                 <Typography color="text.secondary">{t('assignments.no_assignments_student')}</Typography>
-              </Box>
+              </Paper>
             ) : (
-              <Grid container spacing={2.5}>
+              <Grid container spacing={2}>
                 {Array.isArray(assignments) && assignments.slice(0, 6).map((asgn) => (
                   <Grid item xs={12} key={asgn.id}>
-                    <motion.div whileHover={{ x: 6 }} transition={{ duration: 0.2 }}>
-                      <Card 
-                        sx={{ 
-                          borderRadius: '16px',
-                          background: 'var(--color-surface-2)',
-                          border: '1px solid var(--color-border)',
-                          transition: 'all 0.2s',
-                          '&:hover': { borderColor: '#FBBF24', boxShadow: '0 8px 24px rgba(245,158,11,0.1)' }
-                        }}
-                      >
-                        <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: '24px !important' }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flex: 1 }}>
-                            <Avatar sx={{ bgcolor: 'rgba(251, 191, 36, 0.1)', color: '#FBBF24', width: 56, height: 56, borderRadius: '12px' }}>
-                              <AssignmentIcon sx={{ fontSize: 28 }} />
-                            </Avatar>
-                            <Box sx={{ flex: 1 }}>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.75 }}>
-                                <Typography sx={{ fontSize: '1.0625rem', fontWeight: 800, color: 'var(--color-text)' }}>{asgn.title}</Typography>
-                                <Chip label={asgn.status} size="small" sx={{ height: 20, fontSize: '0.625rem', fontWeight: 800, bgcolor: 'rgba(255,255,255,0.05)', color: 'var(--color-text-muted)' }} />
-                              </Box>
-                              <Stack direction="row" spacing={3}>
-                                <Typography sx={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                  <span style={{ fontWeight: 600 }}>{t('common.due')}:</span> 
-                                  <span style={{ color: '#FCA5A5', fontWeight: 700 }}>{asgn.dueAt ? format(new Date(asgn.dueAt), 'HH:mm dd MMM') : '---'}</span>
-                                </Typography>
-                                <Typography sx={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                  <span style={{ fontWeight: 600 }}>Score:</span> 
-                                  <span style={{ color: 'var(--color-text-sec)', fontWeight: 700 }}>{asgn.maxScore} pts</span>
-                                </Typography>
-                              </Stack>
+                    <Card 
+                      variant="outlined"
+                      sx={{ 
+                        '&:hover': { boxShadow: 4, borderColor: 'primary.main' },
+                        transition: 'all 0.2s',
+                        borderRadius: 4,
+                        background: 'rgba(255,255,255,0.02)',
+                        border: '1px solid rgba(255,255,255,0.1)'
+                      }}
+                    >
+                      <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: '20px !important' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
+                          <Avatar sx={{ bgcolor: 'rgba(252, 211, 77, 0.1)', color: '#FCD34D', width: 48, height: 48, borderRadius: 2 }}>
+                            <AssignmentIcon />
+                          </Avatar>
+                          <Box sx={{ flex: 1 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                              <Typography variant="subtitle1" fontWeight="bold">{asgn.title}</Typography>
+                              <Chip label={asgn.status} size="small" variant="outlined" sx={{ height: 20, fontSize: '0.7rem' }} />
                             </Box>
+                            <Grid container spacing={2} sx={{ mt: 0.5 }}>
+                              <Grid item>
+                                <Typography variant="caption" color="textSecondary" sx={{ display: 'flex', alignItems: 'center' }}>
+                                  Giao: {asgn.assignedAt ? format(new Date(asgn.assignedAt), 'HH:mm dd/MM') : '---'}
+                                </Typography>
+                              </Grid>
+                              <Grid item>
+                                <Typography variant="caption" color="error" sx={{ display: 'flex', alignItems: 'center', fontWeight: 700 }}>
+                                  Hạn: {asgn.dueAt ? format(new Date(asgn.dueAt), 'HH:mm dd/MM') : '---'}
+                                </Typography>
+                              </Grid>
+                              <Grid item>
+                                <Typography variant="caption" color="textSecondary">
+                                  Nộp muộn: <span style={{ color: asgn.allowLate ? '#10B981' : '#EF4444', fontWeight: 700 }}>{asgn.allowLate ? `Có (-${asgn.latePenaltyPercent}%)` : 'Không'}</span>
+                                </Typography>
+                              </Grid>
+                              <Grid item>
+                                <Typography variant="caption" color="textSecondary">
+                                  {asgn.submissionType} • {asgn.maxScore} pts
+                                </Typography>
+                              </Grid>
+                            </Grid>
                           </Box>
-                        <Box sx={{ display: 'flex', gap: 1.5 }}>
+                        </Box>
+                        <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
                           <Button 
                             variant="contained" 
                             component={RouterLink} 
                             to={`/groups/${id}/assignments/${asgn.id}`}
-                            disabled={asgn.status === 'CLOSED' && !asgn.allowLate && group.currentUserRole === 'MEMBER'}
-                            sx={{ 
-                              borderRadius: '10px', height: 40, px: 3, fontWeight: 800,
-                              background: 'rgba(251, 191, 36, 0.1)', color: '#FBBF24',
-                              '&:hover': { background: '#FBBF24', color: '#000' }
-                            }}
+                            disabled={String(asgn.status).toUpperCase() === 'CLOSED' && !asgn.allowLate && group.currentUserRole === 'MEMBER'}
+                            sx={{ borderRadius: '12px', bgcolor: 'rgba(252, 211, 77, 0.1)', color: '#FCD34D', '&:hover': { bgcolor: 'rgba(252, 211, 77, 0.2)' } }}
                           >
-                            {asgn.status === 'CLOSED' ? (asgn.allowLate ? 'Nộp muộn' : t('common.closed')) : t('group_detail.actions.details')}
+                            {String(asgn.status).toUpperCase() === 'CLOSED' ? (asgn.allowLate ? 'Nộp muộn' : t('common.closed')) : t('group_detail.actions.details')}
                           </Button>
-                          {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
-                            <>
-                              <IconButton 
-                                size="small" 
-                                color="primary"
-                                onClick={() => setEditDeployModal({ open: true, type: 'assignment', resource: asgn })}
-                                sx={{ bgcolor: 'rgba(99, 102, 241, 0.1)', '&:hover': { bgcolor: 'rgba(99, 102, 241, 0.2)' }, borderRadius: '10px' }}
-                              >
-                                <EditIcon fontSize="small" />
-                              </IconButton>
-                              <IconButton 
-                                size="small" 
-                                color="error"
-                                onClick={() => handleDeleteResource('assignment', asgn.id)}
-                                sx={{ bgcolor: 'rgba(239, 68, 68, 0.1)', '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.2)' }, borderRadius: '10px' }}
-                              >
-                                <DeleteIcon fontSize="small" />
-                              </IconButton>
-                            </>
+                          {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && String(asgn.status).toUpperCase() !== 'CLOSED' && (
+                            <IconButton 
+                              size="small" 
+                              color="primary"
+                              onClick={() => setEditDeployModal({ open: true, type: 'assignment', resource: asgn })}
+                              sx={{ bgcolor: 'rgba(99, 102, 241, 0.1)', '&:hover': { bgcolor: 'rgba(99, 102, 241, 0.2)' } }}
+                            >
+                              <EditIcon fontSize="small" />
+                            </IconButton>
+                          )}
+                          {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && asgn.status !== 'CLOSED' && (
+                            <IconButton 
+                              size="small" 
+                              color="error"
+                              onClick={() => handleDeleteResource('assignment', asgn.id)}
+                              sx={{ bgcolor: 'rgba(239, 68, 68, 0.1)', '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.2)' } }}
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
                           )}
                         </Box>
                       </CardContent>
                     </Card>
-                  </motion.div>
                   </Grid>
                 ))}
                 {assignments.length > 6 && (
@@ -771,112 +643,119 @@ const GroupDetail = () => {
 
         {activeTab === 3 && (
           <Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-              <Typography variant="h5" sx={{ fontFamily: 'var(--font-heading)', fontWeight: 800 }}>Kiểm tra & Trắc nghiệm</Typography>
-              <Box sx={{ display: 'flex', gap: 1.5 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+              <Typography variant="h5">Kiểm tra & Trắc nghiệm</Typography>
+              <Box sx={{ display: 'flex', gap: 1 }}>
                 {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
-                  <Button
-                    variant="contained"
-                    startIcon={<InventoryIcon />}
-                    onClick={() => setDeployModal({ open: true, type: 'quiz' })}
-                    sx={{ 
-                      borderRadius: '12px', fontWeight: 800, 
-                      background: 'linear-gradient(135deg, #10B981, #059669)', color: '#FFF',
-                      boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)',
-                    }}
-                  >
-                    Kết nối từ kho đồ
-                  </Button>
+                  <>
+                    <Button
+                      variant="contained"
+                      startIcon={<InventoryIcon />}
+                      onClick={() => setDeployModal({ open: true, type: 'quiz' })}
+                      sx={{ borderRadius: '12px', fontWeight: 700, background: 'linear-gradient(135deg, #10B981, #059669)', color: '#FFF' }}
+                    >
+                      Kết nối từ kho đồ
+                    </Button>
+                  </>
                 )}
               </Box>
             </Box>
 
             {quizzes.length === 0 ? (
-              <Box sx={{ p: 8, textAlign: 'center', borderRadius: '24px', bgcolor: 'rgba(255,255,255,0.02)', border: '1px dashed var(--color-border)' }}>
+              <Paper sx={{ p: 5, textAlign: 'center', borderRadius: '24px', background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.1)' }}>
                 <Typography color="text.secondary">Chưa có bài kiểm tra nào được tổ chức trong nhóm này.</Typography>
-              </Box>
+              </Paper>
             ) : (
-              <Grid container spacing={3.5}>
+              <Grid container spacing={3}>
                 {quizzes.map(quiz => (
                   <Grid item xs={12} sm={6} md={4} key={quiz.id}>
-                    <motion.div whileHover={{ y: -6 }} transition={{ duration: 0.3 }}>
-                      <Card sx={{ 
-                        borderRadius: '20px', 
-                        background: 'var(--color-surface-2)', 
-                        border: '1px solid var(--color-border)',
-                        overflow: 'hidden',
-                        '&:hover': { borderColor: '#10B981', boxShadow: '0 12px 32px rgba(16, 185, 129, 0.1)' }
-                      }}>
-                        <CardContent sx={{ p: 3.5 }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2.5 }}>
-                            <Avatar sx={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10B981', borderRadius: '10px' }}>
-                              <QuizIcon />
-                            </Avatar>
-                            <Typography sx={{ fontSize: '1.0625rem', fontWeight: 800, color: 'var(--color-text)' }}>{quiz.title}</Typography>
-                          </Box>
-                          
-                          <Grid container spacing={2} sx={{ mb: 3 }}>
-                            <Grid item xs={6}>
-                              <Typography sx={{ fontSize: '0.625rem', color: 'var(--color-text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Thời lượng</Typography>
-                              <Typography sx={{ fontSize: '0.875rem', fontWeight: 800 }}>{quiz.timeLimitSec / 60} phút</Typography>
-                            </Grid>
-                            <Grid item xs={6}>
-                              <Typography sx={{ fontSize: '0.625rem', color: 'var(--color-text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Câu hỏi</Typography>
-                              <Typography sx={{ fontSize: '0.875rem', fontWeight: 800 }}>{quiz.questionCount || 0}</Typography>
-                            </Grid>
-                            <Grid item xs={12}>
-                              <Box sx={{ height: 1, bgcolor: 'rgba(255,255,255,0.03)', my: 1 }} />
-                              <Typography sx={{ fontSize: '0.625rem', color: 'var(--color-text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Lượt làm bài</Typography>
-                              <Typography sx={{ fontSize: '0.875rem', fontWeight: 800 }}>Tối đa {quiz.maxAttempts} lượt</Typography>
-                            </Grid>
+                    <Card sx={{ 
+                      borderRadius: '24px', 
+                      background: 'rgba(255,255,255,0.02)', 
+                      border: '1px solid rgba(255,255,255,0.05)',
+                      '&:hover': { borderColor: '#10B981', background: 'rgba(16, 185, 129, 0.05)' }
+                    }}>
+                      <CardContent sx={{ p: 4 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                          <Avatar sx={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10B981' }}>
+                            <QuizIcon />
+                          </Avatar>
+                          <Typography variant="h6" fontWeight={800}>{quiz.title}</Typography>
+                        </Box>
+                        
+                        <Grid container spacing={1} sx={{ mb: 3 }}>
+                          <Grid item xs={6}>
+                            <Typography variant="caption" color="text.secondary" display="block">Thời lượng</Typography>
+                            <Typography variant="body2" fontWeight={700}>{quiz.timeLimitSec / 60} phút</Typography>
                           </Grid>
-                          
-                          <Stack direction="row" spacing={1}>
-                            <Button 
-                              fullWidth 
-                              variant="contained" 
-                              component={RouterLink}
-                              to={`/groups/${id}/courses/placeholder-quiz/quiz/${quiz.id}/take`} 
-                              disabled={quiz.status === 'CLOSED' && (group.currentUserRole === 'MEMBER' || !group.currentUserRole)}
-                              sx={{ 
-                                borderRadius: '12px', fontWeight: 800, height: 40,
-                                background: 'rgba(16, 185, 129, 0.1)', color: '#10B981', 
-                                '&:hover': { background: '#10B981', color: '#FFF' } 
-                              }}
-                            >
-                              {quiz.status === 'CLOSED' ? 'Đã đóng' : 'Bắt đầu làm bài'}
-                            </Button>
-                            {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
-                              <>
-                                <IconButton 
-                                  size="small" 
-                                  onClick={() => setEditDeployModal({ open: true, type: 'quiz', resource: quiz })}
-                                  sx={{ bgcolor: 'rgba(255,255,255,0.05)', borderRadius: '10px' }}
-                                >
-                                  <EditIcon fontSize="small" />
-                                </IconButton>
+                          <Grid item xs={6}>
+                            <Typography variant="caption" color="text.secondary" display="block">Số câu hỏi</Typography>
+                            <Typography variant="body2" fontWeight={700}>{quiz.questionCount || 0} câu</Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="caption" color="text.secondary" display="block">Lượt làm bài</Typography>
+                            <Typography variant="body2" fontWeight={700}>Tối đa {quiz.maxAttempts}</Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="caption" color="text.secondary" display="block">Điểm đạt</Typography>
+                            <Typography variant="body2" fontWeight={700}>{quiz.passingScore}/100</Typography>
+                          </Grid>
+                          {quiz.openAt && (
+                            <Grid item xs={12}>
+                              <Typography variant="caption" color="text.secondary" display="block">Thời gian mở</Typography>
+                              <Typography variant="body2" fontWeight={700}>{format(new Date(quiz.openAt), 'HH:mm dd/MM/yyyy')}</Typography>
+                            </Grid>
+                          )}
+                        </Grid>
+
+                        <Stack direction="row" spacing={1}>
+                          <Button 
+                            fullWidth 
+                            variant="contained" 
+                            component={RouterLink}
+                            to={`/groups/${id}/courses/placeholder-quiz/quiz/${quiz.id}/take`} 
+                            disabled={quiz.status === 'CLOSED' && (group.currentUserRole === 'MEMBER' || !group.currentUserRole)}
+                            sx={{ borderRadius: '12px', fontWeight: 700, background: 'rgba(16, 185, 129, 0.2)', color: '#10B981', '&:hover': { background: '#10B981', color: '#FFF' } }}
+                          >
+                            {quiz.status === 'CLOSED' ? 'Đã đóng' : 'Bắt đầu làm bài'}
+                          </Button>
+                          {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
+                            <>
+                              {quiz.status !== 'CLOSED' && (
+                                <Tooltip title="Thiết lập">
+                                  <IconButton 
+                                    color="primary"
+                                    onClick={() => setEditDeployModal({ open: true, type: 'quiz', resource: quiz })}
+                                    sx={{ bgcolor: 'rgba(99, 102, 241, 0.1)', '&:hover': { bgcolor: 'rgba(99, 102, 241, 0.2)' } }}
+                                  >
+                                    <EditIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                              )}
+                              <Tooltip title="Xem thống kê & lịch sử">
                                 <IconButton 
                                   color="info"
                                   component={RouterLink}
                                   to={`/groups/${id}/courses/placeholder-quiz/quiz/${quiz.id}/stats`}
-                                  sx={{ bgcolor: 'rgba(30, 64, 175, 0.1)', '&:hover': { bgcolor: 'rgba(30, 64, 175, 0.2)' }, borderRadius: '10px' }}
+                                  sx={{ bgcolor: 'rgba(30, 64, 175, 0.1)', '&:hover': { bgcolor: 'rgba(30, 64, 175, 0.2)' } }}
                                 >
                                   <TipsIcon fontSize="small" />
                                 </IconButton>
+                              </Tooltip>
+                              {quiz.status !== 'CLOSED' && (
                                 <IconButton 
-                                  size="small" 
                                   color="error"
                                   onClick={() => handleDeleteResource('quiz', quiz.id)}
-                                  sx={{ bgcolor: 'rgba(239, 68, 68, 0.1)', borderRadius: '10px', '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.2)' } }}
+                                  sx={{ bgcolor: 'rgba(239, 68, 68, 0.1)', '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.2)' } }}
                                 >
                                   <DeleteIcon fontSize="small" />
                                 </IconButton>
-                              </>
-                            )}
-                          </Stack>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
+                              )}
+                            </>
+                          )}
+                        </Stack>
+                      </CardContent>
+                    </Card>
                   </Grid>
                 ))}
               </Grid>

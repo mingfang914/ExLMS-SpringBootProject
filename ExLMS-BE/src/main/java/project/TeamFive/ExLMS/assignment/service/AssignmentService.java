@@ -26,7 +26,6 @@ public class AssignmentService {
     private final GroupAssignmentRepository groupAssignmentRepository;
     private final StudyGroupRepository studyGroupRepository;
     private final project.TeamFive.ExLMS.group.repository.GroupMemberRepository groupMemberRepository;
-    private final org.springframework.context.ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public AssignmentResponseDTO createTemplate(CreateAssignmentRequest request, User creator) {
@@ -118,16 +117,7 @@ public class AssignmentService {
                         : GroupAssignment.GroupAssignmentStatus.PUBLISHED)
                 .build();
 
-        GroupAssignment savedDeployment = groupAssignmentRepository.save(deployment);
-        System.out.println("DEBUG: Deployment saved with status: " + savedDeployment.getStatus());
-        if (savedDeployment.getStatus() == GroupAssignment.GroupAssignmentStatus.PUBLISHED) {
-            System.out.println("DEBUG: Publishing AssignmentCreatedEvent for deployment: " + savedDeployment.getId());
-            eventPublisher.publishEvent(new project.TeamFive.ExLMS.assignment.event.AssignmentCreatedEvent(this, savedDeployment));
-        } else {
-            System.out.println("DEBUG: Assignment status is not PUBLISHED, event not fired.");
-        }
-
-        return mapToResponseDTO(assignment, savedDeployment);
+        return mapToResponseDTO(assignment, groupAssignmentRepository.save(deployment));
     }
 
     @Transactional(readOnly = true)

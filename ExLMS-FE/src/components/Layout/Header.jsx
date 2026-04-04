@@ -366,14 +366,9 @@ const Header = () => {
                   </ListItemAvatar>
                   <ListItemText
                     primary={
-                      <Box>
-                        <Typography sx={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--color-text)', mb: '1px' }}>
-                          {notif.title}
-                        </Typography>
-                        <Typography sx={{ fontSize: '0.75rem', color: 'var(--color-text-sec)', lineHeight: 1.35 }}>
-                          {notif.body}
-                        </Typography>
-                      </Box>
+                      <Typography sx={{ fontSize: '0.8125rem', fontWeight: notif.read ? 400 : 600, color: 'var(--color-text)', lineHeight: 1.4, mb: '2px' }}>
+                        {notif.message}
+                      </Typography>
                     }
                     secondary={
                       <Typography sx={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)' }}>
@@ -456,7 +451,7 @@ const Header = () => {
           {user?.role && (
             <Box sx={{ mt: 1.5 }}>
               <Chip
-                label={user.role === 'ADMIN' ? t('admin.users.roles.admin') : (user.role === 'INSTRUCTOR' ? 'Instructor' : t('admin.users.roles.student'))}
+                label={user.role === 'ADMIN' ? 'Administrator' : (user.role === 'INSTRUCTOR' ? 'Instructor' : 'Student')}
                 size="small"
                 sx={{
                   height: 20,

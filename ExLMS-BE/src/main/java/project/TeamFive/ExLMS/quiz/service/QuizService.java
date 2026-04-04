@@ -2,7 +2,6 @@ package project.TeamFive.ExLMS.quiz.service;
 
 import lombok.RequiredArgsConstructor;
 import java.time.LocalDateTime;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import project.TeamFive.ExLMS.group.entity.StudyGroup;
@@ -13,7 +12,6 @@ import project.TeamFive.ExLMS.quiz.entity.GroupQuiz;
 import project.TeamFive.ExLMS.quiz.entity.Quiz;
 import project.TeamFive.ExLMS.quiz.entity.QuizAnswer;
 import project.TeamFive.ExLMS.quiz.entity.QuizQuestion;
-import project.TeamFive.ExLMS.quiz.event.QuizCreatedEvent;
 import project.TeamFive.ExLMS.quiz.repository.GroupQuizRepository;
 import project.TeamFive.ExLMS.quiz.repository.QuizAnswerRepository;
 import project.TeamFive.ExLMS.quiz.repository.QuizQuestionRepository;
@@ -34,7 +32,6 @@ public class QuizService {
     private final GroupQuizRepository groupQuizRepository;
     private final StudyGroupRepository studyGroupRepository;
     private final project.TeamFive.ExLMS.group.repository.GroupMemberRepository groupMemberRepository;
-    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public QuizResponseDTO createTemplate(CreateQuizRequest request, User user) {
@@ -80,7 +77,7 @@ public class QuizService {
                 quiz.getQuestions().clear();
                 quizRepository.saveAndFlush(quiz);
             }
-
+            
             saveQuestionsAndAnswers(quiz, request.getQuestions());
         }
 
@@ -120,33 +117,24 @@ public class QuizService {
                 .openAt(openAt)
                 .closeAt(closeAt)
                 .shuffleQuestions(config.isShuffleQuestions())
-                .resultVisibility(config.getResultVisibility() != null ? config.getResultVisibility()
-                        : GroupQuiz.ResultVisibility.IMMEDIATE)
-                .status(openAt.isAfter(java.time.LocalDateTime.now())
-                        ? GroupQuiz.GroupQuizStatus.DRAFT
+                .resultVisibility(config.getResultVisibility() != null ? config.getResultVisibility() : GroupQuiz.ResultVisibility.IMMEDIATE)
+                .status(openAt.isAfter(java.time.LocalDateTime.now()) 
+                        ? GroupQuiz.GroupQuizStatus.DRAFT 
                         : GroupQuiz.GroupQuizStatus.PUBLISHED)
                 .build();
 
-        GroupQuiz savedDeployment = groupQuizRepository.save(deployment);
-
-        if (savedDeployment.getStatus() == GroupQuiz.GroupQuizStatus.PUBLISHED) {
-            eventPublisher.publishEvent(new QuizCreatedEvent(this, savedDeployment));
-        }
-
-        return mapToResponseDTO(template, savedDeployment);
+        return mapToResponseDTO(template, groupQuizRepository.save(deployment));
     }
 
     @Transactional(readOnly = true)
     public List<QuizResponseDTO> getQuizzesByGroup(UUID groupId, User user) {
-        project.TeamFive.ExLMS.group.entity.GroupMember member = groupMemberRepository
-                .findByGroup_IdAndUser_Id(groupId, user.getId())
+        project.TeamFive.ExLMS.group.entity.GroupMember member = groupMemberRepository.findByGroup_IdAndUser_Id(groupId, user.getId())
                 .orElseThrow(() -> new RuntimeException("Bạn không phải là thành viên của nhóm này!"));
 
         boolean isInstructor = "OWNER".equals(member.getRole()) || "EDITOR".equals(member.getRole());
 
         return groupQuizRepository.findByGroup_Id(groupId).stream()
-                .filter(gq -> isInstructor || (gq.getStatus() != GroupQuiz.GroupQuizStatus.DRAFT
-                        && gq.getStatus() != GroupQuiz.GroupQuizStatus.CLOSED))
+                .filter(gq -> isInstructor || (gq.getStatus() != GroupQuiz.GroupQuizStatus.DRAFT && gq.getStatus() != GroupQuiz.GroupQuizStatus.CLOSED))
                 .map(gq -> mapToResponseDTO(gq.getQuiz(), gq))
                 .collect(Collectors.toList());
     }
@@ -159,8 +147,7 @@ public class QuizService {
     }
 
     private QuizQuestion.QuestionType safeQuestionType(String type) {
-        if (type == null)
-            return QuizQuestion.QuestionType.SINGLE_CHOICE;
+        if (type == null) return QuizQuestion.QuestionType.SINGLE_CHOICE;
         try {
             return QuizQuestion.QuestionType.valueOf(type);
         } catch (IllegalArgumentException e) {
@@ -210,8 +197,7 @@ public class QuizService {
                             .answers(answers.stream()
                                     .map(a -> QuizResponseDTO.AnswerResponse.builder()
                                             .id(a.getId())
-                                            .content(project.TeamFive.ExLMS.util.UrlUtils
-                                                    .normalizeCkeUrls(a.getContent()))
+                                            .content(project.TeamFive.ExLMS.util.UrlUtils.normalizeCkeUrls(a.getContent()))
                                             .correct(a.isCorrect())
                                             .build())
                                     .collect(Collectors.toList()))
@@ -261,13 +247,11 @@ public class QuizService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đợt kiểm tra này!"));
 
         if (deployment.getStatus() == GroupQuiz.GroupQuizStatus.CLOSED) {
-            throw new RuntimeException(
-                    "Dữ liệu đợt thi đã kết thúc (CLOSED) sẽ được lưu trữ làm lịch sử, không thể xóa!");
+            throw new RuntimeException("Dữ liệu đợt thi đã kết thúc (CLOSED) sẽ được lưu trữ làm lịch sử, không thể xóa!");
         }
 
         groupQuizRepository.delete(deployment);
     }
-
     @Transactional
     public QuizResponseDTO updateQuizDeployment(UUID deploymentId, CreateQuizRequest request, User user) {
         GroupQuiz deployment = groupQuizRepository.findById(deploymentId)
@@ -278,20 +262,20 @@ public class QuizService {
         }
 
         if (request.getOpenAt() != null && !request.getOpenAt().isEqual(deployment.getOpenAt())) {
-            throw new RuntimeException("Không được phép thay đổi thời gian mở đề sau khi đã tạo!");
+             throw new RuntimeException("Không được phép thay đổi thời gian mở đề sau khi đã tạo!");
         }
 
         if (request.getCloseAt() != null) {
             validateDates(deployment.getOpenAt(), request.getCloseAt(), false);
             deployment.setCloseAt(request.getCloseAt());
         }
-
+        
         deployment.setShuffleQuestions(request.isShuffleQuestions());
-
+        
         if (request.getResultVisibility() != null) {
             deployment.setResultVisibility(request.getResultVisibility());
         }
-
+        
         if (request.getStatus() != null) {
             String newStatus = request.getStatus();
             if ("CLOSED".equals(newStatus)) {
@@ -299,8 +283,7 @@ public class QuizService {
             }
             try {
                 deployment.setStatus(GroupQuiz.GroupQuizStatus.valueOf(newStatus));
-            } catch (Exception e) {
-            }
+            } catch (Exception e) {}
         }
 
         return mapToResponseDTO(deployment.getQuiz(), groupQuizRepository.save(deployment));

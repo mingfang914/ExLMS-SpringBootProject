@@ -69,8 +69,8 @@ const GroupCard = ({ group, onJoin }) => {
 
   return (
     <motion.div
-      whileHover={{ y: -6, scale: 1.01 }}
-      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+      whileHover={{ y: -4 }}
+      transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
       style={{ height: '100%' }}
     >
       <Box
@@ -80,161 +80,176 @@ const GroupCard = ({ group, onJoin }) => {
           flexDirection: 'column',
           bgcolor: 'var(--color-surface-2)',
           border: '1px solid var(--color-border)',
-          borderRadius: '20px',
+          borderRadius: '14px',
           overflow: 'hidden',
-          position: 'relative',
-          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          cursor: 'pointer',
+          transition: 'border-color 0.2s, box-shadow 0.2s',
           '&:hover': {
-            borderColor: 'rgba(99, 102, 241, 0.4)',
-            boxShadow: '0 20px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(99,102,241,0.1)',
-            '& .card-banner-img': { transform: 'scale(1.1)' }
+            borderColor: 'var(--color-border-lt)',
+            boxShadow: '0 12px 36px rgba(0,0,0,0.4), 0 0 0 1px rgba(99,102,241,0.1)',
           },
         }}
       >
-        {/* ── Banner ─── */}
-        <Box sx={{ height: 120, position: 'relative', overflow: 'hidden' }}>
-          <Box
-            className="card-banner-img"
-            sx={{
-              position: 'absolute',
-              inset: 0,
-              background: coverUrl ? undefined : gradient,
-              backgroundImage: coverUrl ? `url(${coverUrl})` : undefined,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              transition: 'transform 0.6s cubic-bezier(0.22, 1, 0.36, 1)',
-            }}
-          />
-          <Box sx={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, var(--color-surface-2), transparent)' }} />
-          
-          {/* Status Badge */}
-          <Box sx={{ position: 'absolute', top: 12, right: 12 }}>
+        {/* ── Cover / Header ─── */}
+        <Box
+          sx={{
+            height: 100,
+            position: 'relative',
+            flexShrink: 0,
+            background: coverUrl ? undefined : gradient,
+            backgroundImage: coverUrl ? `url(${coverUrl})` : undefined,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        >
+          {/* Overlay */}
+          <Box sx={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.25)' }} />
+
+          {/* Visibility badge */}
+          <Box sx={{ position: 'absolute', top: 10, right: 10 }}>
             <Box
               sx={{
-                display: 'flex', alignItems: 'center', gap: '6px',
-                px: 1.5, py: 0.5,
-                borderRadius: '8px',
-                bgcolor: isPublic ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)',
-                border: `1px solid ${isPublic ? 'rgba(16, 185, 129, 0.3)' : 'rgba(245, 158, 11, 0.3)'}`,
+                display: 'flex', alignItems: 'center', gap: '4px',
+                px: '8px', py: '3px',
+                borderRadius: '99px',
+                bgcolor: isPublic ? 'rgba(34,197,94,0.2)' : 'rgba(245,158,11,0.2)',
+                border: `1px solid ${isPublic ? 'rgba(34,197,94,0.4)' : 'rgba(245,158,11,0.4)'}`,
                 backdropFilter: 'blur(8px)',
               }}
             >
-              <Box sx={{ color: isPublic ? '#34D399' : '#FBBF24', display: 'flex' }}>
+              <Box sx={{ color: isPublic ? '#86EFAC' : '#FDE68A' }}>
                 {isPublic ? <PublicIcon /> : <LockIcon />}
               </Box>
-              <Typography sx={{ fontSize: '0.625rem', fontWeight: 800, color: isPublic ? '#34D399' : '#FBBF24', letterSpacing: '0.02em', textTransform: 'uppercase' }}>
+              <Typography sx={{ fontSize: '0.5625rem', fontWeight: 700, color: isPublic ? '#86EFAC' : '#FDE68A', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
                 {isPublic ? t('group_card.public') : t('group_card.private')}
               </Typography>
             </Box>
           </Box>
+
+          {/* Group avatar */}
+          <Box sx={{ position: 'absolute', bottom: -20, left: 16 }}>
+            <Avatar
+              sx={{
+                width: 44, height: 44,
+                fontSize: '1rem', fontWeight: 800,
+                background: 'linear-gradient(135deg, #6366F1, #22D3EE)',
+                border: '2px solid var(--color-surface-2)',
+                color: 'white',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+              }}
+            >
+              {initials(name)}
+            </Avatar>
+          </Box>
         </Box>
 
-        {/* ── Content ─── */}
-        <Box sx={{ flex: 1, px: 3, pb: 3, pt: 1, position: 'relative' }}>
-          {/* Avatar floating */}
-          <Avatar
-            sx={{
-              width: 52, height: 52,
-              position: 'absolute',
-              top: -26, left: 24,
-              fontSize: '1.25rem', fontWeight: 900,
-              background: 'linear-gradient(135deg, #6366F1, #22D3EE)',
-              border: '4px solid var(--color-surface-2)',
-              boxShadow: '0 8px 16px rgba(0,0,0,0.3)',
-            }}
-          >
-            {initials(name)}
-          </Avatar>
-
-          <Box sx={{ mt: 3.5 }}>
-            {category && (
-              <Typography sx={{ fontSize: '0.625rem', fontWeight: 800, color: 'var(--color-primary-lt)', mb: 0.75, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                {category}
-              </Typography>
-            )}
-            <Typography
+        {/* ── Body ─── */}
+        <Box sx={{ flex: 1, p: 2.5, pt: 3.5 }}>
+          {/* Category chip */}
+          {category && (
+            <Chip
+              label={category}
+              size="small"
               sx={{
-                fontFamily: 'var(--font-heading)',
-                fontWeight: 800,
-                fontSize: '1.125rem',
-                color: 'var(--color-text)',
-                lineHeight: 1.25,
-                mb: 1.25,
+                mb: 1,
+                height: 18,
+                fontSize: '0.5625rem',
+                fontWeight: 700,
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+                bgcolor: 'rgba(99,102,241,0.12)',
+                color: '#818CF8',
+                border: '1px solid rgba(99,102,241,0.25)',
+                '& .MuiChip-label': { px: '8px' },
               }}
-              className="clamp-1"
-            >
-              {name}
-            </Typography>
+            />
+          )}
 
-            <Typography
-              sx={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', lineHeight: 1.6, mb: 2.5, height: '2.6em' }}
-              className="clamp-2"
-            >
-              {description || t('group_card.no_desc')}
-            </Typography>
+          <Typography
+            sx={{
+              fontFamily: 'var(--font-heading)',
+              fontWeight: 700,
+              fontSize: '1rem',
+              color: 'var(--color-text)',
+              lineHeight: 1.3,
+              mb: 0.75,
+            }}
+            className="clamp-2"
+          >
+            {name}
+          </Typography>
 
-            {/* Meta data */}
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Avatar sx={{ width: 18, height: 18, fontSize: '0.6rem', bgcolor: 'rgba(255,255,255,0.1)' }}>
-                  {ownerName.charAt(0)}
-                </Avatar>
-                <Typography sx={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>
-                  {ownerName}
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, color: 'var(--color-text-muted)' }}>
-                <PeopleIcon />
-                <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-sec)' }}>
-                  {memberCount ?? 0}
-                </Typography>
-              </Box>
+          <Typography
+            sx={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', lineHeight: 1.5, mb: 2 }}
+            className="clamp-2"
+          >
+            {description || t('group_card.no_desc')}
+          </Typography>
+
+          {/* Stats row */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--color-text-muted)' }}>
+              <PeopleIcon />
+              <Typography sx={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--color-text-sec)' }}>
+                {t('group_card.members_count', { count: memberCount ?? 0 })}
+              </Typography>
             </Box>
+            <Box sx={{ width: 3, height: 3, borderRadius: '50%', bgcolor: 'var(--color-border-lt)' }} />
+            <Typography sx={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+              {t('group_card.by_owner', { owner: ownerName })}
+            </Typography>
           </Box>
         </Box>
 
         {/* ── Actions ─── */}
         <Box
           sx={{
-            px: 3, pb: 3,
+            px: 2.5, pb: 2.5,
             display: 'flex', gap: 1.5,
+            borderTop: '1px solid rgba(48,54,61,0.5)',
+            pt: 2,
           }}
         >
           <Button
             component={Link}
             to={`/groups/${id}`}
             variant="outlined"
-            fullWidth
+            size="small"
+            endIcon={<ArrowRightIcon />}
             sx={{
-              height: 40,
-              borderRadius: '12px',
+              flex: 1,
+              height: 36,
+              borderRadius: '8px',
               borderColor: 'var(--color-border)',
               color: 'var(--color-text-sec)',
               fontSize: '0.8125rem',
-              fontWeight: 700,
-              textTransform: 'none',
-              '&:hover': { borderColor: '#6366F1', color: 'var(--color-text)', bgcolor: 'rgba(99,102,241,0.06)' },
+              cursor: 'pointer',
+              '&:hover': { borderColor: 'var(--color-primary)', color: 'var(--color-text)', bgcolor: 'rgba(99,102,241,0.06)' },
+              transition: 'all 0.15s',
             }}
           >
             {t('group_card.view')}
           </Button>
           {!isJoined && (
             <Button
+              size="small"
               variant="contained"
-              fullWidth
-              onClick={(e) => { e.preventDefault(); onJoin(id); }}
+              startIcon={<PlusIcon />}
+              onClick={() => onJoin(id)}
               sx={{
-                height: 40,
-                borderRadius: '12px',
+                flex: 1,
+                height: 36,
+                borderRadius: '8px',
                 fontSize: '0.8125rem',
-                fontWeight: 800,
-                textTransform: 'none',
+                fontWeight: 600,
                 background: 'linear-gradient(135deg, #6366F1, #4F46E5)',
-                boxShadow: '0 4px 12px rgba(79, 70, 229, 0.3)',
+                cursor: 'pointer',
                 '&:hover': {
                   background: 'linear-gradient(135deg, #818CF8, #6366F1)',
-                  boxShadow: '0 6px 18px rgba(79, 70, 229, 0.45)',
+                  boxShadow: '0 4px 12px rgba(99,102,241,0.35)',
+                  transform: 'translateY(-1px)',
                 },
+                transition: 'all 0.15s',
               }}
             >
               {t('group_card.join')}
