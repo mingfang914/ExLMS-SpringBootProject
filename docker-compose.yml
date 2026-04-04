@@ -107,6 +107,7 @@ services:
     build:
       context: ./ExLMS-Meeting-Service
       dockerfile: Dockerfile
+    image: mingfang914/exlms-meeting-service:latest
     container_name: lms-meeting-service
     restart: always
     environment:
