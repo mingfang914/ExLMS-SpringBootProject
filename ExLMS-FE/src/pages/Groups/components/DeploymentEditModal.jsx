@@ -104,6 +104,7 @@ const DeploymentEditModal = ({ open, onClose, type, resource, onUpdateSuccess })
               <TextField 
                 label="Hạn nộp bài" type="datetime-local" fullWidth 
                 InputLabelProps={{ shrink: true }}
+                inputProps={{ min: config.assignedAt || new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) }}
                 value={config.dueAt}
                 onChange={(e) => setConfig({...config, dueAt: e.target.value})}
               />
@@ -139,6 +140,7 @@ const DeploymentEditModal = ({ open, onClose, type, resource, onUpdateSuccess })
               <TextField 
                 label="Thời gian đóng đề" type="datetime-local" fullWidth 
                 InputLabelProps={{ shrink: true }}
+                inputProps={{ min: config.openAt || new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) }}
                 value={config.closeAt}
                 onChange={(e) => setConfig({...config, closeAt: e.target.value})}
               />
@@ -179,6 +181,7 @@ const DeploymentEditModal = ({ open, onClose, type, resource, onUpdateSuccess })
               <TextField 
                 label="Thời gian kết thúc" type="datetime-local" fullWidth 
                 InputLabelProps={{ shrink: true }}
+                inputProps={{ min: config.startDate || new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) }}
                 value={config.endDate}
                 onChange={(e) => setConfig({...config, endDate: e.target.value})}
               />

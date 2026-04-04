@@ -21,5 +21,7 @@ public interface GroupJoinRequestRepository extends JpaRepository<GroupJoinReque
     @Query(value = "SELECT * FROM group_join_requests WHERE group_id = UNHEX(REPLACE(:groupId, '-', '')) AND status = :status", nativeQuery = true)
     List<GroupJoinRequest> findPendingByGroupId(@Param("groupId") String groupId, @Param("status") String status);
 
+    @Modifying
+    @org.springframework.transaction.annotation.Transactional
     void deleteByGroupAndUser(StudyGroup group, User user);
 }

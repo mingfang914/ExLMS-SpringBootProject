@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import {
   LiveKitRoom,
   VideoConference,
-  formatDataTestId,
   LayoutContextProvider,
   RoomAudioRenderer,
   ControlBar

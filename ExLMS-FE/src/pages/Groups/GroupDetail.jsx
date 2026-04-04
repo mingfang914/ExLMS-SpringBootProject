@@ -962,12 +962,14 @@ const GroupDetail = () => {
             <TextField 
               fullWidth label={t('group_detail.meetings.start_time')} margin="normal" type="datetime-local" required
               InputLabelProps={{ shrink: true }}
+              inputProps={{ min: new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) }}
               value={newMeetingData.startAt} 
               onChange={(e) => setNewMeetingData({...newMeetingData, startAt: e.target.value})} 
             />
             <TextField 
               fullWidth label={t('group_detail.meetings.end_time') || 'Thời gian kết thúc'} margin="normal" type="datetime-local" required
               InputLabelProps={{ shrink: true }}
+              inputProps={{ min: newMeetingData.startAt || new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) }}
               value={newMeetingData.endAt} 
               onChange={(e) => setNewMeetingData({...newMeetingData, endAt: e.target.value})} 
             />
@@ -1005,12 +1007,14 @@ const GroupDetail = () => {
             <TextField 
               fullWidth label={t('group_detail.meetings.start_time')} margin="normal" type="datetime-local" required
               InputLabelProps={{ shrink: true }}
+              inputProps={{ min: new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) }}
               value={editMeetingData.startAt} 
               onChange={(e) => setEditMeetingData({...editMeetingData, startAt: e.target.value})} 
             />
             <TextField 
               fullWidth label={t('group_detail.meetings.end_time') || 'Thời gian kết thúc'} margin="normal" type="datetime-local" required
               InputLabelProps={{ shrink: true }}
+              inputProps={{ min: editMeetingData.startAt || new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) }}
               value={editMeetingData.endAt} 
               onChange={(e) => setEditMeetingData({...editMeetingData, endAt: e.target.value})} 
             />

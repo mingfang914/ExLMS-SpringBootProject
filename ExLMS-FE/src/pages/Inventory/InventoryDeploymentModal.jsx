@@ -171,18 +171,24 @@ const InventoryDeploymentModal = ({ open, onClose, type, groupId, onDeploySucces
           
           <Grid item xs={12} md={5}>
             <Typography variant="subtitle1" fontWeight={700} gutterBottom>Thiết đặt thời gian giao</Typography>
+            {(() => {
+               const now = new Date();
+               const minDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+               return (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
               {type === 'assignment' && (
                 <>
                   <TextField 
                     label="Ngày giao bài" type="datetime-local" fullWidth 
                     InputLabelProps={{ shrink: true }}
+                    inputProps={{ min: minDateTime }}
                     value={config.assignedAt}
                     onChange={(e) => setConfig({...config, assignedAt: e.target.value})}
                   />
                   <TextField 
                     label="Hạn nộp bài" type="datetime-local" fullWidth 
                     InputLabelProps={{ shrink: true }}
+                    inputProps={{ min: config.assignedAt || minDateTime }}
                     value={config.dueAt}
                     onChange={(e) => setConfig({...config, dueAt: e.target.value})}
                   />
@@ -210,12 +216,14 @@ const InventoryDeploymentModal = ({ open, onClose, type, groupId, onDeploySucces
                   <TextField 
                     label="Thời gian mở đề" type="datetime-local" fullWidth 
                     InputLabelProps={{ shrink: true }}
+                    inputProps={{ min: minDateTime }}
                     value={config.openAt}
                     onChange={(e) => setConfig({...config, openAt: e.target.value})}
                   />
                   <TextField 
                     label="Thời gian đóng đề" type="datetime-local" fullWidth 
                     InputLabelProps={{ shrink: true }}
+                    inputProps={{ min: config.openAt || minDateTime }}
                     value={config.closeAt}
                     onChange={(e) => setConfig({...config, closeAt: e.target.value})}
                   />
@@ -248,18 +256,22 @@ const InventoryDeploymentModal = ({ open, onClose, type, groupId, onDeploySucces
                   <TextField 
                     label="Bắt đầu lúc" type="datetime-local" fullWidth 
                     InputLabelProps={{ shrink: true }}
+                    inputProps={{ min: minDateTime }}
                     value={config.startDate}
                     onChange={(e) => setConfig({...config, startDate: e.target.value})}
                   />
                   <TextField 
                     label="Kết thúc lúc" type="datetime-local" fullWidth 
                     InputLabelProps={{ shrink: true }}
+                    inputProps={{ min: config.startDate || minDateTime }}
                     value={config.endDate}
                     onChange={(e) => setConfig({...config, endDate: e.target.value})}
                   />
                 </>
               )}
             </Box>
+               );
+            })()}
           </Grid>
         </Grid>
       </DialogContent>

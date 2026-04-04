@@ -62,6 +62,18 @@ public class SecurityConfig {
                                                                 "/api/v1/meetings/polls/*/vote")
                                                 .authenticated()
 
+                                                // Student group interactions (Join/Leave)
+                                                .requestMatchers(org.springframework.http.HttpMethod.POST,
+                                                                "/api/groups/join/**",
+                                                                "/api/groups/*/join-requests",
+                                                                "/api/v1/groups/join/**",
+                                                                "/api/v1/groups/*/join-requests")
+                                                .authenticated()
+                                                .requestMatchers(org.springframework.http.HttpMethod.DELETE,
+                                                                "/api/groups/*/leave",
+                                                                "/api/v1/groups/*/leave")
+                                                .authenticated()
+
                                                 // Management routes (POST, PUT, DELETE) - restricted to INSTRUCTOR and ADMIN
                                                 .requestMatchers(org.springframework.http.HttpMethod.POST,
                                                                 "/api/v1/courses/**", "/api/v1/quizzes/**",

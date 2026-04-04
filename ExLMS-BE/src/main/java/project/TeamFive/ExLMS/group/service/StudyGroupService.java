@@ -264,8 +264,8 @@ public class StudyGroupService {
             throw new RuntimeException("Rất tiếc, nhóm đã đạt số lượng thành viên tối đa!");
         }
 
-        // 5. Kiểm tra xem sinh viên đã tham gia nhóm này chưa
-        if (groupMemberRepository.existsByGroupAndUser(group, currentUser)) {
+        // 5. Kiểm tra xem sinh viên đã tham gia nhóm này chưa (Dùng ID-based check cho an toàn với Binary UUID)
+        if (groupMemberRepository.findByGroup_IdAndUser_Id(group.getId(), currentUser.getId()).isPresent()) {
             throw new RuntimeException("Bạn đã là thành viên của nhóm này rồi!");
         }
 
@@ -334,8 +334,8 @@ public class StudyGroupService {
         if (!"PUBLIC".equalsIgnoreCase(group.getVisibility())) {
             throw new RuntimeException("Nhóm này là Private. Bạn chỉ có thể tham gia bằng Mã mời!");
         }
-        // Ràng buộc 2: Chưa là thành viên
-        if (groupMemberRepository.existsByGroupAndUser(group, currentUser)) {
+        // Ràng buộc 2: Chưa là thành viên (Dùng ID-based check cho an toàn với Binary UUID)
+        if (groupMemberRepository.findByGroup_IdAndUser_Id(groupId, currentUser.getId()).isPresent()) {
             throw new RuntimeException("Bạn đã là thành viên của nhóm này rồi!");
         }
         // Ràng buộc 3: Chưa có yêu cầu nào đang chờ
