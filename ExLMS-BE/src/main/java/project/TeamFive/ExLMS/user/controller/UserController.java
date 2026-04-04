@@ -11,6 +11,7 @@ import project.TeamFive.ExLMS.service.FileService;
 
 import java.util.Map;
 import java.util.HashMap;
+import java.time.format.DateTimeFormatter;
 
 @RestController
 @RequestMapping("/api/users")
@@ -18,24 +19,32 @@ import java.util.HashMap;
 public class UserController {
 
     private final UserRepository userRepository;
-    private final FileService fileService;
 
     @GetMapping("/me")
     public ResponseEntity<Map<String, Object>> getMyProfile(@AuthenticationPrincipal User currentUser) {
+        User user = userRepository.findById(currentUser.getId())
+                .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
+
         Map<String, Object> response = new HashMap<>();
-        response.put("id", currentUser.getId());
-        response.put("email", currentUser.getEmail());
-        response.put("fullName", currentUser.getFullName());
-        response.put("name", currentUser.getFullName()); // For frontend backwards compatibility
-        response.put("bio", currentUser.getBio());
-        response.put("role", currentUser.getRole() != null ? currentUser.getRole().name() : null);
-        response.put("status", currentUser.getStatus());
+        response.put("id", user.getId());
+        response.put("email", user.getEmail());
+        response.put("fullName", user.getFullName());
+        response.put("name", user.getFullName());
+        response.put("bio", user.getBio());
+        response.put("role", user.getRole() != null ? user.getRole().name() : null);
+        response.put("status", user.getStatus());
+        
+        if (user.getCreatedAt() != null) {
+            response.put("createdAt", user.getCreatedAt().format(DateTimeFormatter.ISO_DATE_TIME));
+        } else {
+            response.put("createdAt", null);
+        }
         
         String avatarUrl = null;
-        if (currentUser.getAvatarKey() != null && !currentUser.getAvatarKey().trim().isEmpty()) {
-            avatarUrl = "/api/files/download/" + currentUser.getAvatarKey();
+        if (user.getAvatarKey() != null && !user.getAvatarKey().trim().isEmpty()) {
+            avatarUrl = "/api/files/download/" + user.getAvatarKey();
         }
-        response.put("avatarKey", currentUser.getAvatarKey());
+        response.put("avatarKey", user.getAvatarKey());
         response.put("avatarUrl", avatarUrl);
         return ResponseEntity.ok(response);
     }

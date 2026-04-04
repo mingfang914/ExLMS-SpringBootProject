@@ -116,7 +116,8 @@ const Profile = () => {
   const { user }   = useSelector((state) => state.auth)
   const dispatch   = useDispatch()
 
-  const [profileData, setProfileData] = useState({ fullName: '', bio: '', avatarKey: '' })
+  const [profileData, setProfileData] = useState({ fullName: '', bio: '', avatarKey: '', createdAt: '' })
+  const [stats,       setStats]       = useState({ coursesInProgress: 0, averageCompletion: 0, totalAchievement: 0 })
   const [loading,     setLoading]     = useState(false)
   const [saving,      setSaving]      = useState(false)
   const [successMsg,  setSuccessMsg]  = useState('')
@@ -126,14 +127,24 @@ const Profile = () => {
     const load = async () => {
       setLoading(true)
       try {
-        const res = await api.get('/users/me')
+        const [userRes, statsRes] = await Promise.all([
+          api.get('/users/me'),
+          api.get('/dashboard/stats')
+        ])
+
         setProfileData({
-          fullName:  res.data.fullName  || '',
-          bio:       res.data.bio       || '',
-          avatarKey: res.data.avatarKey || '',
+          fullName:  userRes.data.fullName  || '',
+          bio:       userRes.data.bio       || '',
+          avatarKey: userRes.data.avatarKey || '',
+          createdAt: userRes.data.createdAt || '',
         })
-      } catch {}
-      finally { setLoading(false) }
+        setStats(statsRes.data)
+        dispatch(setUser(userRes.data))
+      } catch (err) {
+        console.error('Failed to load profile data:', err)
+      } finally {
+        setLoading(false)
+      }
     }
     load()
   }, [])
@@ -265,10 +276,30 @@ const Profile = () => {
       {/* ── Statistics Row ─────────────────────────────────────── */}
       <motion.div variants={item}>
         <Box className="stats-container">
-          <StatCard icon={<BookIcon />} label={t('dashboard.stats.courses')} value="12" colorClass="stat-card--indigo" />
-          <StatCard icon={<CheckCircleIcon />} label={t('dashboard.completion_status', { completed: 48, total: 60 }).split('/')[0].trim()} value="80%" colorClass="stat-card--green" />
-          <StatCard icon={<AwardIcon />} label="Achievement" value="2,450" colorClass="stat-card--amber" />
-          <StatCard icon={<UserIcon />} label="Members Since" value="Apr 2024" colorClass="stat-card--cyan" />
+          <StatCard
+            icon={<BookIcon />}
+            label={t('dashboard.stats.courses')}
+            value={stats.coursesInProgress || 0}
+            colorClass="stat-card--indigo"
+          />
+          <StatCard
+            icon={<CheckCircleIcon />}
+            label={t('common.course_completion')}
+            value={`${Math.round(stats.averageCompletion || 0)}%`}
+            colorClass="stat-card--green"
+          />
+          <StatCard
+            icon={<AwardIcon />}
+            label={t('common.achievement')}
+            value={(stats.totalAchievement || 0).toLocaleString()}
+            colorClass="stat-card--amber"
+          />
+          <StatCard
+            icon={<UserIcon />}
+            label={t('common.members_since')}
+            value={profileData.createdAt ? new Date(profileData.createdAt).toLocaleDateString(undefined, { month: 'short', year: 'numeric' }) : '---'}
+            colorClass="stat-card--cyan"
+          />
         </Box>
       </motion.div>
 
