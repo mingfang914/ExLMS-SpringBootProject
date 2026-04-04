@@ -17,7 +17,9 @@ import {
   Snackbar,
   Chip,
   Skeleton,
+  Divider,
 } from '@mui/material'
+import { alpha } from '@mui/material/styles'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
@@ -134,21 +136,31 @@ const GroupList = () => {
 
       {/* ── Page header ─────────────────────────────────────────── */}
       <motion.div variants={item}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', mb: 4, flexWrap: 'wrap', gap: 2 }}>
-          <Box>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', mb: 5, flexWrap: 'wrap', gap: 3 }}>
+          <Box sx={{ position: 'relative' }}>
+            <Box
+              sx={{
+                position: 'absolute',
+                top: -20, left: -20,
+                width: 120, height: 120,
+                background: 'radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 70%)',
+                zIndex: -1,
+              }}
+            />
             <Typography
               sx={{
                 fontFamily: 'var(--font-heading)',
-                fontWeight: 800,
-                fontSize: { xs: '1.75rem', sm: '2rem' },
+                fontWeight: 900,
+                fontSize: { xs: '2rem', sm: '2.5rem' },
                 color: 'var(--color-text)',
-                letterSpacing: '-0.03em',
-                mb: 0.5,
+                letterSpacing: '-0.04em',
+                lineHeight: 1,
+                mb: 1,
               }}
             >
               {t('groups.title')}
             </Typography>
-            <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
+            <Typography sx={{ fontSize: '1rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>
               {t('groups.subtitle')}
             </Typography>
           </Box>
@@ -156,27 +168,26 @@ const GroupList = () => {
           <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
             <Button
               variant="outlined"
-              startIcon={<RefreshIcon />}
               onClick={() => fetchGroups(activeTab)}
               disabled={loading}
               sx={{
-                height: 38, borderRadius: '9px', fontSize: '0.875rem',
+                height: 42, borderRadius: '12px', fontSize: '0.875rem', fontWeight: 600,
                 borderColor: 'var(--color-border)', color: 'var(--color-text-sec)',
-                cursor: 'pointer',
-                '&:hover': { borderColor: 'var(--color-border-lt)', color: 'var(--color-text)', bgcolor: 'rgba(240,246,252,0.04)' },
+                px: 2,
+                '&:hover': { borderColor: 'var(--color-border-lt)', color: 'var(--color-text)', bgcolor: 'rgba(255,255,255,0.03)' },
               }}
             >
-              {t('groups.refresh')}
+              <RefreshIcon />
             </Button>
             <Button
               variant="outlined"
               startIcon={<KeyIcon />}
               onClick={() => setInviteDialogOpen(true)}
               sx={{
-                height: 38, borderRadius: '9px', fontSize: '0.875rem',
+                height: 42, borderRadius: '12px', fontSize: '0.875rem', fontWeight: 600,
                 borderColor: 'var(--color-border)', color: 'var(--color-text-sec)',
-                cursor: 'pointer',
-                '&:hover': { borderColor: 'var(--color-primary)', color: 'var(--color-primary-lt)', bgcolor: 'rgba(99,102,241,0.06)' },
+                px: 2.5,
+                '&:hover': { borderColor: 'var(--color-primary)', color: 'var(--color-primary-lt)', bgcolor: 'rgba(99,102,241,0.05)' },
               }}
             >
               {t('groups.join_by_code')}
@@ -187,10 +198,11 @@ const GroupList = () => {
               component={Link}
               to="/groups/create"
               sx={{
-                height: 38, borderRadius: '9px', fontSize: '0.875rem', fontWeight: 600,
+                height: 42, borderRadius: '12px', fontSize: '0.875rem', fontWeight: 800,
+                px: 3,
                 background: 'linear-gradient(135deg, #6366F1, #4F46E5)',
-                cursor: 'pointer',
-                '&:hover': { background: 'linear-gradient(135deg, #818CF8, #6366F1)', boxShadow: '0 4px 12px rgba(99,102,241,0.35)' },
+                boxShadow: '0 8px 20px rgba(79, 70, 229, 0.3)',
+                '&:hover': { background: 'linear-gradient(135deg, #818CF8, #6366F1)', boxShadow: '0 12px 24px rgba(79, 70, 229, 0.45)' },
               }}
             >
               {t('groups.create_group')}
@@ -205,72 +217,34 @@ const GroupList = () => {
           sx={{
             display: 'flex',
             alignItems: 'center',
-            gap: 2,
-            mb: 3,
-            p: 2,
-            bgcolor: 'var(--color-surface)',
+            gap: 3,
+            mb: 4,
+            p: '10px 10px 10px 20px',
+            bgcolor: 'rgba(22, 27, 34, 0.5)',
+            backdropFilter: 'blur(12px)',
             border: '1px solid var(--color-border)',
-            borderRadius: '12px',
+            borderRadius: '16px',
             flexWrap: 'wrap',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
           }}
         >
-          {/* Search */}
-          <Box
-            sx={{
-              display: 'flex', alignItems: 'center', gap: 1,
-              px: 1.5, height: 38, flex: '1 1 240px',
-              borderRadius: '8px',
-              border: '1px solid var(--color-border)',
-              bgcolor: 'var(--color-surface-3)',
-              '&:focus-within': { borderColor: 'var(--color-primary)', boxShadow: '0 0 0 3px rgba(99,102,241,0.12)' },
-              transition: 'all 0.2s',
-            }}
-          >
-            <Box sx={{ color: 'var(--color-text-sec)', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
-              <SearchIcon />
-            </Box>
-            <input
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder={t('groups.search_placeholder')}
-              className="search-input"
-              style={{
-                flex: 1, background: 'none', border: 'none', outline: 'none',
-                color: 'var(--color-text)', fontSize: '0.875rem',
-                fontFamily: 'var(--font-body)',
-              }}
-            />
-            {searchTerm && (
-              <button
-                onClick={() => setSearchTerm('')}
-                style={{
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  color: 'var(--color-text-muted)', fontSize: '1rem', lineHeight: 1,
-                  padding: 0, display: 'flex', alignItems: 'center',
-                }}
-              >
-                ×
-              </button>
-            )}
-          </Box>
-
           {/* Tab filter */}
           <Tabs
             value={activeTab}
             onChange={(_, v) => setActiveTab(v)}
             sx={{
-              minHeight: 38,
+              minHeight: 40,
               '& .MuiTabs-indicator': {
                 background: 'linear-gradient(90deg, #6366F1, #22D3EE)',
-                height: 2, borderRadius: 1,
+                height: 3, borderRadius: '3px 3px 0 0',
               },
               '& .MuiTab-root': {
-                minHeight: 38, py: 0, px: 2,
-                fontSize: '0.875rem', fontWeight: 500,
+                minHeight: 40, py: 0, px: 2.5,
+                fontSize: '0.875rem', fontWeight: 700,
                 color: 'var(--color-text-muted)',
                 textTransform: 'none',
-                cursor: 'pointer',
-                '&.Mui-selected': { color: 'var(--color-text)', fontWeight: 600 },
+                minWidth: 'auto',
+                '&.Mui-selected': { color: 'var(--color-text)' },
               },
             }}
           >
@@ -278,17 +252,54 @@ const GroupList = () => {
             <Tab label={t('groups.tabs.mine')}  id="tab-mine" />
           </Tabs>
 
-          {/* Result count */}
-          {!loading && (
-            <Chip
-              label={t('groups.count', { count: filteredGroups.length })}
-              size="small"
-              sx={{
-                height: 24, fontSize: '0.75rem', fontWeight: 600,
-                bgcolor: 'rgba(99,102,241,0.1)', color: '#818CF8',
-                border: '1px solid rgba(99,102,241,0.2)',
+          <Divider orientation="vertical" flexItem sx={{ my: 1, borderColor: 'rgba(255,255,255,0.05)' }} />
+
+          {/* Search */}
+          <Box
+            sx={{
+              display: 'flex', alignItems: 'center', gap: 1.5,
+              px: 2, height: 40, flex: 1,
+              borderRadius: '10px',
+              border: '1px solid rgba(255,255,255,0.05)',
+              bgcolor: 'rgba(13, 17, 23, 0.4)',
+              '&:focus-within': { borderColor: 'rgba(99,102,241,0.5)', bgcolor: 'rgba(13, 17, 23, 0.6)' },
+              transition: 'all 0.2s',
+            }}
+          >
+            <Box sx={{ color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', opacity: 0.7 }}>
+              <SearchIcon />
+            </Box>
+            <input
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder={t('groups.search_placeholder')}
+              style={{
+                flex: 1, background: 'none', border: 'none', outline: 'none',
+                color: 'var(--color-text)', fontSize: '0.875rem', fontWeight: 500,
+                fontFamily: 'var(--font-body)',
               }}
             />
+            {searchTerm && (
+              <IconButton size="small" onClick={() => setSearchTerm('')} sx={{ p: 0.5, color: 'var(--color-text-muted)' }}>
+                ×
+              </IconButton>
+            )}
+          </Box>
+
+          {/* Result count */}
+          {!loading && (
+            <Box sx={{ pr: 1 }}>
+              <Chip
+                label={`${filteredGroups.length} ${t('groups.title').toLowerCase()}`}
+                size="small"
+                sx={{
+                  height: 26, fontSize: '0.6875rem', fontWeight: 800,
+                  bgcolor: alpha('#6366F1', 0.1), color: '#818CF8',
+                  border: '1px solid rgba(99,102,241,0.2)',
+                  textTransform: 'uppercase', letterSpacing: '0.04em',
+                }}
+              />
+            </Box>
           )}
         </Box>
       </motion.div>

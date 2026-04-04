@@ -1,6 +1,7 @@
 package project.TeamFive.ExLMS.quiz.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import project.TeamFive.ExLMS.group.entity.StudyGroup;
@@ -11,6 +12,7 @@ import project.TeamFive.ExLMS.quiz.entity.GroupQuiz;
 import project.TeamFive.ExLMS.quiz.entity.Quiz;
 import project.TeamFive.ExLMS.quiz.entity.QuizAnswer;
 import project.TeamFive.ExLMS.quiz.entity.QuizQuestion;
+import project.TeamFive.ExLMS.quiz.event.QuizCreatedEvent;
 import project.TeamFive.ExLMS.quiz.repository.GroupQuizRepository;
 import project.TeamFive.ExLMS.quiz.repository.QuizAnswerRepository;
 import project.TeamFive.ExLMS.quiz.repository.QuizQuestionRepository;
@@ -31,6 +33,7 @@ public class QuizService {
     private final GroupQuizRepository groupQuizRepository;
     private final StudyGroupRepository studyGroupRepository;
     private final project.TeamFive.ExLMS.group.repository.GroupMemberRepository groupMemberRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public QuizResponseDTO createTemplate(CreateQuizRequest request, User user) {
@@ -118,7 +121,13 @@ public class QuizService {
                         : GroupQuiz.GroupQuizStatus.PUBLISHED)
                 .build();
 
-        return mapToResponseDTO(template, groupQuizRepository.save(deployment));
+        GroupQuiz savedDeployment = groupQuizRepository.save(deployment);
+        
+        if (savedDeployment.getStatus() == GroupQuiz.GroupQuizStatus.PUBLISHED) {
+            eventPublisher.publishEvent(new QuizCreatedEvent(this, savedDeployment));
+        }
+
+        return mapToResponseDTO(template, savedDeployment);
     }
 
     @Transactional(readOnly = true)

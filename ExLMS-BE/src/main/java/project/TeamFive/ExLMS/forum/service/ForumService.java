@@ -24,6 +24,7 @@ public class ForumService {
     private final ForumPostRepository postRepository;
     private final ForumTagRepository tagRepository;
     private final ForumTagService tagService;
+    private final org.springframework.context.ApplicationEventPublisher eventPublisher;
 
     @Transactional(readOnly = true)
     public List<ForumPostResponse> searchPosts(String query, String tagSlug, String status) {
@@ -73,7 +74,10 @@ public class ForumService {
                 .tags(tags)
                 .build();
 
-        return ForumPostResponse.fromEntity(postRepository.save(post));
+        ForumPost savedPost = postRepository.save(post);
+        eventPublisher.publishEvent(new project.TeamFive.ExLMS.forum.event.ForumPostCreatedEvent(this, savedPost));
+
+        return ForumPostResponse.fromEntity(savedPost);
     }
 
     @Transactional(readOnly = true)

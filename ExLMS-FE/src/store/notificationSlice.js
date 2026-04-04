@@ -5,12 +5,8 @@ const initialState = {
   unreadCount: 0,
 }
 
-// Mock initial notifications
-const mockNotifications = [
-  { id: 1, message: 'New assignment "Final Project" has been posted.', read: false, createdAt: new Date().toISOString() },
-  { id: 2, message: 'Your submission for "API Implementation" was graded.', read: false, createdAt: new Date().toISOString() },
-  { id: 3, message: 'Meeting "Weekly Sync" is starting in 15 minutes.', read: true, createdAt: new Date().toISOString() },
-]
+// Mock initial notifications (removed)
+const mockNotifications = []
 
 const notificationSlice = createSlice({
   name: 'notifications',

@@ -33,7 +33,14 @@
     "confirm_delete": "Bạn có chắc chắn muốn xóa không?",
     "language_vi": "Tiếng Việt",
     "language_en": "Tiếng Anh",
-    "copy": "Chép mã"
+    "copy": "Chép mã",
+    "no_notifications": "Không có thông báo nào",
+    "mark_all_read": "Đánh dấu đã đọc tất cả",
+    "just_now": "vừa xong",
+    "mins_ago": "{{count}} phút trước",
+    "hrs_ago": "{{count}} giờ trước",
+    "days_ago": "{{count}} ngày trước",
+    "progress": "Tiến độ"
   },
   "nav": {
     "dashboard": "Bảng điều khiển",
@@ -56,6 +63,13 @@
     "courses_repo": "Kho Khóa học",
     "assignments_repo": "Kho Bài tập",
     "quizzes_repo": "Ngân hàng Đề thi"
+  },
+  "navigation": {
+    "notifications": "Thông báo",
+    "all_caught_up": "Đã xem hết thông báo!",
+    "unread_count_one": "Bạn có 1 thông báo chưa đọc",
+    "unread_count_other": "Bạn có {{count}} thông báo chưa đọc",
+    "unread_count": "Bạn có {{count}} thông báo chưa đọc"
   },
   "auth": {
     "signin": "Đăng nhập",
