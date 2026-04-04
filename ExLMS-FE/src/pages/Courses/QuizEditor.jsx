@@ -174,8 +174,8 @@ const QuizEditor = () => {
       ) : (
         <>
           {/* ── Quiz Config ── */}
-      <Paper sx={{ p: 4, mb: 4, borderRadius: 3, border: '1px solid var(--color-border)', bgcolor: 'var(--color-surface)', color: 'var(--color-text)' }}>
-        <Typography variant="h6" gutterBottom fontWeight={700}>{t('quizzes.config')}</Typography>
+      <Paper className="premium-glass" sx={{ p: 4, mb: 5, borderRadius: '24px', color: 'var(--color-text)' }}>
+        <Typography variant="h6" gutterBottom fontWeight={800} color="var(--color-primary-lt)">{t('quizzes.config')}</Typography>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, mt: 2 }}>
           <TextField label={t('quizzes.title_label')} fullWidth value={quiz.title}
             onChange={e => updateQuiz('title', e.target.value)} />
@@ -220,7 +220,7 @@ const QuizEditor = () => {
       </Box>
 
       {questions.map((q, qIdx) => (
-        <Accordion key={qIdx} defaultExpanded sx={{ mb: 2, borderRadius: '12px !important', border: '1px solid var(--color-border)', bgcolor: 'var(--color-surface)', color: 'var(--color-text)', '&:before': { display: 'none' } }}>
+        <Accordion key={qIdx} defaultExpanded className="premium-glass glow-on-hover" sx={{ mb: 3, borderRadius: '24px !important', color: 'var(--color-text)', overflow: 'hidden', '&:before': { display: 'none' } }}>
           <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: 'var(--color-text-muted)' }} />}>
             <Chip label={t('quizzes.question_no', { count: qIdx + 1 })} size="small" sx={{ mr: 2, fontWeight: 700, bgcolor: 'rgba(99,102,241,0.1)', color: '#818CF8' }} />
             <Typography noWrap sx={{ flex: 1, fontWeight: 600 }}>{q.content || t('quizzes.enter_question_placeholder')}</Typography>
@@ -254,7 +254,7 @@ const QuizEditor = () => {
 
             {/* Answers — only for choice questions */}
             {['SINGLE_CHOICE', 'MULTIPLE_CHOICE', 'TRUE_FALSE'].includes(q.questionType) && (
-              <Box sx={{ p: 2, borderRadius: 2, bgcolor: 'var(--color-surface-2)', border: '1px solid var(--color-border)' }}>
+              <Box sx={{ p: 3, borderRadius: '20px', bgcolor: 'rgba(0,0,0,0.15)', border: '1px solid var(--glass-border)' }}>
                 <Typography variant="subtitle2" color="var(--color-text-sec)" mb={2} fontWeight={700}>
                   {t('quizzes.answers_label')}
                 </Typography>
@@ -294,7 +294,7 @@ const QuizEditor = () => {
             )}
 
             {q.questionType === 'FILL_BLANK' && (
-              <Box sx={{ p: 2, borderRadius: 2, bgcolor: 'var(--color-surface-2)', border: '1px solid var(--color-border)' }}>
+              <Box sx={{ p: 3, borderRadius: '20px', bgcolor: 'rgba(0,0,0,0.15)', border: '1px solid var(--glass-border)' }}>
                 <TextField label={t('quizzes.types.correct_answer')} fullWidth size="small"
                     value={q.answers[0]?.content || ''}
                     onChange={e => updateAnswer(qIdx, 0, 'content', e.target.value)}
