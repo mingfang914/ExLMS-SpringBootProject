@@ -6,12 +6,18 @@ services:
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
-      MYSQL_DATABASE: ExLMS
+      MYSQL_DATABASE: exlms
     ports:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./docker-init/db:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "MYSQL_PWD=$${MYSQL_ROOT_PASSWORD} mysqladmin ping -h localhost -uroot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   # 2. MinIO (File Storage)
   lms-minio:
@@ -51,7 +57,7 @@ services:
     container_name: lms-backend
     restart: always
     environment:
-      - DB_URL=jdbc:mysql://lms-mysql:3306/ExLMS?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&connectionCollation=utf8mb4_unicode_ci
+      - DB_URL=jdbc:mysql://lms-mysql:3306/exlms?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&connectionCollation=utf8mb4_unicode_ci
       - DB_USERNAME=${DB_USERNAME}
       - DB_PASSWORD=${DB_PASSWORD}
       - MINIO_URL=http://lms-minio:9000
@@ -61,8 +67,10 @@ services:
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
     depends_on:
-      - lms-mysql
-      - lms-minio
+      lms-mysql:
+        condition: service_healthy
+      lms-minio:
+        condition: service_started
     ports:
       - "8081:8081"
 
