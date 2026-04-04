@@ -32,7 +32,12 @@
     "language_en": "Tiếng Anh",
     "copy": "Chép mã",
     "no_notifications": "Không có thông báo nào",
-    "mark_all_read": "Đánh dấu đã đọc tất cả"
+    "mark_all_read": "Đánh dấu đã đọc tất cả",
+    "just_now": "vừa xong",
+    "mins_ago": "{{count}} phút trước",
+    "hrs_ago": "{{count}} giờ trước",
+    "days_ago": "{{count}} ngày trước",
+    "progress": "Tiến độ"
   },
   "nav": {
     "dashboard": "Bảng điều khiển",

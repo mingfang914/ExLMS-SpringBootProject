@@ -11,85 +11,87 @@ import {
   Divider,
   Chip,
   LinearProgress,
+  Stack,
+  IconButton,
+  Tooltip
 } from '@mui/material'
+import { alpha } from '@mui/material/styles'
 import { useSelector, useDispatch } from 'react-redux'
 import { useTranslation } from 'react-i18next'
 import api from '../services/api'
 import { setUser } from '../store/authSlice'
 import FileUpload from '../components/Common/FileUpload'
-import { motion } from 'framer-motion'
-
-// ── SVG Icons ─────────────────────────────────────────────────────
-const UserIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-  </svg>
-)
-const MailIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-    <polyline points="22,6 12,13 2,6"/>
-  </svg>
-)
-const FileTextIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-    <polyline points="14 2 14 8 20 8"/>
-    <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
-    <polyline points="10 9 9 9 8 9"/>
-  </svg>
-)
-const SaveIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-    <polyline points="17 21 17 13 7 13 7 21"/>
-    <polyline points="7 3 7 8 15 8"/>
-  </svg>
-)
-const CameraIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-    <circle cx="12" cy="13" r="4"/>
-  </svg>
-)
+import { motion, AnimatePresence } from 'framer-motion'
+import {
+  Badge as BadgeIcon,
+  EmojiEvents as TrophyIcon,
+  Timeline as StatsIcon,
+  School as CourseIcon,
+  AssignmentTurnedIn as TaskIcon,
+  CameraAlt as CameraIcon,
+  Save as SaveIcon,
+  Email as MailIcon,
+  Person as UserIcon,
+  Description as BioIcon,
+  Verified as VerifiedIcon,
+  LocalFireDepartment as StreakIcon
+} from '@mui/icons-material'
 
 const container = {
-  hidden:  { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.07 } },
-}
-const item = {
-  hidden:  { opacity: 0, y: 14 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] } },
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 }
+  }
 }
 
-const FieldLabel = ({ children, icon }) => (
-  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 0.75 }}>
-    {icon && <Box sx={{ color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center' }}>{icon}</Box>}
-    <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text-sec)' }}>
-      {children}
-    </Typography>
+const item = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } }
+}
+
+const StatCard = ({ icon, label, value, color }) => (
+  <Box sx={{
+    p: 2.5, borderRadius: '20px',
+    bgcolor: 'var(--color-surface-2)',
+    border: '1px solid var(--color-border)',
+    display: 'flex', alignItems: 'center', gap: 2.5,
+    minWidth: '200px', flex: 1,
+    transition: 'all 0.3s',
+    '&:hover': {
+      transform: 'translateY(-5px)',
+      borderColor: alpha(color, 0.4),
+      boxShadow: `0 12px 24px ${alpha(color, 0.15)}`
+    }
+  }}>
+    <Box sx={{ 
+      width: 48, height: 48, borderRadius: '14px', 
+      bgcolor: alpha(color, 0.1), color: color,
+      display: 'flex', alignItems: 'center', justifyContent: 'center'
+    }}>
+      {icon}
+    </Box>
+    <Box>
+      <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+        {label}
+      </Typography>
+      <Typography variant="h5" sx={{ fontWeight: 900, color: 'var(--color-text)' }}>
+        {value}
+      </Typography>
+    </Box>
   </Box>
 )
 
-// Profile completion calculator
-const calcCompletion = (data) => {
-  let score = 0
-  if (data.fullName) score += 34
-  if (data.bio) score += 33
-  if (data.avatarKey) score += 33
-  return score
-}
-
 const Profile = () => {
-  const { t }      = useTranslation()
-  const { user }   = useSelector((state) => state.auth)
-  const dispatch   = useDispatch()
+  const { t } = useTranslation()
+  const { user } = useSelector((state) => state.auth)
+  const dispatch = useDispatch()
 
   const [profileData, setProfileData] = useState({ fullName: '', bio: '', avatarKey: '' })
-  const [loading,     setLoading]     = useState(false)
-  const [saving,      setSaving]      = useState(false)
-  const [successMsg,  setSuccessMsg]  = useState('')
-  const [errorMsg,    setErrorMsg]    = useState('')
+  const [loading, setLoading] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [successMsg, setSuccessMsg] = useState('')
+  const [errorMsg, setErrorMsg] = useState('')
 
   useEffect(() => {
     const load = async () => {
@@ -97,12 +99,15 @@ const Profile = () => {
       try {
         const res = await api.get('/users/me')
         setProfileData({
-          fullName:  res.data.fullName  || '',
-          bio:       res.data.bio       || '',
+          fullName: res.data.fullName || '',
+          bio: res.data.bio || '',
           avatarKey: res.data.avatarKey || '',
         })
-      } catch {}
-      finally { setLoading(false) }
+      } catch (err) {
+        console.error('Failed to load profile:', err)
+      } finally {
+        setLoading(false)
+      }
     }
     load()
   }, [])
@@ -127,7 +132,14 @@ const Profile = () => {
     }
   }
 
-  const completion = calcCompletion(profileData)
+  const completion = (() => {
+    let score = 0
+    if (profileData.fullName) score += 34
+    if (profileData.bio) score += 33
+    if (profileData.avatarKey) score += 33
+    return score
+  })()
+
   const avatarSrc = profileData.avatarKey
     ? `/api/files/download/${profileData.avatarKey}`
     : user?.avatarUrl || undefined
@@ -135,286 +147,260 @@ const Profile = () => {
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
-        <CircularProgress sx={{ color: 'var(--color-primary)' }} />
+        <CircularProgress thickness={4} size={50} sx={{ color: '#6366F1' }} />
       </Box>
     )
   }
 
   return (
-    <Box
-      component={motion.div}
-      variants={container} initial="hidden" animate="visible"
-      sx={{ maxWidth: 900, mx: 'auto', pb: 6 }}
-    >
-
-      {/* ── Page header ─────────────────────────────────────────── */}
+    <Box component={motion.div} variants={container} initial="hidden" animate="visible" sx={{ maxWidth: 1000, mx: 'auto', pb: 8 }}>
+      
+      {/* ── Cinematic Hero Section ─────────────────────────────── */}
       <motion.div variants={item}>
-        <Box sx={{ mb: 4 }}>
-          <Typography sx={{
-            fontFamily: 'var(--font-heading)', fontWeight: 800,
-            fontSize: { xs: '1.75rem', sm: '2rem' },
-            color: 'var(--color-text)', letterSpacing: '-0.03em', mb: 0.5,
+        <Box sx={{ 
+          position: 'relative', mb: 10, borderRadius: '40px', overflow: 'hidden',
+          bgcolor: 'var(--color-surface-2)', border: '1px solid var(--color-border)',
+          boxShadow: '0 24px 80px rgba(0,0,0,0.5)'
+        }}>
+          {/* Banner Background */}
+          <Box sx={{ 
+            height: 220, 
+            background: 'linear-gradient(135deg, #4338CA 0%, #1E1B4B 100%)',
+            position: 'relative'
           }}>
-            {t('profile.title')}
-          </Typography>
-          <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
-            {t('profile.subtitle')}
-          </Typography>
+            <Box sx={{ position: 'absolute', inset: 0, opacity: 0.1, backgroundImage: 'radial-gradient(circle, #FFF 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
+            <Box sx={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 100, background: 'linear-gradient(to top, var(--color-surface-2), transparent)' }} />
+          </Box>
+
+          <Box sx={{ px: { xs: 4, md: 6 }, pb: 6, mt: -8, position: 'relative', zIndex: 1, display: 'flex', flexWrap: 'wrap', gap: 4, alignItems: 'flex-end' }}>
+            {/* Avatar & Upload */}
+            <Box sx={{ position: 'relative' }}>
+              <Avatar
+                src={avatarSrc}
+                sx={{
+                  width: 160, height: 160, borderRadius: '44px',
+                  bgcolor: '#6366F1', border: '8px solid var(--color-surface-2)',
+                  boxShadow: '0 20px 48px rgba(0,0,0,0.4)',
+                  fontSize: '4rem', fontWeight: 900
+                }}
+              >
+                {initials(profileData.fullName || user?.email || 'U')}
+              </Avatar>
+              <Box sx={{ position: 'absolute', bottom: 8, right: 8 }}>
+                <Tooltip title={t('profile.avatar_upload')}>
+                  <IconButton sx={{ 
+                    bgcolor: '#6366F1', color: '#FFF', 
+                    boxShadow: '0 8px 16px rgba(99,102,241,0.4)',
+                    border: '3px solid var(--color-surface-2)',
+                    '&:hover': { bgcolor: '#4F46E5' }
+                  }}>
+                    <CameraIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+            </Box>
+
+            {/* Profile Info Summary */}
+            <Box sx={{ flex: 1, pb: 1 }}>
+              <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1 }}>
+                <Typography sx={{ 
+                  fontFamily: 'var(--font-heading)', fontWeight: 900, 
+                  fontSize: { xs: '2rem', md: '2.5rem' }, color: 'var(--color-text)',
+                  letterSpacing: '-0.04em'
+                }}>
+                  {profileData.fullName || t('profile.full_name')}
+                </Typography>
+                <VerifiedIcon sx={{ color: '#34D399', fontSize: 28 }} />
+              </Stack>
+              <Stack direction="row" spacing={2} sx={{ flexWrap: 'wrap', gap: 1 }}>
+                <Chip 
+                  label={user?.role || 'STUDENT'} 
+                  size="small" 
+                  sx={{ 
+                    bgcolor: alpha('#6366F1', 0.1), color: '#818CF8', 
+                    fontWeight: 800, textTransform: 'uppercase', fontSize: '0.6875rem' 
+                  }} 
+                />
+                <Typography sx={{ fontSize: '1rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>
+                  {user?.email}
+                </Typography>
+              </Stack>
+            </Box>
+          </Box>
         </Box>
       </motion.div>
 
-      {/* ── Alerts ──────────────────────────────────────────────── */}
-      {successMsg && (
-        <motion.div variants={item}>
-          <Alert
-            severity="success"
-            sx={{ mb: 2.5, borderRadius: '10px', bgcolor: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.25)', color: '#86EFAC', '& .MuiAlert-icon': { color: '#22C55E' } }}
-            onClose={() => setSuccessMsg('')}
-          >
-            {successMsg}
-          </Alert>
-        </motion.div>
-      )}
-      {errorMsg && (
-        <motion.div variants={item}>
-          <Alert
-            severity="error"
-            sx={{ mb: 2.5, borderRadius: '10px', bgcolor: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', color: '#FCA5A5', '& .MuiAlert-icon': { color: '#EF4444' } }}
-            onClose={() => setErrorMsg('')}
-          >
-            {errorMsg}
-          </Alert>
-        </motion.div>
-      )}
-
-      <Grid container spacing={3}>
-        {/* ── Left: Avatar + Completion ────────────────────────── */}
-        <Grid item xs={12} md={4}>
+      <Grid container spacing={4}>
+        {/* ── Left Column: Form ──────────────────────────────────────── */}
+        <Grid item xs={12} md={7}>
           <motion.div variants={item}>
-            <Box
-              sx={{
-                bgcolor: 'var(--color-surface)',
-                border: '1px solid var(--color-border)',
-                borderRadius: '14px',
-                p: 3,
-                display: 'flex', flexDirection: 'column', alignItems: 'center',
-                mb: 2.5,
-              }}
-            >
-              {/* Avatar */}
-              <Box sx={{ position: 'relative', mb: 3 }}>
-                <Avatar
-                  src={avatarSrc}
-                  sx={{
-                    width: 100, height: 100,
-                    fontSize: '2rem', fontWeight: 800,
-                    background: 'linear-gradient(135deg, #6366F1, #22D3EE)',
-                    color: 'white',
-                    border: '3px solid var(--color-surface-2)',
-                    boxShadow: '0 8px 24px rgba(99,102,241,0.3)',
-                  }}
-                >
-                  {(profileData.fullName || user?.email || 'U')[0].toUpperCase()}
-                </Avatar>
-                <Box
-                  sx={{
-                    position: 'absolute', bottom: 2, right: 2,
-                    width: 28, height: 28, borderRadius: '50%',
-                    bgcolor: 'var(--color-primary)',
-                    border: '2px solid var(--color-surface)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: 'white', cursor: 'pointer',
-                    boxShadow: '0 2px 8px rgba(99,102,241,0.4)',
-                  }}
-                >
-                  <CameraIcon />
-                </Box>
-              </Box>
-
-              <Typography sx={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '1rem', color: 'var(--color-text)', mb: 0.25, textAlign: 'center' }}>
-                {profileData.fullName || t('profile.full_name')}
+            <Box sx={{ 
+              p: 4, borderRadius: '24px', bgcolor: 'var(--color-surface)', 
+              border: '1px solid var(--color-border)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
+            }}>
+              <Typography sx={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '1.25rem', color: 'var(--color-text)', mb: 4 }}>
+                {t('profile.personal_info')}
               </Typography>
-              <Typography sx={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', mb: 0.5 }}>
-                {user?.email}
-              </Typography>
-              {user?.role && (
-                <Chip
-                  label={user.role === 'ADMIN' ? t('common.administrator') : user.role === 'INSTRUCTOR' ? t('common.instructor') : t('common.student')}
-                  size="small"
-                  sx={{
-                    mt: 0.5, height: 20, fontSize: '0.625rem', fontWeight: 700,
-                    bgcolor: user.role === 'ADMIN' ? 'rgba(239,68,68,0.12)' : 'rgba(99,102,241,0.12)',
-                    color: user.role === 'ADMIN' ? '#FCA5A5' : '#818CF8',
-                    border: `1px solid ${user.role === 'ADMIN' ? 'rgba(239,68,68,0.25)' : 'rgba(99,102,241,0.25)'}`,
-                    '& .MuiChip-label': { px: '8px' },
-                  }}
-                />
-              )}
 
-              {/* Upload */}
-              <Box sx={{ width: '100%', mt: 3 }}>
-                <FileUpload
-                  onUploadSuccess={(fileKey) => setProfileData(prev => ({ ...prev, avatarKey: fileKey }))}
-                  accept="image/*"
-                  label={t('profile.avatar_upload')}
-                />
-              </Box>
-              <Typography sx={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)', mt: 1, textAlign: 'center' }}>
-                {t('profile.avatar_hint')}
-              </Typography>
-            </Box>
-          </motion.div>
+              <form onSubmit={handleSave}>
+                <Stack spacing={3.5}>
+                  <Box>
+                    <Typography sx={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--color-text-sec)', mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <UserIcon fontSize="small" sx={{ color: 'var(--color-text-muted)' }} />
+                      {t('profile.full_name')}
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      name="fullName"
+                      value={profileData.fullName}
+                      onChange={handleChange}
+                      placeholder={t('profile.full_name_placeholder')}
+                    />
+                  </Box>
 
-          {/* Profile completion */}
-          <motion.div variants={item}>
-            <Box
-              sx={{
-                bgcolor: 'var(--color-surface)',
-                border: '1px solid var(--color-border)',
-                borderRadius: '14px',
-                p: 2.5,
-              }}
-            >
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
-                <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text)' }}>
-                  {t('profile.completion')}
-                </Typography>
-                <Typography sx={{ fontSize: '0.8125rem', fontWeight: 700, color: '#818CF8' }}>
-                  {completion}%
-                </Typography>
-              </Box>
-              <LinearProgress
-                variant="determinate"
-                value={completion}
-                className="progress-gradient"
-                sx={{ height: 6, borderRadius: 99, bgcolor: 'var(--color-surface-3)', mb: 2 }}
-              />
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                {[
-                  { label: t('profile.completion_full_name'), done: !!profileData.fullName },
-                  { label: t('profile.completion_bio'),     done: !!profileData.bio },
-                  { label: t('profile.completion_avatar'), done: !!profileData.avatarKey },
-                ].map(({ label, done }) => (
-                  <Box key={label} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Box
-                      sx={{
-                        width: 16, height: 16, borderRadius: '50%', flexShrink: 0,
-                        bgcolor: done ? 'rgba(34,197,94,0.15)' : 'rgba(33,38,45,0.8)',
-                        border: `1px solid ${done ? 'rgba(34,197,94,0.4)' : 'var(--color-border)'}`,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        color: done ? '#22C55E' : 'var(--color-text-muted)',
-                        fontSize: '0.625rem', fontWeight: 800,
+                  <Box>
+                    <Typography sx={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--color-text-sec)', mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <MailIcon fontSize="small" sx={{ color: 'var(--color-text-muted)' }} />
+                      {t('profile.email')}
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      value={user?.email || ''}
+                      disabled
+                      sx={{ '& .Mui-disabled': { WebkitTextFillColor: alpha('#FFF', 0.4) } }}
+                    />
+                  </Box>
+
+                  <Box>
+                    <Typography sx={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--color-text-sec)', mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <BioIcon fontSize="small" sx={{ color: 'var(--color-text-muted)' }} />
+                      {t('profile.bio')}
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      name="bio"
+                      multiline
+                      rows={4}
+                      value={profileData.bio}
+                      onChange={handleChange}
+                      placeholder={t('profile.bio_placeholder')}
+                    />
+                  </Box>
+
+                  {/* Hidden Upload Component Integration */}
+                  <Box sx={{ display: 'none' }}>
+                    <FileUpload
+                      onUploadSuccess={(fileKey) => setProfileData(prev => ({ ...prev, avatarKey: fileKey }))}
+                      accept="image/*"
+                      label={t('profile.avatar_upload')}
+                    />
+                  </Box>
+
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, pt: 2 }}>
+                    <AnimatePresence>
+                      {successMsg && (
+                        <Typography sx={{ color: '#34D399', fontSize: '0.875rem', fontWeight: 700, mr: 'auto', alignSelf: 'center' }}>
+                          ✓ {successMsg}
+                        </Typography>
+                      )}
+                    </AnimatePresence>
+                    <Button 
+                      type="submit" 
+                      variant="contained" 
+                      startIcon={saving ? <CircularProgress size={16} /> : <SaveIcon />} 
+                      disabled={saving}
+                      sx={{ 
+                        borderRadius: '12px', height: 44, px: 4, fontWeight: 800,
+                        background: 'linear-gradient(135deg, #6366F1, #4F46E5)',
+                        '&:hover': { background: 'linear-gradient(135deg, #818CF8, #6366F1)' }
                       }}
                     >
-                      {done ? '✓' : ''}
-                    </Box>
-                    <Typography sx={{ fontSize: '0.75rem', color: done ? 'var(--color-text-sec)' : 'var(--color-text-muted)' }}>
-                      {label}
-                    </Typography>
+                      {saving ? t('common.saving') : t('common.save_changes')}
+                    </Button>
                   </Box>
-                ))}
-              </Box>
+                </Stack>
+              </form>
             </Box>
           </motion.div>
         </Grid>
 
-        {/* ── Right: Form ─────────────────────────────────────────── */}
-        <Grid item xs={12} md={8}>
-          <motion.div variants={item}>
-            <Box
-              component="form"
-              onSubmit={handleSave}
-              sx={{
-                bgcolor: 'var(--color-surface)',
-                border: '1px solid var(--color-border)',
-                borderRadius: '14px',
-                p: 3,
-              }}
-            >
-              <Typography sx={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '1rem', color: 'var(--color-text)', mb: 3 }}>
-                {t('profile.personal_info')}
-              </Typography>
-
-              {/* Full Name */}
-              <Box sx={{ mb: 2.5 }}>
-                <FieldLabel icon={<UserIcon />}>{t('profile.full_name')}</FieldLabel>
-                <TextField
-                  fullWidth
-                  name="fullName"
-                  value={profileData.fullName}
-                  onChange={handleChange}
-                  placeholder={t('profile.full_name_placeholder')}
-                  required
+        {/* ── Right Column: Stats & Completion ───────────────────── */}
+        <Grid item xs={12} md={5}>
+          <Stack spacing={4}>
+            {/* Completion Progress */}
+            <motion.div variants={item}>
+              <Box sx={{ 
+                p: 3.5, borderRadius: '24px', bgcolor: 'var(--color-surface-2)', 
+                border: '1px solid var(--color-border)'
+              }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                  <Typography sx={{ fontSize: '0.9375rem', fontWeight: 800, color: 'var(--color-text)' }}>
+                    {t('profile.completion')}
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.9375rem', fontWeight: 900, color: '#818CF8' }}>
+                    {completion}%
+                  </Typography>
+                </Box>
+                <LinearProgress 
+                  variant="determinate" 
+                  value={completion} 
+                  sx={{ 
+                    height: 10, borderRadius: '5px', bgcolor: 'rgba(255,255,255,0.05)',
+                    '& .MuiLinearProgress-bar': { borderRadius: '5px', background: 'linear-gradient(90deg, #6366F1, #22D3EE)' }
+                  }} 
                 />
+                <Stack spacing={1} sx={{ mt: 3 }}>
+                  <Typography sx={{ fontSize: '0.75rem', color: alpha('#FFF', 0.5), fontWeight: 500 }}>
+                    {completion < 100 ? "Hoàn thiện hồ sơ để nhận huy hiệu Trusted Member." : "Tuyệt vời! Hồ sơ của bạn đã được tối ưu hóa."}
+                  </Typography>
+                </Stack>
               </Box>
+            </motion.div>
 
-              {/* Email (read-only) */}
-              <Box sx={{ mb: 2.5 }}>
-                <FieldLabel icon={<MailIcon />}>{t('profile.email')}</FieldLabel>
-                <TextField
-                  fullWidth
-                  value={user?.email || ''}
-                  disabled
-                  helperText={t('profile.email_hint')}
-                  FormHelperTextProps={{ sx: { color: 'var(--color-text-muted)', fontSize: '0.75rem', mt: 0.5 } }}
-                />
-              </Box>
-
-              {/* Bio */}
-              <Box sx={{ mb: 3.5 }}>
-                <FieldLabel icon={<FileTextIcon />}>{t('profile.bio')}</FieldLabel>
-                <TextField
-                  fullWidth
-                  name="bio"
-                  value={profileData.bio}
-                  onChange={handleChange}
-                  multiline
-                  rows={4}
-                  placeholder={t('profile.bio_placeholder')}
-                />
-                <Typography sx={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', mt: 0.75, textAlign: 'right' }}>
-                  {t('profile.bio_limit', { count: profileData.bio.length })}
+            {/* Achievement Mini Dashboard */}
+            <motion.div variants={item}>
+              <Box sx={{ 
+                p: 3.5, borderRadius: '24px', bgcolor: 'var(--color-surface)', 
+                border: '1px solid var(--color-border)'
+              }}>
+                <Typography sx={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '1.125rem', color: 'var(--color-text)', mb: 3 }}>
+                  Hoạt động & Thành tựu
                 </Typography>
+                <Stack spacing={2}>
+                  <StatCard icon={<CourseIcon />} label="Khóa học" value="12" color="#6366F1" />
+                  <StatCard icon={<TaskIcon />} label="Nhiệm vụ" value="48" color="#10B981" />
+                  <StatCard icon={<StreakIcon />} label="Ngày liên tục" value="7" color="#F59E0B" />
+                </Stack>
               </Box>
+            </motion.div>
 
-              <Divider sx={{ borderColor: 'var(--color-border)', mb: 3 }} />
-
-              {/* Actions */}
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1.5 }}>
-                <Button
-                  type="button"
-                  variant="outlined"
-                  sx={{
-                    height: 40, borderRadius: '9px', px: 3, fontSize: '0.875rem',
-                    borderColor: 'var(--color-border)', color: 'var(--color-text-sec)', cursor: 'pointer',
-                    '&:hover': { borderColor: 'var(--color-border-lt)', bgcolor: 'rgba(99,102,241,0.04)' },
-                  }}
-                  onClick={() => window.history.back()}
-                >
-                  {t('common.cancel')}
-                </Button>
-                <Button
-                  type="submit"
-                  variant="contained"
-                  disabled={saving}
-                  startIcon={saving ? null : <SaveIcon />}
-                  sx={{
-                    height: 40, borderRadius: '9px', px: 3, fontSize: '0.875rem', fontWeight: 600,
-                    background: 'linear-gradient(135deg, #6366F1, #4F46E5)', cursor: 'pointer',
-                    '&:hover': { background: 'linear-gradient(135deg, #818CF8, #6366F1)', boxShadow: '0 4px 12px rgba(99,102,241,0.35)', transform: 'translateY(-1px)' },
-                    '&.Mui-disabled': { background: 'rgba(99,102,241,0.25)', color: 'rgba(255,255,255,0.3)' },
-                    transition: 'all 0.2s',
-                  }}
-                >
-                  {saving ? <CircularProgress size={18} sx={{ color: 'rgba(255,255,255,0.6)' }} /> : t('common.save_changes')}
+            {/* Reward Badges Preview */}
+            <motion.div variants={item}>
+              <Box sx={{ 
+                p: 3.5, borderRadius: '24px', bgcolor: alpha('#4338CA', 0.05), 
+                border: '1px dashed alpha(#6366F1, 0.3)', textAlign: 'center'
+              }}>
+                <TrophyIcon sx={{ fontSize: 40, color: '#F59E0B', mb: 1 }} />
+                <Typography sx={{ fontSize: '0.875rem', fontWeight: 800, color: 'var(--color-text)' }}>
+                  Trung tâm Phần thưởng
+                </Typography>
+                <Typography sx={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', mt: 0.5 }}>
+                  Khám phá các thử thách để nhận huy hiệu mới.
+                </Typography>
+                <Button variant="text" sx={{ mt: 1.5, textTransform: 'none', fontWeight: 700, color: '#818CF8' }}>
+                  Xem tất cả badges
                 </Button>
               </Box>
-            </Box>
-          </motion.div>
+            </motion.div>
+          </Stack>
         </Grid>
       </Grid>
     </Box>
   )
 }
+
+const initials = (name = '') =>
+  name.split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase() || 'U'
 
 export default Profile
