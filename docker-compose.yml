@@ -98,7 +98,7 @@ services:
       PMA_HOST: lms-mysql
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "8080:80"
+      - "8082:80"
     depends_on:
       - lms-mysql
 
