@@ -270,14 +270,14 @@ const GroupCourseDetail = () => {
   return (
     <Box sx={{ display: 'flex', height: 'calc(100vh - 84px)', overflow: 'hidden' }}>
       {/* Dynamic Sidebar */}
-      <Box sx={{ 
+      <Box className="premium-glass" sx={{ 
         width: isSidebarOpen ? 360 : 0, 
         transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-        borderRight: '1px solid var(--color-border)',
-        bgcolor: 'var(--color-surface)',
         display: 'flex', flexDirection: 'column',
         overflow: 'hidden',
-        position: 'relative'
+        position: 'relative',
+        zIndex: 10,
+        borderRight: '1px solid var(--glass-border)',
       }}>
         <Box sx={{ p: 3, borderBottom: '1px solid var(--color-border)' }}>
           <Typography variant="h5" fontWeight={900} sx={{ mb: 2, fontFamily: 'var(--font-heading)' }}>{course.title}</Typography>

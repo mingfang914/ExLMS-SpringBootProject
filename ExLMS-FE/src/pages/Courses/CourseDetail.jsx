@@ -11,62 +11,83 @@ import courseService from '../../services/courseService'
 // ── SVG Icons ─────────────────────────────────────────────────────
 const PlayIcon = () => (
   <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10"/>
-    <polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/>
+    <circle cx="12" cy="12" r="10" />
+    <polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none" />
   </svg>
 )
 const DocIcon = () => (
   <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-    <polyline points="14 2 14 8 20 8"/>
-    <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
-    <polyline points="10 9 9 9 8 9"/>
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+    <polyline points="14 2 14 8 20 8" />
+    <line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" />
+    <polyline points="10 9 9 9 8 9" />
   </svg>
 )
 const QuizIcon = () => (
   <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M9 11l3 3L22 4"/>
-    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+    <path d="M9 11l3 3L22 4" />
+    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
   </svg>
 )
 const CheckIcon = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="20 6 9 17 4 12"/>
+    <polyline points="20 6 9 17 4 12" />
   </svg>
 )
 const CircleIcon = () => (
   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10"/>
+    <circle cx="12" cy="12" r="10" />
   </svg>
 )
 const FullscreenIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+    <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
   </svg>
 )
 const FullscreenExitIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/>
+    <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" />
   </svg>
 )
 const PlaySmall = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10"/>
-    <polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/>
+    <circle cx="12" cy="12" r="10" />
+    <polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none" />
   </svg>
 )
+
+const toEmbedUrl = (url) => {
+  if (!url) return null
+  const yt = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&?]+)/)
+  if (yt) return `https://www.youtube.com/embed/${yt[1]}?rel=0`
+  const vm = url.match(/vimeo\.com\/(\d+)/)
+  if (vm) return `https://player.vimeo.com/video/${vm[1]}`
+  return url
+}
+
+const processContent = (html) => {
+  if (!html) return ''
+  let processed = html.replace(/<oembed url="([^"]+)"><\/oembed>/g, (match, url) => {
+    const embedUrl = toEmbedUrl(url)
+    if (embedUrl) {
+      return `<div class="iframe-container"><iframe src="${embedUrl}" frameborder="0" allowfullscreen></iframe></div>`
+    }
+    return match
+  })
+  return processed
+}
 
 const CourseDetail = () => {
   const { t } = useTranslation()
   const { groupId, id: courseId } = useParams()
   const navigate = useNavigate()
-  const [course,       setCourse]       = useState(null)
-  const [chapters,     setChapters]     = useState([])
-  const [quizzes,      setQuizzes]      = useState([])
-  const [loading,      setLoading]      = useState(true)
-  const [error,        setError]        = useState(null)
+  const [course, setCourse] = useState(null)
+  const [chapters, setChapters] = useState([])
+  const [quizzes, setQuizzes] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [selectedItem, setSelectedItem] = useState(null)
-  const [focusMode,    setFocusMode]    = useState(false)
+  const [focusMode, setFocusMode] = useState(false)
 
   useEffect(() => {
     const load = async () => {
@@ -89,7 +110,7 @@ const CourseDetail = () => {
         setChapters(withLessons)
 
         const firstLesson = withLessons[0]?.lessons?.[0]
-        if (firstLesson)    setSelectedItem({ type: 'LESSON', ...firstLesson })
+        if (firstLesson) setSelectedItem({ type: 'LESSON', ...firstLesson })
         else if (quizList[0]) setSelectedItem({ type: 'QUIZ', ...quizList[0] })
       } catch {
         setError(t('course_detail.errors.load_failed'))
@@ -140,9 +161,8 @@ const CourseDetail = () => {
         {/* ── Main content viewer ─────────────────────────────── */}
         <Grid item xs={12} md={focusMode ? 12 : 8} sx={{ transition: 'all 0.4s ease' }}>
           <Box
+            className="premium-glass"
             sx={{
-              bgcolor: 'var(--color-surface)',
-              border: '1px solid var(--color-border)',
               borderRadius: focusMode ? 0 : '14px',
               overflow: 'hidden',
               height: '100%',
@@ -188,18 +208,30 @@ const CourseDetail = () => {
                       </Button>
                     </Box>
                   ) : selectedItem.contentType === 'VIDEO' ? (
-                    <Box sx={{ textAlign: 'center', color: 'rgba(255,255,255,0.4)' }}>
-                      <Box sx={{ mb: 1 }}><PlayIcon /></Box>
-                      <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
-                        {t('course_detail.video_content')}
-                      </Typography>
+                    <Box sx={{ position: 'relative', width: '100%', height: '100%', borderRadius: focusMode ? 0 : '14px 14px 0 0', overflow: 'hidden' }}>
+                      <iframe
+                        src={toEmbedUrl(selectedItem.content)}
+                        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+                        frameBorder="0"
+                        allowFullScreen
+                      />
                     </Box>
+                  ) : selectedItem.contentType === 'DOCUMENT' ? (
+                    <Box
+                      className="ck-content"
+                      sx={{
+                        width: '100%', height: '100%', overflowY: 'auto', p: 4, bgcolor: 'var(--color-surface)', color: 'var(--color-text)',
+                        '& img': { maxWidth: '100%', borderRadius: '16px' },
+                        '& .iframe-container': { position: 'relative', pt: '56.25%', mb: 3, '& iframe': { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', borderRadius: '16px' } }
+                      }}
+                      dangerouslySetInnerHTML={{ __html: processContent(selectedItem.content) }}
+                    />
                   ) : (
-                    <Box sx={{ textAlign: 'center', color: 'rgba(255,255,255,0.4)' }}>
-                      <Box sx={{ mb: 1 }}><DocIcon /></Box>
-                      <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
-                        {t('course_detail.doc_content')}
-                      </Typography>
+                    <Box sx={{ textAlign: 'center', color: 'rgba(255,255,255,0.8)' }}>
+                      <Box sx={{ mb: 2 }}><DocIcon /></Box>
+                      <Button variant="contained" href={selectedItem.content} download sx={{ borderRadius: '12px' }}>
+                        Tải tệp xuống
+                      </Button>
                     </Box>
                   )}
 
@@ -258,10 +290,9 @@ const CourseDetail = () => {
                 style={{ height: '100%' }}
               >
                 <Box
+                  className="premium-glass glow-on-hover"
                   sx={{
-                    bgcolor: 'var(--color-surface)',
-                    border: '1px solid var(--color-border)',
-                    borderRadius: '14px',
+                    borderRadius: '24px',
                     overflow: 'hidden',
                     height: '100%',
                     display: 'flex', flexDirection: 'column',
@@ -386,7 +417,7 @@ const CourseDetail = () => {
                                 >
                                   <Box sx={{ width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#67E8F9' }}>
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                      <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                                      <path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
                                     </svg>
                                   </Box>
                                   <Typography sx={{ fontSize: '0.8125rem', fontWeight: active ? 600 : 400, color: active ? '#67E8F9' : 'var(--color-text-sec)', flex: 1 }} className="truncate">
@@ -418,7 +449,7 @@ const CourseDetail = () => {
                             >
                               <Box sx={{ color: '#67E8F9', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                                  <path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
                                 </svg>
                               </Box>
                               <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600, color: active ? '#67E8F9' : 'var(--color-text-sec)', flex: 1 }} className="truncate">
