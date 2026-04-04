@@ -1,6 +1,7 @@
 package project.TeamFive.ExLMS.quiz.service;
 
 import lombok.RequiredArgsConstructor;
+import java.time.LocalDateTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import project.TeamFive.ExLMS.group.entity.StudyGroup;
@@ -105,15 +106,19 @@ public class QuizService {
         Quiz template = quizRepository.findById(templateId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bản mẫu trắc nghiệm!"));
 
-        validateDates(config.getOpenAt(), config.getCloseAt());
+        validateDates(config.getOpenAt(), config.getCloseAt(), true);
+
+        LocalDateTime openAt = config.getOpenAt() != null ? config.getOpenAt() : java.time.LocalDateTime.now();
+        LocalDateTime closeAt = config.getCloseAt() != null ? config.getCloseAt() : openAt.plusHours(2);
+
         GroupQuiz deployment = GroupQuiz.builder()
                 .group(group)
                 .quiz(template)
-                .openAt(config.getOpenAt())
-                .closeAt(config.getCloseAt())
+                .openAt(openAt)
+                .closeAt(closeAt)
                 .shuffleQuestions(config.isShuffleQuestions())
                 .resultVisibility(config.getResultVisibility() != null ? config.getResultVisibility() : GroupQuiz.ResultVisibility.IMMEDIATE)
-                .status(config.getOpenAt() != null && config.getOpenAt().isAfter(java.time.LocalDateTime.now()) 
+                .status(openAt.isAfter(java.time.LocalDateTime.now()) 
                         ? GroupQuiz.GroupQuizStatus.DRAFT 
                         : GroupQuiz.GroupQuizStatus.PUBLISHED)
                 .build();
@@ -129,7 +134,7 @@ public class QuizService {
         boolean isInstructor = "OWNER".equals(member.getRole()) || "EDITOR".equals(member.getRole());
 
         return groupQuizRepository.findByGroup_Id(groupId).stream()
-                .filter(gq -> isInstructor || gq.getStatus() != GroupQuiz.GroupQuizStatus.DRAFT)
+                .filter(gq -> isInstructor || (gq.getStatus() != GroupQuiz.GroupQuizStatus.DRAFT && gq.getStatus() != GroupQuiz.GroupQuizStatus.CLOSED))
                 .map(gq -> mapToResponseDTO(gq.getQuiz(), gq))
                 .collect(Collectors.toList());
     }
@@ -238,19 +243,30 @@ public class QuizService {
 
     @Transactional
     public void deleteDeployment(UUID id) {
-        groupQuizRepository.deleteById(id);
+        GroupQuiz deployment = groupQuizRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đợt kiểm tra này!"));
+
+        if (deployment.getStatus() == GroupQuiz.GroupQuizStatus.CLOSED) {
+            throw new RuntimeException("Dữ liệu đợt thi đã kết thúc (CLOSED) sẽ được lưu trữ làm lịch sử, không thể xóa!");
+        }
+
+        groupQuizRepository.delete(deployment);
     }
     @Transactional
     public QuizResponseDTO updateQuizDeployment(UUID deploymentId, CreateQuizRequest request, User user) {
         GroupQuiz deployment = groupQuizRepository.findById(deploymentId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đợt kiểm tra này!"));
 
-        if (request.getOpenAt() != null) {
-            if (!request.getOpenAt().equals(deployment.getOpenAt())) validateDates(request.getOpenAt(), null);
-            deployment.setOpenAt(request.getOpenAt());
+        if (deployment.getStatus() == GroupQuiz.GroupQuizStatus.CLOSED) {
+            throw new RuntimeException("Đợt thi này đã kết thúc (CLOSED), không thể chỉnh sửa!");
         }
+
+        if (request.getOpenAt() != null && !request.getOpenAt().isEqual(deployment.getOpenAt())) {
+             throw new RuntimeException("Không được phép thay đổi thời gian mở đề sau khi đã tạo!");
+        }
+
         if (request.getCloseAt() != null) {
-            validateDates(deployment.getOpenAt(), request.getCloseAt());
+            validateDates(deployment.getOpenAt(), request.getCloseAt(), false);
             deployment.setCloseAt(request.getCloseAt());
         }
         
@@ -261,17 +277,21 @@ public class QuizService {
         }
         
         if (request.getStatus() != null) {
+            String newStatus = request.getStatus();
+            if ("CLOSED".equals(newStatus)) {
+                throw new RuntimeException("Không thể chuyển trạng thái sang CLOSED thủ công bằng chức năng này!");
+            }
             try {
-                deployment.setStatus(GroupQuiz.GroupQuizStatus.valueOf(request.getStatus()));
+                deployment.setStatus(GroupQuiz.GroupQuizStatus.valueOf(newStatus));
             } catch (Exception e) {}
         }
 
         return mapToResponseDTO(deployment.getQuiz(), groupQuizRepository.save(deployment));
     }
 
-    private void validateDates(java.time.LocalDateTime start, java.time.LocalDateTime end) {
+    private void validateDates(java.time.LocalDateTime start, java.time.LocalDateTime end, boolean isNew) {
         java.time.LocalDateTime now = java.time.LocalDateTime.now();
-        if (start != null && start.isBefore(now.minusMinutes(1))) {
+        if (isNew && start != null && start.isBefore(now.minusSeconds(10))) {
             throw new RuntimeException("Thời gian mở đề không được nhỏ hơn hiện tại!");
         }
         if (start != null && end != null && end.isBefore(start)) {

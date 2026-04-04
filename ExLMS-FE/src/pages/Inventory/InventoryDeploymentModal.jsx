@@ -47,11 +47,11 @@ const InventoryDeploymentModal = ({ open, onClose, type, groupId, onDeploySucces
   // Deployment config
   const [config, setConfig] = useState({
     assignedAt: new Date().toISOString().slice(0, 16),
-    dueAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16), // 1 week
+    dueAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
     openAt: new Date().toISOString().slice(0, 16),
-    closeAt: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString().slice(0, 16), // 2 hours
-    startDate: new Date().toISOString().slice(0, 10),
-    endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+    closeAt: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString().slice(0, 16),
+    startDate: new Date().toISOString().slice(0, 16),
+    endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
     shuffleQuestions: false,
     resultVisibility: 'IMMEDIATE',
     allowLate: false,
@@ -89,7 +89,25 @@ const InventoryDeploymentModal = ({ open, onClose, type, groupId, onDeploySucces
 
   const handleDeploy = async () => {
     if (selectedIds.length === 0) return
+    
+    // Validation
+    const now = new Date()
+    let startVal, endVal
+    if (type === 'course') { startVal = new Date(config.startDate); endVal = new Date(config.endDate); }
+    else if (type === 'assignment') { startVal = new Date(config.assignedAt); endVal = new Date(config.dueAt); }
+    else { startVal = new Date(config.openAt); endVal = new Date(config.closeAt); }
+
+    if (startVal < new Date(now.getTime() - 60000)) {
+       setError('Thời gian bắt đầu không được nhỏ hơn hiện tại.')
+       return
+    }
+    if (endVal < startVal) {
+       setError('Thời gian kết thúc không được nhỏ hơn bắt đầu.')
+       return
+    }
+
     setDeploying(true)
+    setError(null)
     try {
       if (type === 'course') {
         await courseService.deployToGroup(groupId, selectedIds, config)
@@ -101,7 +119,7 @@ const InventoryDeploymentModal = ({ open, onClose, type, groupId, onDeploySucces
       onDeploySuccess()
       onClose()
     } catch (err) {
-      setError('Triển khai thất bại. Vui lòng thử lại.')
+      setError(err.response?.data?.message || 'Triển khai thất bại. Vui lòng thử lại.')
     } finally {
       setDeploying(false)
     }
@@ -228,13 +246,13 @@ const InventoryDeploymentModal = ({ open, onClose, type, groupId, onDeploySucces
               {type === 'course' && (
                 <>
                   <TextField 
-                    label="Ngày bắt đầu" type="date" fullWidth 
+                    label="Bắt đầu lúc" type="datetime-local" fullWidth 
                     InputLabelProps={{ shrink: true }}
                     value={config.startDate}
                     onChange={(e) => setConfig({...config, startDate: e.target.value})}
                   />
                   <TextField 
-                    label="Ngày kết thúc" type="date" fullWidth 
+                    label="Kết thúc lúc" type="datetime-local" fullWidth 
                     InputLabelProps={{ shrink: true }}
                     value={config.endDate}
                     onChange={(e) => setConfig({...config, endDate: e.target.value})}

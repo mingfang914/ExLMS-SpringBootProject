@@ -63,7 +63,7 @@ const initials = (name = '') =>
 
 const GroupCard = ({ group, onJoin }) => {
   const { t } = useTranslation()
-  const { id, name, description, ownerName, visibility, memberCount, category, coverUrl } = group
+  const { id, name, description, ownerName, visibility, memberCount, category, coverUrl, isJoined, currentUserRole } = group
   const isPublic   = visibility === 'PUBLIC'
   const gradient   = getGradient(name)
 
@@ -230,29 +230,31 @@ const GroupCard = ({ group, onJoin }) => {
           >
             {t('group_card.view')}
           </Button>
-          <Button
-            size="small"
-            variant="contained"
-            startIcon={<PlusIcon />}
-            onClick={() => onJoin(id)}
-            sx={{
-              flex: 1,
-              height: 36,
-              borderRadius: '8px',
-              fontSize: '0.8125rem',
-              fontWeight: 600,
-              background: 'linear-gradient(135deg, #6366F1, #4F46E5)',
-              cursor: 'pointer',
-              '&:hover': {
-                background: 'linear-gradient(135deg, #818CF8, #6366F1)',
-                boxShadow: '0 4px 12px rgba(99,102,241,0.35)',
-                transform: 'translateY(-1px)',
-              },
-              transition: 'all 0.15s',
-            }}
-          >
-            {t('group_card.join')}
-          </Button>
+          {!isJoined && (
+            <Button
+              size="small"
+              variant="contained"
+              startIcon={<PlusIcon />}
+              onClick={() => onJoin(id)}
+              sx={{
+                flex: 1,
+                height: 36,
+                borderRadius: '8px',
+                fontSize: '0.8125rem',
+                fontWeight: 600,
+                background: 'linear-gradient(135deg, #6366F1, #4F46E5)',
+                cursor: 'pointer',
+                '&:hover': {
+                  background: 'linear-gradient(135deg, #818CF8, #6366F1)',
+                  boxShadow: '0 4px 12px rgba(99,102,241,0.35)',
+                  transform: 'translateY(-1px)',
+                },
+                transition: 'all 0.15s',
+              }}
+            >
+              {t('group_card.join')}
+            </Button>
+          )}
         </Box>
       </Box>
     </motion.div>

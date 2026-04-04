@@ -32,8 +32,8 @@ const DeploymentEditModal = ({ open, onClose, type, resource, onUpdateSuccess })
     if (open && resource) {
       if (type === 'course') {
         setConfig({
-          startDate: resource.startDate ? resource.startDate.slice(0, 10) : '',
-          endDate: resource.endDate ? resource.endDate.slice(0, 10) : '',
+          startDate: resource.startDate ? resource.startDate.slice(0, 16) : '',
+          endDate: resource.endDate ? resource.endDate.slice(0, 16) : '',
           status: resource.status || 'PUBLISHED'
         })
       } else if (type === 'assignment') {
@@ -95,10 +95,11 @@ const DeploymentEditModal = ({ open, onClose, type, resource, onUpdateSuccess })
           {type === 'assignment' && (
             <>
               <TextField 
-                label="Ngày giao bài" type="datetime-local" fullWidth 
+                label="Ngày giao bài (Chỉ xem)" type="datetime-local" fullWidth 
                 InputLabelProps={{ shrink: true }}
                 value={config.assignedAt}
-                onChange={(e) => setConfig({...config, assignedAt: e.target.value})}
+                disabled
+                helperText="Thời gian bắt đầu không thể thay đổi sau khi tạo."
               />
               <TextField 
                 label="Hạn nộp bài" type="datetime-local" fullWidth 
@@ -129,10 +130,11 @@ const DeploymentEditModal = ({ open, onClose, type, resource, onUpdateSuccess })
           {type === 'quiz' && (
             <>
               <TextField 
-                label="Thời gian mở đề" type="datetime-local" fullWidth 
+                label="Thời gian mở đề (Chỉ xem)" type="datetime-local" fullWidth 
                 InputLabelProps={{ shrink: true }}
                 value={config.openAt}
-                onChange={(e) => setConfig({...config, openAt: e.target.value})}
+                disabled
+                helperText="Thời gian bắt đầu không thể thay đổi sau khi tạo."
               />
               <TextField 
                 label="Thời gian đóng đề" type="datetime-local" fullWidth 
@@ -168,13 +170,14 @@ const DeploymentEditModal = ({ open, onClose, type, resource, onUpdateSuccess })
           {type === 'course' && (
             <>
               <TextField 
-                label="Ngày bắt đầu" type="date" fullWidth 
+                label="Thời gian bắt đầu (Chỉ xem)" type="datetime-local" fullWidth 
                 InputLabelProps={{ shrink: true }}
                 value={config.startDate}
-                onChange={(e) => setConfig({...config, startDate: e.target.value})}
+                disabled
+                helperText="Thời gian bắt đầu không thể thay đổi sau khi tạo."
               />
               <TextField 
-                label="Ngày kết thúc" type="date" fullWidth 
+                label="Thời gian kết thúc" type="datetime-local" fullWidth 
                 InputLabelProps={{ shrink: true }}
                 value={config.endDate}
                 onChange={(e) => setConfig({...config, endDate: e.target.value})}
@@ -191,16 +194,11 @@ const DeploymentEditModal = ({ open, onClose, type, resource, onUpdateSuccess })
               label="Trạng thái hiển thị"
               onChange={(e) => setConfig({...config, status: e.target.value})}
             >
-              {(type === 'course' || type === 'assignment' || type === 'quiz') && (
-                <MenuItem value="DRAFT">Bản nháp (Chỉ giảng viên thấy)</MenuItem>
-              )}
+              <MenuItem value="DRAFT">Bản nháp (Chỉ giảng viên thấy)</MenuItem>
               <MenuItem value="PUBLISHED">Công khai (Học sinh thấy & làm bài)</MenuItem>
-              {(type === 'course' || type === 'assignment' || type === 'quiz') && (
-                <MenuItem value="CLOSED">Đã đóng (Học sinh thấy nhưng không làm bài)</MenuItem>
-              )}
             </Select>
             <Typography variant="caption" color="text.secondary" sx={{ mt: 1, ml: 1, display: 'block' }}>
-              * Chỉ trạng thái Công khai (PUBLISHED) học sinh mới có thể tương tác.
+              * Trạng thái <strong>CLOSED</strong> sẽ được hệ thống tự động cập nhật khi hết hạn.
             </Typography>
           </FormControl>
         </Box>

@@ -46,13 +46,23 @@ public class SystemSchedulerService {
         processMeetings(now);
         processAssignments(now);
         processQuizzes(now);
-        processGroupCourses(today);
+        processGroupCourses(now);
     }
 
-    private void processGroupCourses(LocalDate today) {
-        // Close published courses that reach endDate
+    private void processGroupCourses(LocalDateTime now) {
+        // 1. Open draft courses
+        List<GroupCourse> toOpen = groupCourseRepository.findByStatusAndStartDateBefore(
+                GroupCourse.GroupCourseStatus.DRAFT, now);
+        for (GroupCourse gc : toOpen) {
+            log.info("SystemScheduler: Opening course (ID: {})", gc.getId());
+            gc.setStatus(GroupCourse.GroupCourseStatus.PUBLISHED);
+            groupCourseRepository.save(gc);
+            broadcastStatusUpdate(gc.getId(), "COURSE", "PUBLISHED");
+        }
+
+        // 2. Close published courses that reach endDate
         List<GroupCourse> toClose = groupCourseRepository.findByStatusAndEndDateBefore(
-                GroupCourse.GroupCourseStatus.PUBLISHED, today);
+                GroupCourse.GroupCourseStatus.PUBLISHED, now);
 
         for (GroupCourse gc : toClose) {
             log.info("SystemScheduler: Closing course '{}' (ID: {})", gc.getCourse().getTitle(), gc.getId());
@@ -145,7 +155,10 @@ public class SystemSchedulerService {
     }
 
     private void broadcast(UUID id, String type, Object data) {
-        messagingTemplate.convertAndSend("/topic/resource-status", Map.of("type", type, "data", data));
+        Map<String, Object> message = new HashMap<>();
+        message.put("type", type);
+        message.put("data", data);
+        messagingTemplate.convertAndSend("/topic/resource-status", message);
     }
 
     private void notifyCalendarRefresh() {

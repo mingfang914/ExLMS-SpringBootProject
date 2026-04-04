@@ -451,15 +451,15 @@ const Header = () => {
           {user?.role && (
             <Box sx={{ mt: 1.5 }}>
               <Chip
-                label={user.role === 'ADMIN' ? 'Administrator' : 'Student'}
+                label={user.role === 'ADMIN' ? 'Administrator' : (user.role === 'INSTRUCTOR' ? 'Instructor' : 'Student')}
                 size="small"
                 sx={{
                   height: 20,
                   fontSize: '0.625rem',
                   fontWeight: 700,
-                  bgcolor: user.role === 'ADMIN' ? 'rgba(239,68,68,0.12)' : 'rgba(99,102,241,0.12)',
-                  color: user.role === 'ADMIN' ? '#FCA5A5' : '#818CF8',
-                  border: `1px solid ${user.role === 'ADMIN' ? 'rgba(239,68,68,0.25)' : 'rgba(99,102,241,0.25)'}`,
+                  bgcolor: user.role === 'ADMIN' ? 'rgba(239,68,68,0.12)' : (user.role === 'INSTRUCTOR' ? 'rgba(16,185,129,0.12)' : 'rgba(99,102,241,0.12)'),
+                  color: user.role === 'ADMIN' ? '#FCA5A5' : (user.role === 'INSTRUCTOR' ? '#6EE7B7' : '#818CF8'),
+                  border: `1px solid ${user.role === 'ADMIN' ? 'rgba(239,68,68,0.25)' : (user.role === 'INSTRUCTOR' ? 'rgba(16,185,129,0.25)' : 'rgba(99,102,241,0.25)')}`,
                   '& .MuiChip-label': { px: '8px' },
                 }}
               />

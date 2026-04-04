@@ -219,6 +219,33 @@ public class StudyGroupService {
     }
 
     @Transactional
+    public String leaveGroup(UUID groupId) {
+        // 1. Lấy thông tin user hiện tại
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        // 2. Tìm nhóm
+        StudyGroup group = studyGroupRepository.findById(groupId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhóm học tập này!"));
+
+        // 3. Tìm thẻ thành viên
+        GroupMember currentMember = groupMemberRepository.findByGroup_IdAndUser_Id(groupId, currentUser.getId())
+                .orElseThrow(() -> new RuntimeException("Bạn không phải là thành viên của nhóm này!"));
+
+        // 4. Ràng buộc: Chủ nhóm không được tự rời (Phải chuyển quyền hoặc xóa nhóm)
+        if ("OWNER".equals(currentMember.getRole())) {
+            throw new RuntimeException("Bạn là Chủ nhóm, không thể rời khỏi nhóm. Vui lòng chuyển quyền hoặc xóa nhóm!");
+        }
+
+        // 5. Xóa thẻ thành viên
+        groupMemberRepository.delete(currentMember);
+
+        // 6. Xóa yêu cũ join request để người dùng có thể gửi lại yêu cầu gia nhập sau này
+        groupJoinRequestRepository.deleteByGroupAndUser(group, currentUser);
+
+        return "Bạn đã rời khỏi nhóm: " + group.getName();
+    }
+
+    @Transactional
     public String joinGroupByInviteCode(String inviteCode) {
         // 1. Lấy thông tin user đang đăng nhập
         User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -480,6 +507,9 @@ public class StudyGroupService {
         } else {
             throw new RuntimeException("Thành viên thường không có quyền xóa người khác!");
         }
+
+        // Xóa yêu cầu tham gia tương ứng để họ có thể join lại sau này
+        groupJoinRequestRepository.deleteByGroupAndUser(group, targetMember.getUser());
 
         return "Đã xóa thành viên khỏi nhóm thành công!";
     }

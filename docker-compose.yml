@@ -94,6 +94,36 @@ services:
     depends_on:
       - lms-mysql
 
+  # 6. Meeting Microservice (Token Generator)
+  lms-meeting-service:
+    build:
+      context: ./ExLMS-Meeting-Service
+      dockerfile: Dockerfile
+    container_name: lms-meeting-service
+    restart: always
+    environment:
+      - PORT=4000
+      - LIVEKIT_API_KEY=${LIVEKIT_API_KEY}
+      - LIVEKIT_API_SECRET=${LIVEKIT_API_SECRET}
+    ports:
+      - "4000:4000"
+
+  # 7. LiveKit Media Server (SFU)
+  lms-livekit:
+    image: livekit/livekit-server:latest
+    container_name: lms-livekit
+    restart: always
+    command: --config /etc/livekit.yaml
+    volumes:
+      - ./docker-init/livekit/livekit.yaml:/etc/livekit.yaml
+    ports:
+      - "7800:7800" # Signaling/API
+      - "7801:7801" # WebRTC TCP
+      - "7880-7890:7880-7890/udp"
+    environment:
+      - "LIVEKIT_KEYS=${LIVEKIT_API_KEY}: ${LIVEKIT_API_SECRET}"
+
+
 volumes:
   mysql_data:
   minio_data:

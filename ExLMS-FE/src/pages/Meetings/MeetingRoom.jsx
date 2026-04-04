@@ -11,7 +11,7 @@ import {
 } from '@mui/material'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { useSelector } from 'react-redux'
-import JitsiMeeting from '../../components/Meetings/JitsiMeeting'
+import LiveKitMeeting from '../../components/Meetings/LiveKitMeeting'
 import { 
   ArrowBack as BackIcon, 
   Send as SendIcon,
@@ -271,11 +271,11 @@ const MeetingRoom = () => {
         <Grid item xs={12} md={8.5} lg={9} sx={{ height: '100%' }}>
           <Paper sx={{ p: 0, borderRadius: 2, overflow: 'hidden', height: '100%', bgcolor: 'black', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {meeting ? (
-              <JitsiMeeting
+              <LiveKitMeeting
                 roomName={roomName}
-                displayName={user?.fullName || user?.email}
-                email={user?.email}
-                isInstructor={isInstructor}
+                identity={user?.email || user?.id}
+                name={user?.fullName || user?.email}
+                role={meeting?.currentUserRole}
                 onMeetingEnd={handleMeetingEnd}
               />
             ) : (

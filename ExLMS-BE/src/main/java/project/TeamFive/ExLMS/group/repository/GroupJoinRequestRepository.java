@@ -20,4 +20,6 @@ public interface GroupJoinRequestRepository extends JpaRepository<GroupJoinReque
     // Tìm tất cả yêu cầu PENDING của nhóm dùng native SQL UNHEX để handle BINARY(16)
     @Query(value = "SELECT * FROM group_join_requests WHERE group_id = UNHEX(REPLACE(:groupId, '-', '')) AND status = :status", nativeQuery = true)
     List<GroupJoinRequest> findPendingByGroupId(@Param("groupId") String groupId, @Param("status") String status);
+
+    void deleteByGroupAndUser(StudyGroup group, User user);
 }
