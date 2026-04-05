@@ -27,6 +27,8 @@ import Calendar from './pages/Calendar'
 import Notifications from './pages/Notifications'
 import Users from './pages/Admin/Users'
 import Profile from './pages/Profile'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 import CourseInventory from './pages/Inventory/CourseInventory'
 import AssignmentInventory from './pages/Inventory/AssignmentInventory'
 import QuizInventory from './pages/Inventory/QuizInventory'
@@ -35,6 +37,7 @@ import InventoryAssignmentDetail from './pages/Inventory/AssignmentDetail'
 import InventoryQuizDetail from './pages/Inventory/QuizDetail'
 import Layout from './components/Layout'
 import ProtectedRoute from './components/Common/ProtectedRoute'
+import SocketManager from './components/Notification/SocketManager'
 import { initSocket, disconnectSocket } from './services/socketService'
 import { setUser } from './store/authSlice'
 import authService from './services/authService'
@@ -61,9 +64,13 @@ function App() {
   }, [isAuthenticated, user, dispatch])
 
   return (
-    <Routes>
-      <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/" />} />
-      <Route path="/register" element={!isAuthenticated ? <Register /> : <Navigate to="/" />} />
+    <>
+      <SocketManager />
+      <Routes>
+        <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/" />} />
+        <Route path="/register" element={!isAuthenticated ? <Register /> : <Navigate to="/" />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
       
       <Route
         path="/"
@@ -139,6 +146,7 @@ function App() {
       {/* Fallback routes */}
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
+    </>
   )
 }
 

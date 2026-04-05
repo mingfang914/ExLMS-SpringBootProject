@@ -17,117 +17,67 @@ import { useTranslation } from 'react-i18next'
 import api from '../services/api'
 import { setUser } from '../store/authSlice'
 import FileUpload from '../components/Common/FileUpload'
-<<<<<<< HEAD
-import { motion, AnimatePresence } from 'framer-motion'
-import {
-  Badge as BadgeIcon,
-  EmojiEvents as TrophyIcon,
-  Timeline as StatsIcon,
-  School as CourseIcon,
-  AssignmentTurnedIn as TaskIcon,
-  CameraAlt as CameraIcon,
-  Save as SaveIcon,
-  Email as MailIcon,
-  Person as UserIcon,
-  Description as BioIcon,
-  Verified as VerifiedIcon,
-  LocalFireDepartment as StreakIcon,
-  Book as BookIcon,
-  CheckCircle as CheckCircleIcon,
-  EmojiEvents as AwardIcon
-} from '@mui/icons-material'
-=======
 import { motion } from 'framer-motion'
 
 // ── SVG Icons ─────────────────────────────────────────────────────
 const UserIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
   </svg>
 )
 const MailIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-    <polyline points="22,6 12,13 2,6"/>
+    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+    <polyline points="22,6 12,13 2,6" />
   </svg>
 )
 const FileTextIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-    <polyline points="14 2 14 8 20 8"/>
-    <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
-    <polyline points="10 9 9 9 8 9"/>
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+    <polyline points="14 2 14 8 20 8" />
+    <line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" />
+    <polyline points="10 9 9 9 8 9" />
   </svg>
 )
 const SaveIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-    <polyline points="17 21 17 13 7 13 7 21"/>
-    <polyline points="7 3 7 8 15 8"/>
+    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+    <polyline points="17 21 17 13 7 13 7 21" />
+    <polyline points="7 3 7 8 15 8" />
   </svg>
 )
 const CameraIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-    <circle cx="12" cy="13" r="4"/>
+    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+    <circle cx="12" cy="13" r="4" />
   </svg>
 )
 const BookIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
   </svg>
 )
 const CheckCircleIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
   </svg>
 )
 const AwardIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>
+    <circle cx="12" cy="8" r="7" /><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" />
   </svg>
 )
->>>>>>> 0309de622c986d494be08e87aad01e4be70651fa
 
 const container = {
-  hidden:  { opacity: 0 },
+  hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
 }
 const item = {
-  hidden:  { opacity: 0, y: 20 },
+  hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } },
 }
 
-<<<<<<< HEAD
-const StatCard = ({ icon, label, value, color, colorClass }) => (
-  <Box 
-    className={colorClass}
-    sx={{
-      p: 2.5, borderRadius: '20px',
-      bgcolor: 'var(--color-surface-2)',
-      border: '1px solid var(--color-border)',
-      display: 'flex', alignItems: 'center', gap: 2.5,
-      minWidth: '200px', flex: 1,
-      transition: 'all 0.3s',
-      '&:hover': {
-        transform: 'translateY(-5px)',
-        borderColor: color ? alpha(color, 0.4) : 'var(--color-primary-light)',
-        boxShadow: color ? `0 12px 24px ${alpha(color, 0.15)}` : 'none'
-      }
-    }}
-  >
-    <Box sx={{ 
-      width: 48, height: 48, borderRadius: '14px', 
-      bgcolor: color ? alpha(color, 0.1) : 'rgba(99, 102, 241, 0.1)', 
-      color: color || 'var(--color-primary)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center'
-    }}>
-      {icon}
-    </Box>
-    <Box>
-      <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-=======
 const StatCard = ({ icon, label, value, colorClass }) => (
   <Box className={`stat-card ${colorClass}`} sx={{ flex: 1, minWidth: 140 }}>
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
@@ -135,7 +85,6 @@ const StatCard = ({ icon, label, value, colorClass }) => (
         {icon}
       </Box>
       <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-sec)' }}>
->>>>>>> 0309de622c986d494be08e87aad01e4be70651fa
         {label}
       </Typography>
     </Box>
@@ -163,29 +112,16 @@ const calcCompletion = (data) => {
 }
 
 const Profile = () => {
-<<<<<<< HEAD
   const { t } = useTranslation()
   const { user } = useSelector((state) => state.auth)
   const dispatch = useDispatch()
 
-  const [profileData, setProfileData] = useState({ fullName: '', bio: '', avatarKey: '' })
+  const [profileData, setProfileData] = useState({ fullName: '', bio: '', avatarKey: '', createdAt: '' })
   const [stats, setStats] = useState({ coursesInProgress: 0, averageCompletion: 0, totalAchievement: 0 })
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [successMsg, setSuccessMsg] = useState('')
   const [errorMsg, setErrorMsg] = useState('')
-=======
-  const { t }      = useTranslation()
-  const { user }   = useSelector((state) => state.auth)
-  const dispatch   = useDispatch()
->>>>>>> 0309de622c986d494be08e87aad01e4be70651fa
-
-  const [profileData, setProfileData] = useState({ fullName: '', bio: '', avatarKey: '', createdAt: '' })
-  const [stats,       setStats]       = useState({ coursesInProgress: 0, averageCompletion: 0, totalAchievement: 0 })
-  const [loading,     setLoading]     = useState(false)
-  const [saving,      setSaving]      = useState(false)
-  const [successMsg,  setSuccessMsg]  = useState('')
-  const [errorMsg,    setErrorMsg]    = useState('')
 
   useEffect(() => {
     const load = async () => {
@@ -197,21 +133,13 @@ const Profile = () => {
         ])
 
         setProfileData({
-<<<<<<< HEAD
           fullName: userRes.data.fullName || '',
           bio: userRes.data.bio || '',
-          avatarKey: userRes.data.avatarKey || '',
-        })
-        setStats(statsRes.data || { coursesInProgress: 0, averageCompletion: 0, totalAchievement: 0 })
-=======
-          fullName:  userRes.data.fullName  || '',
-          bio:       userRes.data.bio       || '',
           avatarKey: userRes.data.avatarKey || '',
           createdAt: userRes.data.createdAt || '',
         })
         setStats(statsRes.data)
         dispatch(setUser(userRes.data))
->>>>>>> 0309de622c986d494be08e87aad01e4be70651fa
       } catch (err) {
         console.error('Failed to load profile data:', err)
       } finally {
@@ -341,42 +269,10 @@ const Profile = () => {
                 {saving ? <CircularProgress size={20} color="inherit" /> : t('common.save_changes')}
               </Button>
             </Box>
-          </motion.div>
+          </Box>
+        </Box>
+      </motion.div>
 
-          {/* ── Statistics Row ─────────────────────────────────────── */}
-          <motion.div variants={item} style={{ marginTop: '24px' }}>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-              <StatCard
-                icon={<BookIcon />}
-                label={t('dashboard.stats.courses')}
-                value={stats.coursesInProgress || 0}
-                colorClass="stat-card--indigo"
-                color="#6366F1"
-              />
-              <StatCard
-                icon={<CheckCircleIcon />}
-                label={t('common.course_completion')}
-                value={`${Math.round(stats.averageCompletion || 0)}%`}
-                colorClass="stat-card--green"
-                color="#10B981"
-              />
-              <StatCard
-                icon={<AwardIcon />}
-                label={t('common.achievement')}
-                value={(stats.totalAchievement || 0).toLocaleString()}
-                colorClass="stat-card--amber"
-                color="#F59E0B"
-              />
-            </Box>
-          </motion.div>
-        </Grid>
-
-<<<<<<< HEAD
-        {/* ── Right Column: Stats & Completion ───────────────────── */}
-        <Grid item xs={12} md={5}>
-          <Stack spacing={4}>
-            {/* Completion Progress */}
-=======
       {/* ── Statistics Row ─────────────────────────────────────── */}
       <motion.div variants={item}>
         <Box className="stats-container">
@@ -469,7 +365,6 @@ const Profile = () => {
         <Grid item xs={12} md={4}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             {/* Completion Card */}
->>>>>>> 0309de622c986d494be08e87aad01e4be70651fa
             <motion.div variants={item}>
               <Box className="glass-card" sx={{ p: 3, borderLeft: '4px solid var(--color-primary)' }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
@@ -489,7 +384,7 @@ const Profile = () => {
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                   {[
                     { label: t('profile.completion_full_name'), done: !!profileData.fullName },
-                    { label: t('profile.completion_bio'),     done: !!profileData.bio },
+                    { label: t('profile.completion_bio'), done: !!profileData.bio },
                     { label: t('profile.completion_avatar'), done: !!profileData.avatarKey },
                   ].map(({ label, done }) => (
                     <Box key={label} sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -515,14 +410,6 @@ const Profile = () => {
 
             {/* Avatar Upload Card */}
             <motion.div variants={item}>
-<<<<<<< HEAD
-              <Box sx={{ 
-                p: 3.5, borderRadius: '24px', bgcolor: 'var(--color-surface)', 
-                border: '1px solid var(--color-border)'
-              }}>
-                <Typography sx={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '1.125rem', color: 'var(--color-text)', mb: 3 }}>
-                  Hoạt động & Thành tựu
-=======
               <Box className="glass-panel" sx={{ p: 3 }}>
                 <Typography sx={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--color-text)', mb: 2 }}>
                   {t('profile.avatar_upload')}
@@ -534,34 +421,10 @@ const Profile = () => {
                 />
                 <Typography sx={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', mt: 2, fontStyle: 'italic' }}>
                   {t('profile.avatar_hint')}
->>>>>>> 0309de622c986d494be08e87aad01e4be70651fa
                 </Typography>
               </Box>
             </motion.div>
-<<<<<<< HEAD
-
-            {/* Reward Badges Preview */}
-            <motion.div variants={item}>
-              <Box sx={{ 
-                p: 3.5, borderRadius: '24px', bgcolor: alpha('#4338CA', 0.05), 
-                border: '1px dashed rgba(99,102,241, 0.3)', textAlign: 'center'
-              }}>
-                <TrophyIcon sx={{ fontSize: 40, color: '#F59E0B', mb: 1 }} />
-                <Typography sx={{ fontSize: '0.875rem', fontWeight: 800, color: 'var(--color-text)' }}>
-                  Trung tâm Phần thưởng
-                </Typography>
-                <Typography sx={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', mt: 0.5 }}>
-                  Khám phá các thử thách để nhận huy hiệu mới.
-                </Typography>
-                <Button variant="text" sx={{ mt: 1.5, textTransform: 'none', fontWeight: 700, color: '#818CF8' }}>
-                  Xem tất cả badges
-                </Button>
-              </Box>
-            </motion.div>
-          </Stack>
-=======
           </Box>
->>>>>>> 0309de622c986d494be08e87aad01e4be70651fa
         </Grid>
       </Grid>
 

@@ -17,7 +17,10 @@ import project.TeamFive.ExLMS.quiz.repository.QuizAnswerRepository;
 import project.TeamFive.ExLMS.quiz.repository.QuizQuestionRepository;
 import project.TeamFive.ExLMS.quiz.repository.QuizRepository;
 import project.TeamFive.ExLMS.user.entity.User;
+import project.TeamFive.ExLMS.notification.service.NotificationService;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -32,6 +35,7 @@ public class QuizService {
     private final GroupQuizRepository groupQuizRepository;
     private final StudyGroupRepository studyGroupRepository;
     private final project.TeamFive.ExLMS.group.repository.GroupMemberRepository groupMemberRepository;
+    private final NotificationService notificationService;
 
     @Transactional
     public QuizResponseDTO createTemplate(CreateQuizRequest request, User user) {
@@ -72,12 +76,10 @@ public class QuizService {
 
         // Update Questions
         if (request.getQuestions() != null) {
-            // Use Hibernate's orphanRemoval by clearing and re-adding
             if (quiz.getQuestions() != null) {
                 quiz.getQuestions().clear();
                 quizRepository.saveAndFlush(quiz);
             }
-            
             saveQuestionsAndAnswers(quiz, request.getQuestions());
         }
 
@@ -111,6 +113,21 @@ public class QuizService {
         LocalDateTime openAt = config.getOpenAt() != null ? config.getOpenAt() : java.time.LocalDateTime.now();
         LocalDateTime closeAt = config.getCloseAt() != null ? config.getCloseAt() : openAt.plusHours(2);
 
+        GroupQuiz.GroupQuizStatus targetStatus;
+        if (config.getStatus() != null) {
+            try {
+                targetStatus = GroupQuiz.GroupQuizStatus.valueOf(config.getStatus());
+            } catch (Exception e) {
+                targetStatus = openAt.isAfter(java.time.LocalDateTime.now()) 
+                        ? GroupQuiz.GroupQuizStatus.DRAFT 
+                        : GroupQuiz.GroupQuizStatus.PUBLISHED;
+            }
+        } else {
+            targetStatus = openAt.isAfter(java.time.LocalDateTime.now()) 
+                    ? GroupQuiz.GroupQuizStatus.DRAFT 
+                    : GroupQuiz.GroupQuizStatus.PUBLISHED;
+        }
+
         GroupQuiz deployment = GroupQuiz.builder()
                 .group(group)
                 .quiz(template)
@@ -118,12 +135,22 @@ public class QuizService {
                 .closeAt(closeAt)
                 .shuffleQuestions(config.isShuffleQuestions())
                 .resultVisibility(config.getResultVisibility() != null ? config.getResultVisibility() : GroupQuiz.ResultVisibility.IMMEDIATE)
-                .status(openAt.isAfter(java.time.LocalDateTime.now()) 
-                        ? GroupQuiz.GroupQuizStatus.DRAFT 
-                        : GroupQuiz.GroupQuizStatus.PUBLISHED)
+                .status(targetStatus)
                 .build();
 
-        return mapToResponseDTO(template, groupQuizRepository.save(deployment));
+        GroupQuiz savedDeployment = groupQuizRepository.save(deployment);
+
+        // Gửi thông báo và tín hiệu refresh UI
+        notificationService.notifyGroupPublishedItem(
+            group, 
+            "Bài kiểm tra", 
+            template.getTitle(), 
+            savedDeployment.getStatus().name(), 
+            savedDeployment.getId(), 
+            "/quizzes/" + savedDeployment.getId()
+        );
+
+        return mapToResponseDTO(template, savedDeployment);
     }
 
     @Transactional(readOnly = true)
@@ -184,10 +211,19 @@ public class QuizService {
     }
 
     private QuizResponseDTO mapToResponseDTO(Quiz quiz, GroupQuiz deployment) {
-        List<QuizQuestion> questions = questionRepository.findByQuizId(quiz.getId());
-        List<QuizResponseDTO.QuestionResponse> questionResponses = questions.stream()
+        List<QuizQuestion> questionsList = questionRepository.findByQuizId(quiz.getId());
+        
+        boolean shouldShuffle = (deployment != null && deployment.isShuffleQuestions());
+        
+        if (shouldShuffle) {
+            questionsList = new ArrayList<>(questionsList);
+            Collections.shuffle(questionsList);
+        }
+
+        List<QuizResponseDTO.QuestionResponse> questionResponses = questionsList.stream()
                 .map(q -> {
-                    List<QuizAnswer> answers = answerRepository.findByQuestion_IdOrderByOrderIndexAsc(q.getId());
+                    List<QuizAnswer> answers = new ArrayList<>(answerRepository.findByQuestion_IdOrderByOrderIndexAsc(q.getId()));
+                    if (shouldShuffle) Collections.shuffle(answers);
                     return QuizResponseDTO.QuestionResponse.builder()
                             .id(q.getId())
                             .content(project.TeamFive.ExLMS.util.UrlUtils.normalizeCkeUrls(q.getContent()))
@@ -212,7 +248,7 @@ public class QuizService {
                 .timeLimitSec(quiz.getTimeLimitSec())
                 .maxAttempts(quiz.getMaxAttempts())
                 .passingScore(quiz.getPassingScore())
-                .questionCount(questions.size())
+                .questionCount(questionsList.size())
                 .questions(questionResponses);
 
         if (deployment != null) {
@@ -229,73 +265,59 @@ public class QuizService {
 
     @Transactional
     public void deleteTemplate(UUID id, User user) {
-        Quiz quiz = quizRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy bản mẫu trắc nghiệm!"));
-
-        if (!quiz.getCreatedBy().getId().equals(user.getId())) {
-            throw new RuntimeException("Bạn không có quyền xóa bản mẫu này!");
-        }
-
+        Quiz quiz = quizRepository.findById(id).orElseThrow(() -> new RuntimeException("Không tìm thấy bản mẫu!"));
+        if (!quiz.getCreatedBy().getId().equals(user.getId())) throw new RuntimeException("Unauthorized");
         groupQuizRepository.deleteByQuiz_Id(id);
-        // Cascade will handle questions and answers
         quizRepository.delete(quiz);
     }
 
     @Transactional
     public void deleteDeployment(UUID id) {
-        GroupQuiz deployment = groupQuizRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy đợt kiểm tra này!"));
-
-        if (deployment.getStatus() == GroupQuiz.GroupQuizStatus.CLOSED) {
-            throw new RuntimeException("Dữ liệu đợt thi đã kết thúc (CLOSED) sẽ được lưu trữ làm lịch sử, không thể xóa!");
-        }
-
+        GroupQuiz deployment = groupQuizRepository.findById(id).orElseThrow(() -> new RuntimeException("Deployment not found"));
+        if (deployment.getStatus() == GroupQuiz.GroupQuizStatus.CLOSED) throw new RuntimeException("Cannot delete closed quiz");
         groupQuizRepository.delete(deployment);
     }
+
     @Transactional
     public QuizResponseDTO updateQuizDeployment(UUID deploymentId, CreateQuizRequest request, User user) {
-        GroupQuiz deployment = groupQuizRepository.findById(deploymentId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy đợt kiểm tra này!"));
-
-        if (deployment.getStatus() == GroupQuiz.GroupQuizStatus.CLOSED) {
-            throw new RuntimeException("Đợt thi này đã kết thúc (CLOSED), không thể chỉnh sửa!");
-        }
+        GroupQuiz deployment = groupQuizRepository.findById(deploymentId).orElseThrow(() -> new RuntimeException("Deployment not found"));
+        if (deployment.getStatus() == GroupQuiz.GroupQuizStatus.CLOSED) throw new RuntimeException("Locked closed quiz");
 
         if (request.getOpenAt() != null && !request.getOpenAt().isEqual(deployment.getOpenAt())) {
-             throw new RuntimeException("Không được phép thay đổi thời gian mở đề sau khi đã tạo!");
+             throw new RuntimeException("Cannot change start time after creation");
         }
-
         if (request.getCloseAt() != null) {
             validateDates(deployment.getOpenAt(), request.getCloseAt(), false);
             deployment.setCloseAt(request.getCloseAt());
         }
-        
         deployment.setShuffleQuestions(request.isShuffleQuestions());
+        if (request.getResultVisibility() != null) deployment.setResultVisibility(request.getResultVisibility());
         
-        if (request.getResultVisibility() != null) {
-            deployment.setResultVisibility(request.getResultVisibility());
-        }
-        
+        GroupQuiz.GroupQuizStatus oldStatus = deployment.getStatus();
         if (request.getStatus() != null) {
             String newStatus = request.getStatus();
-            if ("CLOSED".equals(newStatus)) {
-                throw new RuntimeException("Không thể chuyển trạng thái sang CLOSED thủ công bằng chức năng này!");
+            if (!"CLOSED".equals(newStatus)) {
+                try { deployment.setStatus(GroupQuiz.GroupQuizStatus.valueOf(newStatus)); } catch (Exception e) {}
             }
-            try {
-                deployment.setStatus(GroupQuiz.GroupQuizStatus.valueOf(newStatus));
-            } catch (Exception e) {}
         }
 
-        return mapToResponseDTO(deployment.getQuiz(), groupQuizRepository.save(deployment));
+        GroupQuiz savedDeployment = groupQuizRepository.save(deployment);
+        
+        if (oldStatus == GroupQuiz.GroupQuizStatus.DRAFT && savedDeployment.getStatus() == GroupQuiz.GroupQuizStatus.PUBLISHED) {
+            notificationService.notifyGroupPublishedItem(
+                deployment.getGroup(), "Bài kiểm tra", deployment.getQuiz().getTitle(), 
+                savedDeployment.getStatus().name(), savedDeployment.getId(), "/quizzes/" + savedDeployment.getId()
+            );
+        } else {
+            notificationService.broadcastResourceStatus(savedDeployment.getId(), "Bài kiểm tra", savedDeployment.getStatus().name());
+        }
+
+        return mapToResponseDTO(deployment.getQuiz(), savedDeployment);
     }
 
     private void validateDates(java.time.LocalDateTime start, java.time.LocalDateTime end, boolean isNew) {
         java.time.LocalDateTime now = java.time.LocalDateTime.now();
-        if (isNew && start != null && start.isBefore(now.minusSeconds(10))) {
-            throw new RuntimeException("Thời gian mở đề không được nhỏ hơn hiện tại!");
-        }
-        if (start != null && end != null && end.isBefore(start)) {
-            throw new RuntimeException("Thời gian đóng đề không được nhỏ hơn thời gian bắt đầu!");
-        }
+        if (isNew && start != null && start.isAfter(now.minusSeconds(10)) == false) throw new RuntimeException("Mở đề phải >= hiện tại");
+        if (start != null && end != null && end.isBefore(start)) throw new RuntimeException("Đóng đề phải sau mở đề");
     }
 }

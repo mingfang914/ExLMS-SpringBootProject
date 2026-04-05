@@ -12,6 +12,7 @@ import project.TeamFive.ExLMS.assignment.repository.GroupAssignmentRepository;
 import project.TeamFive.ExLMS.group.entity.StudyGroup;
 import project.TeamFive.ExLMS.group.repository.StudyGroupRepository;
 import project.TeamFive.ExLMS.user.entity.User;
+import project.TeamFive.ExLMS.notification.service.NotificationService;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,6 +27,7 @@ public class AssignmentService {
     private final GroupAssignmentRepository groupAssignmentRepository;
     private final StudyGroupRepository studyGroupRepository;
     private final project.TeamFive.ExLMS.group.repository.GroupMemberRepository groupMemberRepository;
+    private final NotificationService notificationService;
 
     @Transactional
     public AssignmentResponseDTO createTemplate(CreateAssignmentRequest request, User creator) {
@@ -105,6 +107,21 @@ public class AssignmentService {
         LocalDateTime assignedAt = config.getAssignedAt() != null ? config.getAssignedAt() : LocalDateTime.now();
         LocalDateTime dueAt = config.getDueAt() != null ? config.getDueAt() : LocalDateTime.now().plusDays(7);
 
+        GroupAssignment.GroupAssignmentStatus targetStatus;
+        if (config.getStatus() != null) {
+            try {
+                targetStatus = GroupAssignment.GroupAssignmentStatus.valueOf(config.getStatus());
+            } catch (Exception e) {
+                targetStatus = assignedAt.isAfter(LocalDateTime.now()) 
+                        ? GroupAssignment.GroupAssignmentStatus.DRAFT 
+                        : GroupAssignment.GroupAssignmentStatus.PUBLISHED;
+            }
+        } else {
+            targetStatus = assignedAt.isAfter(LocalDateTime.now()) 
+                    ? GroupAssignment.GroupAssignmentStatus.DRAFT 
+                    : GroupAssignment.GroupAssignmentStatus.PUBLISHED;
+        }
+
         GroupAssignment deployment = GroupAssignment.builder()
                 .group(group)
                 .assignment(assignment)
@@ -112,12 +129,22 @@ public class AssignmentService {
                 .dueAt(dueAt)
                 .allowLate(config.getAllowLate() != null ? config.getAllowLate() : false)
                 .latePenaltyPercent(config.getLatePenaltyPercent() != null ? config.getLatePenaltyPercent() : 0)
-                .status(assignedAt.isAfter(LocalDateTime.now()) 
-                        ? GroupAssignment.GroupAssignmentStatus.DRAFT 
-                        : GroupAssignment.GroupAssignmentStatus.PUBLISHED)
+                .status(targetStatus)
                 .build();
 
-        return mapToResponseDTO(assignment, groupAssignmentRepository.save(deployment));
+        GroupAssignment savedDeployment = groupAssignmentRepository.save(deployment);
+
+        // Phát thông báo và gửi tín hiệu cập nhật list
+        notificationService.notifyGroupPublishedItem(
+            group, 
+            "Bài tập", 
+            assignment.getTitle(), 
+            savedDeployment.getStatus().name(), 
+            savedDeployment.getId(), 
+            "/assignments/" + savedDeployment.getId()
+        );
+
+        return mapToResponseDTO(assignment, savedDeployment);
     }
 
     @Transactional(readOnly = true)
@@ -179,6 +206,8 @@ public class AssignmentService {
         if (request.getAllowLate() != null) deployment.setAllowLate(request.getAllowLate());
         if (request.getLatePenaltyPercent() != null) deployment.setLatePenaltyPercent(request.getLatePenaltyPercent());
         
+        GroupAssignment.GroupAssignmentStatus oldStatus = deployment.getStatus();
+
         if (request.getStatus() != null) {
             String newStatus = request.getStatus();
             if ("CLOSED".equals(newStatus)) {
@@ -189,7 +218,24 @@ public class AssignmentService {
             } catch (Exception e) {}
         }
 
-        return mapToResponseDTO(deployment.getAssignment(), groupAssignmentRepository.save(deployment));
+        GroupAssignment savedDeployment = groupAssignmentRepository.save(deployment);
+        
+        // Gửi thông báo nếu chuyển nháp sang công khai
+        if (oldStatus == GroupAssignment.GroupAssignmentStatus.DRAFT && savedDeployment.getStatus() == GroupAssignment.GroupAssignmentStatus.PUBLISHED) {
+            notificationService.notifyGroupPublishedItem(
+                deployment.getGroup(), 
+                "Bài tập", 
+                deployment.getAssignment().getTitle(), 
+                savedDeployment.getStatus().name(), 
+                savedDeployment.getId(), 
+                "/assignments/" + savedDeployment.getId()
+            );
+        } else {
+            // Vẫn phát broadcast để UI refresh nếu có thay đổi khác
+            notificationService.broadcastResourceStatus(savedDeployment.getId(), "Bài tập", savedDeployment.getStatus().name());
+        }
+
+        return mapToResponseDTO(deployment.getAssignment(), savedDeployment);
     }
 
     @Transactional

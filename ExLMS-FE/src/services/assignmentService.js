@@ -18,6 +18,10 @@ const assignmentService = {
     const response = await api.delete(`/v1/assignments/${id}`)
     return response.data
   },
+  deleteDeployment: async (deploymentId) => {
+    const response = await api.delete(`/v1/group-assignments/${deploymentId}`)
+    return response.data
+  },
 
   // ── Inventory & Deployment ──────────────────────────────────────────────────
   getInventory: async () => {
