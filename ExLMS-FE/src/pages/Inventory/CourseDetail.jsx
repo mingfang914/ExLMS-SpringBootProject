@@ -4,7 +4,7 @@ import {
   CircularProgress, Stack, Avatar, Accordion, AccordionSummary, AccordionDetails,
   IconButton, Tooltip
 } from '@mui/material';
-import { alpha } from '@mui/material/styles';
+import { alpha, useTheme } from '@mui/material/styles';
 import { 
   ArrowBack as BackIcon, 
   Edit as EditIcon, 
@@ -34,6 +34,7 @@ const itemVariants = {
 };
 
 const CourseDetail = () => {
+  const theme = useTheme();
   const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
@@ -120,14 +121,15 @@ const CourseDetail = () => {
         <Box sx={{ 
           position: 'relative', mb: 6, borderRadius: '40px', overflow: 'hidden',
           bgcolor: 'var(--color-surface-2)', border: '1px solid var(--color-border)',
-          boxShadow: '0 24px 80px rgba(0,0,0,0.4)'
+          boxShadow: `0 24px 80px rgba(0,0,0,${theme.palette.mode === 'dark' ? 0.4 : 0.1})`
         }}>
           {/* Background Blur */}
           <Box sx={{
             position: 'absolute', inset: 0,
             backgroundImage: course.thumbnailUrl ? `url(${course.thumbnailUrl})` : 'none',
             backgroundSize: 'cover', backgroundPosition: 'center',
-            filter: 'blur(60px) brightness(0.4)', opacity: 0.6,
+            filter: `blur(60px) brightness(${theme.palette.mode === 'dark' ? 0.4 : 0.9})`, 
+            opacity: theme.palette.mode === 'dark' ? 0.6 : 0.3,
             transform: 'scale(1.2)', zIndex: 0
           }} />
 
@@ -140,9 +142,9 @@ const CourseDetail = () => {
                   sx={{ 
                     width: { xs: 240, md: 280 }, height: { xs: 240, md: 280 }, 
                     borderRadius: '32px', 
-                    border: '8px solid rgba(255,255,255,0.05)',
-                    boxShadow: '0 32px 64px rgba(0,0,0,0.5)',
-                    bgcolor: 'rgba(99, 102, 241, 0.2)'
+                    border: `8px solid ${alpha(theme.palette.common.white, theme.palette.mode === 'dark' ? 0.05 : 0.5)}`,
+                    boxShadow: `0 32px 64px rgba(0,0,0,${theme.palette.mode === 'dark' ? 0.5 : 0.15})`,
+                    bgcolor: alpha(theme.palette.primary.main, 0.1)
                   }}
                 >
                   <SchoolIcon sx={{ fontSize: 100, color: '#818CF8' }} />
@@ -180,19 +182,19 @@ const CourseDetail = () => {
                 <Stack direction="row" spacing={4} sx={{ flexWrap: 'wrap', gap: 3 }}>
                   <Box>
                     <Typography sx={{ color: 'var(--color-text-muted)', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', mb: 0.5 }}>Tổng số chương</Typography>
-                    <Typography variant="h4" sx={{ fontWeight: 900, color: '#818CF8' }}>{chapters.length}</Typography>
+                    <Typography variant="h4" sx={{ fontWeight: 900, color: theme.palette.primary.main }}>{chapters.length}</Typography>
                   </Box>
-                  <Divider orientation="vertical" flexItem sx={{ borderColor: 'rgba(255,255,255,0.1)' }} />
+                  <Divider orientation="vertical" flexItem sx={{ borderColor: 'var(--color-border)', opacity: 0.5 }} />
                   <Box>
                     <Typography sx={{ color: 'var(--color-text-muted)', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', mb: 0.5 }}>Tổng số bài học</Typography>
                     <Typography variant="h4" sx={{ fontWeight: 900, color: 'var(--color-text)' }}>
                       {chapters.reduce((acc, ch) => acc + (ch.lessons?.length || 0), 0)}
                     </Typography>
                   </Box>
-                  <Divider orientation="vertical" flexItem sx={{ borderColor: 'rgba(255,255,255,0.1)' }} />
+                  <Divider orientation="vertical" flexItem sx={{ borderColor: 'var(--color-border)', opacity: 0.5 }} />
                   <Box>
                     <Typography sx={{ color: 'var(--color-text-muted)', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', mb: 0.5 }}>Trạng thái</Typography>
-                    <Chip label="Đang hoạt động" size="small" variant="outlined" sx={{ fontWeight: 800, borderColor: 'rgba(16, 185, 129, 0.4)', color: '#10B981' }} />
+                    <Chip label="Đang hoạt động" size="small" variant="outlined" sx={{ fontWeight: 800, borderColor: alpha(theme.palette.success.main, 0.4), color: theme.palette.success.main }} />
                   </Box>
                 </Stack>
               </Stack>
@@ -229,7 +231,7 @@ const CourseDetail = () => {
                   boxShadow: 'none',
                   overflow: 'hidden',
                   '&:before': { display: 'none' },
-                  '&:hover': { borderColor: 'rgba(99,102,241,0.3)' },
+                  '&:hover': { borderColor: alpha(theme.palette.primary.main, 0.3) },
                   transition: 'border-color 0.2s'
                 }}
               >
@@ -239,7 +241,7 @@ const CourseDetail = () => {
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                     <Typography sx={{ 
-                      fontSize: '1.5rem', fontWeight: 900, color: 'rgba(255,255,255,0.05)',
+                      fontSize: '1.5rem', fontWeight: 900, color: alpha(theme.palette.text.primary, 0.05),
                       fontFamily: 'var(--font-heading)', lineHeight: 1
                     }}>
                       {String(idx + 1).padStart(2, '0')}
@@ -254,7 +256,7 @@ const CourseDetail = () => {
                     </Box>
                   </Box>
                 </AccordionSummary>
-                <AccordionDetails sx={{ bgcolor: 'rgba(0,0,0,0.15)', p: 3, borderTop: '1px solid var(--color-border)' }}>
+                <AccordionDetails sx={{ bgcolor: 'var(--color-surface-3)', p: 3, borderTop: '1px solid var(--color-border)' }}>
                   <Stack spacing={1.5}>
                     {(ch.lessons || []).map((lesson, lIdx) => (
                       <Box key={lesson.id} sx={{ 
@@ -265,8 +267,8 @@ const CourseDetail = () => {
                         transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                         cursor: 'default',
                         '&:hover': { 
-                          bgcolor: 'rgba(99,102,241,0.05)', 
-                          borderColor: 'rgba(99,102,241,0.3)',
+                          bgcolor: alpha(theme.palette.primary.main, 0.05), 
+                          borderColor: alpha(theme.palette.primary.main, 0.3),
                           transform: 'translateX(8px)' 
                         }
                       }}>
