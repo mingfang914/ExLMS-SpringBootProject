@@ -59,4 +59,12 @@ public class AssignmentController {
         assignmentService.deleteAssignment(id);
         return ResponseEntity.noContent().build();
     }
+
+    @DeleteMapping("/group-assignments/{deploymentId}")
+    public ResponseEntity<Void> deleteDeployment(
+            @PathVariable UUID deploymentId,
+            @AuthenticationPrincipal User user) {
+        assignmentService.deleteAssignmentDeployment(deploymentId);
+        return ResponseEntity.noContent().build();
+    }
 }

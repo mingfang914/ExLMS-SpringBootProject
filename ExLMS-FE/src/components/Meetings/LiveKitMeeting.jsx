@@ -15,10 +15,14 @@ const LiveKitMeeting = ({ roomName, identity, name, role, onMeetingEnd }) => {
   const [token, setToken] = useState(null);
   const [error, setError] = useState(null);
 
+  // Configuration from .env or fallback for local dev
+  const tokenServiceUrl = import.meta.env.VITE_LIVEKIT_TOKEN_SERVICE_URL || 'http://localhost:4000/getToken';
+  const livekitServerUrl = import.meta.env.VITE_LIVEKIT_SERVER_URL || 'ws://localhost:7800';
+
   useEffect(() => {
     const fetchToken = async () => {
       try {
-        const response = await axios.post('http://localhost:4000/getToken', {
+        const response = await axios.post(tokenServiceUrl, {
           roomName,
           identity,
           name,
@@ -32,7 +36,7 @@ const LiveKitMeeting = ({ roomName, identity, name, role, onMeetingEnd }) => {
     };
 
     fetchToken();
-  }, [roomName, identity, name, role]);
+  }, [roomName, identity, name, role, tokenServiceUrl]);
 
   if (error) {
     return (
@@ -55,7 +59,7 @@ const LiveKitMeeting = ({ roomName, identity, name, role, onMeetingEnd }) => {
       video={true}
       audio={true}
       token={token}
-      serverUrl="ws://localhost:7800"
+      serverUrl={livekitServerUrl}
       onDisconnected={onMeetingEnd}
       data-lk-theme="default"
       style={{ height: '100%', width: '100%' }}

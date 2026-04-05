@@ -185,7 +185,7 @@ const GroupDetail = () => {
     if (!window.confirm(t('common.confirm_delete'))) return
     try {
       if (type === 'course') await courseService.deleteCourse(id, resId)
-      else if (type === 'assignment') await assignmentService.deleteAssignment(resId)
+      else if (type === 'assignment') await assignmentService.deleteDeployment(resId)
       else if (type === 'quiz') await quizService.deleteQuiz(resId)
       
       refreshData()

@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Box, Typography, Paper, Grid, Chip, Button, Divider, 
+import {
+  Box, Typography, Paper, Grid, Chip, Button, Divider,
   CircularProgress, Stack, Avatar, Accordion, AccordionSummary, AccordionDetails
 } from '@mui/material';
-import { 
-  ArrowBack as BackIcon, 
-  Edit as EditIcon, 
+import {
+  ArrowBack as BackIcon,
+  Edit as EditIcon,
   School as SchoolIcon,
-  EmojiEvents as TrophyIcon, 
+  EmojiEvents as TrophyIcon,
   ExpandMore as ExpandMoreIcon,
   MenuBook as BookIcon,
   Description as DocIcon,
@@ -30,7 +30,7 @@ const CourseDetail = () => {
       try {
         const data = await courseService.getTemplateById(id);
         setCourse(data);
-        
+
         const [chapterList] = await Promise.all([
           courseService.getTemplateChapters(id)
         ]);
@@ -68,18 +68,18 @@ const CourseDetail = () => {
   return (
     <Box sx={{ maxWidth: 1100, mx: 'auto', p: { xs: 2, md: 4 } }}>
       <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Button 
-          startIcon={<BackIcon />} 
-          onClick={() => navigate(-1)} 
+        <Button
+          startIcon={<BackIcon />}
+          onClick={() => navigate(-1)}
           sx={{ color: 'var(--color-text-secondary)', fontWeight: 700, textTransform: 'none' }}
         >
           Quay lại kho
         </Button>
-        <Button 
-          variant="contained" 
-          startIcon={<EditIcon />} 
+        <Button
+          variant="contained"
+          startIcon={<EditIcon />}
           onClick={() => navigate(`/inventory/courses/edit/${id}`)}
-          sx={{ 
+          sx={{
             borderRadius: '16px', fontWeight: 800, px: 3, py: 1,
             background: 'linear-gradient(135deg, #6366F1, #4F46E5)',
             boxShadow: '0 8px 20px rgba(99, 102, 241, 0.3)',
@@ -93,22 +93,22 @@ const CourseDetail = () => {
       </Box>
 
       {/* Main Info Card - Glassmorphism */}
-      <Paper sx={{ 
-        p: { xs: 3, md: 5 }, mb: 5, borderRadius: '32px', 
-        background: 'var(--glass-bg)', 
+      <Paper sx={{
+        p: { xs: 3, md: 5 }, mb: 5, borderRadius: '32px',
+        background: 'var(--glass-bg)',
         backdropFilter: 'blur(20px)',
-        border: '1px solid var(--glass-border)', 
+        border: '1px solid var(--glass-border)',
         boxShadow: 'var(--glass-shadow)',
-        position: 'relative', overflow: 'hidden' 
+        position: 'relative', overflow: 'hidden'
       }}>
         <Grid container spacing={4} alignItems="center">
           <Grid item xs={12} md="auto">
-            <Avatar 
-              variant="rounded" 
-              src={course.thumbnailUrl} 
-              sx={{ 
-                width: 180, height: 180, borderRadius: '24px', 
-                background: 'rgba(99, 102, 241, 0.1)', 
+            <Avatar
+              variant="rounded"
+              src={course.thumbnailUrl}
+              sx={{
+                width: 180, height: 180, borderRadius: '24px',
+                background: 'rgba(99, 102, 241, 0.1)',
                 border: '1px solid var(--color-border)',
                 boxShadow: '0 10px 30px rgba(0,0,0,0.1)'
               }}
@@ -150,13 +150,13 @@ const CourseDetail = () => {
 
           <Stack spacing={2}>
             {chapters.map((ch, idx) => (
-              <Accordion 
-                key={ch.id} 
-                defaultExpanded={idx === 0} 
-                sx={{ 
-                  borderRadius: '20px !important', 
-                  background: 'var(--color-surface)', 
-                  border: '1px solid var(--color-border)', 
+              <Accordion
+                key={ch.id}
+                defaultExpanded={idx === 0}
+                sx={{
+                  borderRadius: '20px !important',
+                  background: 'var(--color-surface)',
+                  border: '1px solid var(--color-border)',
                   boxShadow: 'none',
                   '&:before': { display: 'none' },
                   overflow: 'hidden'
@@ -164,8 +164,8 @@ const CourseDetail = () => {
               >
                 <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: 'var(--color-text-secondary)' }} />}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 0.5 }}>
-                    <Box sx={{ 
-                      width: 32, height: 32, borderRadius: '8px', 
+                    <Box sx={{
+                      width: 32, height: 32, borderRadius: '8px',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       background: 'rgba(99, 102, 241, 0.1)', color: '#6366F1', fontWeight: 800
                     }}>
@@ -179,10 +179,10 @@ const CourseDetail = () => {
                 <AccordionDetails sx={{ borderTop: '1px solid var(--color-border)', bgcolor: 'var(--color-surface-2)', p: 3 }}>
                   <Stack spacing={1.5}>
                     {(ch.lessons || []).map((lesson, lIdx) => (
-                      <Box key={lesson.id} sx={{ 
-                        p: 2, borderRadius: '14px', 
-                        background: 'var(--color-surface)', 
-                        border: '1px solid var(--color-border)', 
+                      <Box key={lesson.id} sx={{
+                        p: 2, borderRadius: '14px',
+                        background: 'var(--color-surface)',
+                        border: '1px solid var(--color-border)',
                         display: 'flex', alignItems: 'center', gap: 2,
                         transition: 'transform 0.2s',
                         '&:hover': { transform: 'translateX(4px)', borderColor: '#6366F1' }

@@ -13,6 +13,7 @@ import {
   Chip,
   Fab
 } from '@mui/material'
+
 import {
   Add as AddIcon,
   Edit as EditIcon,
@@ -45,12 +46,13 @@ const CourseInventory = () => {
   }
 
   return (
+
     <Box sx={{ p: 4 }}>
       {/* Header section with glassmorphism */}
-      <Box 
-        sx={{ 
-          p: 4, 
-          mb: 4, 
+      <Box
+        sx={{
+          p: 4,
+          mb: 4,
           borderRadius: '24px',
           display: 'flex',
           justifyContent: 'space-between',
@@ -62,8 +64,8 @@ const CourseInventory = () => {
         }}
       >
         <Box>
-          <Typography variant="h3" sx={{ 
-            fontWeight: 900, 
+          <Typography variant="h3" sx={{
+            fontWeight: 900,
             fontFamily: 'var(--font-heading)',
             color: 'var(--color-text)',
             display: 'flex',
@@ -77,13 +79,13 @@ const CourseInventory = () => {
             Quản lý các bản mẫu khóa học toàn diện của bạn trước khi đưa vào giảng dạy.
           </Typography>
         </Box>
-        <Fab 
-          variant="extended" 
-          color="primary" 
-          onClick={() => navigate('/inventory/courses/create')} 
-          sx={{ 
-            px: 4, 
-            fontWeight: 800, 
+        <Fab
+          variant="extended"
+          color="primary"
+          onClick={() => navigate('/inventory/courses/create')}
+          sx={{
+            px: 4,
+            fontWeight: 800,
             borderRadius: '16px',
             textTransform: 'none',
             fontSize: '1rem',
@@ -101,6 +103,7 @@ const CourseInventory = () => {
         <Grid container spacing={3}>
           {[1, 2, 3, 4].map((i) => (
             <Grid item xs={12} sm={6} md={4} key={i}>
+
               <Skeleton variant="rectangular" height={240} sx={{ borderRadius: '20px' }} />
             </Grid>
           ))}
@@ -138,30 +141,30 @@ const CourseInventory = () => {
                         image={course.thumbnailUrl || '/DefaultCourseImg.png'}
                         alt={course.title}
                       />
-                      
+
                       <CardContent sx={{ p: 3 }}>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
-                          <Chip 
+                          <Chip
                             icon={<CourseIcon sx={{ fontSize: '1rem !important' }} />}
-                            label="Template" 
+                            label="Template"
                             size="small"
-                            sx={{ 
-                              background: 'rgba(99, 102, 241, 0.1)', 
-                              color: 'var(--color-primary)', 
+                            sx={{
+                              background: 'rgba(99, 102, 241, 0.1)',
+                              color: 'var(--color-primary)',
                               fontWeight: 700,
                               borderRadius: '8px'
-                            }} 
+                            }}
                           />
                         </Box>
-                        
+
                         <Typography variant="h6" sx={{ fontWeight: 800, mb: 1, lineHeight: 1.3, color: 'var(--color-text)' }}>
                           {course.title}
                         </Typography>
-                        
-                        <Typography variant="body2" sx={{ 
-                          color: 'var(--color-text-sec)', 
-                          display: '-webkit-box', 
-                          WebkitLineClamp: 2, 
+
+                        <Typography variant="body2" sx={{
+                          color: 'var(--color-text-sec)',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
                           WebkitBoxOrient: 'vertical',
                           overflow: 'hidden',
                           height: '40px',
@@ -171,13 +174,13 @@ const CourseInventory = () => {
                         </Typography>
 
                         <Box sx={{ display: 'flex', gap: 1.5 }}>
-                          <Button 
-                            variant="contained" 
+                          <Button
+                            variant="contained"
                             onClick={() => navigate(`/inventory/courses/view/${course.templateId}`)}
-                            sx={{ 
+                            sx={{
                               flex: 2,
-                              borderRadius: '12px', 
-                              background: 'rgba(99, 102, 241, 0.08)', 
+                              borderRadius: '12px',
+                              background: 'rgba(99, 102, 241, 0.08)',
                               color: 'var(--color-primary)',
                               fontWeight: 800,
                               textTransform: 'none',
@@ -186,12 +189,12 @@ const CourseInventory = () => {
                           >
                             Xem chi tiết
                           </Button>
-                          <Button 
-                            variant="outlined" 
+                          <Button
+                            variant="outlined"
                             onClick={() => navigate(`/inventory/courses/edit/${course.templateId}`)}
-                            sx={{ 
+                            sx={{
                               flex: 1,
-                              borderRadius: '12px', 
+                              borderRadius: '12px',
                               borderColor: 'var(--color-border)',
                               color: 'var(--color-text-sec)',
                               fontWeight: 700,
@@ -201,15 +204,15 @@ const CourseInventory = () => {
                           >
                             Sửa
                           </Button>
-                          <IconButton 
+                          <IconButton
                             onClick={async () => {
                               if (window.confirm('Xóa bản mẫu khóa học này?')) {
                                 await courseService.deleteTemplate(course.templateId)
                                 fetchInventory()
                               }
                             }}
-                            sx={{ 
-                              borderRadius: '12px', 
+                            sx={{
+                              borderRadius: '12px',
                               color: 'var(--color-error)',
                               border: '1px solid transparent',
                               '&:hover': { background: 'rgba(239, 68, 68, 0.05)', borderColor: 'rgba(239, 68, 68, 0.2)' }

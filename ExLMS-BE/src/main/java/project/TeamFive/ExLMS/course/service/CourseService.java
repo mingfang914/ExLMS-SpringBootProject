@@ -19,6 +19,7 @@ import project.TeamFive.ExLMS.course.repository.CourseRepository;
 import project.TeamFive.ExLMS.course.repository.GroupCourseRepository;
 import project.TeamFive.ExLMS.group.repository.GroupMemberRepository;
 import project.TeamFive.ExLMS.group.repository.StudyGroupRepository;
+import project.TeamFive.ExLMS.notification.service.NotificationService;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -34,6 +35,7 @@ public class CourseService {
     private final StudyGroupRepository studyGroupRepository;
     private final GroupMemberRepository groupMemberRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final NotificationService notificationService;
 
     private void requireInstructorRole(StudyGroup group, User user) {
         GroupMember member = groupMemberRepository.findByGroup_IdAndUser_Id(group.getId(), user.getId())
@@ -54,7 +56,12 @@ public class CourseService {
         }
     }
 
-    private GroupCourse.GroupCourseStatus determineInitialStatus(LocalDateTime startDate, LocalDateTime endDate) {
+    private GroupCourse.GroupCourseStatus determineInitialStatus(String requestedStatus, LocalDateTime startDate, LocalDateTime endDate) {
+        if (requestedStatus != null) {
+            try {
+                return GroupCourse.GroupCourseStatus.valueOf(requestedStatus);
+            } catch (Exception e) {}
+        }
         LocalDateTime now = LocalDateTime.now();
         if (startDate != null && startDate.isAfter(now)) {
             return GroupCourse.GroupCourseStatus.DRAFT;
@@ -90,9 +97,18 @@ public class CourseService {
                 .course(template)
                 .startDate(request.getStartDate())
                 .endDate(request.getEndDate())
-                .status(determineInitialStatus(request.getStartDate(), request.getEndDate()))
+                .status(determineInitialStatus(request.getStatus(), request.getStartDate(), request.getEndDate()))
                 .build();
         deployment = groupCourseRepository.save(deployment);
+
+        notificationService.notifyGroupPublishedItem(
+            group, 
+            "Khóa học", 
+            template.getTitle(), 
+            deployment.getStatus().name(), 
+            deployment.getId(), 
+            "/courses/" + deployment.getId()
+        );
 
         eventPublisher.publishEvent(new CourseCreatedEvent(this, deployment));
         return mapToResponse(deployment);
@@ -140,7 +156,6 @@ public class CourseService {
         User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         requireInstructorRole(deployment.getGroup(), currentUser);
 
-        // RÀNG BUỘC: Nếu đã CLOSED thì không cho sửa bất cứ thứ gì
         if (deployment.getStatus() == GroupCourse.GroupCourseStatus.CLOSED) {
             throw new RuntimeException("Lớp học đã kết thúc (CLOSED), không thể chỉnh sửa thông tin!");
         }
@@ -151,7 +166,6 @@ public class CourseService {
         if (request.getThumbnailKey() != null) template.setThumbnailKey(request.getThumbnailKey());
         courseRepository.save(template);
 
-        // RÀNG BUỘC: Không được sửa StartDate sau khi đã tạo
         if (request.getStartDate() != null && !request.getStartDate().isEqual(deployment.getStartDate())) {
             throw new RuntimeException("Không được phép thay đổi thời gian bắt đầu sau khi đã triển khai!");
         }
@@ -161,7 +175,7 @@ public class CourseService {
             deployment.setEndDate(request.getEndDate());
         }
 
-        // Chỉ cho phép chuyển đổi giữa DRAFT và PUBLISHED (System sẽ tự chuyển qua CLOSED)
+        GroupCourse.GroupCourseStatus oldStatus = deployment.getStatus();
         if (request.getStatus() != null) {
             String newStatus = request.getStatus();
             if ("CLOSED".equals(newStatus)) {
@@ -173,6 +187,20 @@ public class CourseService {
         }
 
         deployment = groupCourseRepository.save(deployment);
+        
+        if (oldStatus == GroupCourse.GroupCourseStatus.DRAFT && deployment.getStatus() == GroupCourse.GroupCourseStatus.PUBLISHED) {
+            notificationService.notifyGroupPublishedItem(
+                deployment.getGroup(), 
+                "Khóa học", 
+                deployment.getCourse().getTitle(), 
+                deployment.getStatus().name(), 
+                deployment.getId(), 
+                "/courses/" + deployment.getId()
+            );
+        } else {
+            notificationService.broadcastResourceStatus(deployment.getId(), "Khóa học", deployment.getStatus().name());
+        }
+
         eventPublisher.publishEvent(new CourseUpdatedEvent(this, deployment));
         return mapToResponse(deployment);
     }
@@ -225,9 +253,19 @@ public class CourseService {
                     .course(template)
                     .startDate(request.getStartDate())
                     .endDate(request.getEndDate())
-                    .status(determineInitialStatus(request.getStartDate(), request.getEndDate()))
+                    .status(determineInitialStatus(request.getStatus(), request.getStartDate(), request.getEndDate()))
                     .build();
-            groupCourseRepository.save(deployment);
+            deployment = groupCourseRepository.save(deployment);
+            
+            notificationService.notifyGroupPublishedItem(
+                group, 
+                "Khóa học", 
+                template.getTitle(), 
+                deployment.getStatus().name(), 
+                deployment.getId(), 
+                "/courses/" + deployment.getId()
+            );
+
             eventPublisher.publishEvent(new CourseCreatedEvent(this, deployment));
         }
     }
@@ -273,13 +311,10 @@ public class CourseService {
             throw new RuntimeException("Bạn không có quyền xóa bản mẫu này!");
         }
 
-        // JPA might fail if there are deployed GroupCourses referencing this Course. 
-        // We will just let it fail or ideally we would archive it instead, but since it's a template builder
-        // let's try to delete it.
         try {
             courseRepository.delete(template);
         } catch (Exception e) {
-            throw new RuntimeException("Không thể xóa bản mẫu này vì đã có lớp học triển khai từ nó hoặc có dữ liệu liên kết chéo. Vui lòng chuyển trạng thái thay vì xóa.", e);
+            throw new RuntimeException("Không thể xóa bản mẫu này vì đã có lớp học triển khai từ nó.", e);
         }
         return "Đã xóa bản mẫu thành công!";
     }
