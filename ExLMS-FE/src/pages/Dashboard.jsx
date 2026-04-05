@@ -17,7 +17,7 @@ import { useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, ReferenceLine
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer
 } from 'recharts'
 import { alpha } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
@@ -109,94 +109,26 @@ const item = {
 // Sub-components
 // ───────────────────────────────────────────────────────────────────
 const StatCard = ({ label, value, icon, colorClass, loading, trend }) => (
-  <motion.div
-    whileHover={{ y: -5, transition: { duration: 0.2 } }}
-    className={`stat-card stat-card--${colorClass}`}
-    style={{
-      position: 'relative',
-      overflow: 'hidden',
-      background: 'var(--color-surface-2)',
-      border: '1px solid var(--color-border)',
-      borderRadius: '16px',
-      padding: '20px',
-      height: '100%',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'space-between',
-      boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-    }}
-  >
-    {/* Background accent glow */}
-    <Box
-      sx={{
-        position: 'absolute',
-        top: -20,
-        right: -20,
-        width: 80,
-        height: 80,
-        borderRadius: '50%',
-        filter: 'blur(40px)',
-        opacity: 0.15,
-        bgcolor: `var(--color-${colorClass})`,
-        zIndex: 0,
-      }}
-    />
-
+  <div className={`stat-card stat-card--${colorClass}`}>
     {loading ? (
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, position: 'relative', zIndex: 1 }}>
-        <Skeleton variant="rounded" width={48} height={48} sx={{ borderRadius: '12px', bgcolor: 'rgba(255,255,255,0.05)' }} />
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Skeleton variant="rounded" width={44} height={44} sx={{ borderRadius: '10px', bgcolor: 'rgba(33,38,45,0.8)' }} />
         <Box sx={{ flex: 1 }}>
-          <Skeleton width="60%" height={32} sx={{ bgcolor: 'rgba(255,255,255,0.05)' }} />
-          <Skeleton width="40%" height={20} sx={{ bgcolor: 'rgba(255,255,255,0.05)' }} />
+          <Skeleton width="70%" height={32} sx={{ bgcolor: 'rgba(33,38,45,0.8)' }} />
+          <Skeleton width="55%" height={20} sx={{ bgcolor: 'rgba(33,38,45,0.8)' }} />
         </Box>
       </Box>
     ) : (
-      <Box sx={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-          <Box
-            className={`stat-icon-wrapper stat-icon--${colorClass}`}
-            sx={{
-              width: 44,
-              height: 44,
-              borderRadius: '12px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              bgcolor: alpha(getColor(colorClass), 0.15),
-              color: getColor(colorClass),
-              border: `1px solid ${alpha(getColor(colorClass), 0.3)}`,
-            }}
-          >
-            {icon}
-          </Box>
-          {trend && (
-            <Box
-              sx={{
-                px: 1,
-                py: 0.5,
-                borderRadius: '6px',
-                bgcolor: alpha('#10B981', 0.1),
-                border: `1px solid ${alpha('#10B981', 0.2)}`,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 0.5,
-              }}
-            >
-              <Box sx={{ color: '#10B981', display: 'flex' }}>{Icons.trendUp}</Box>
-              <Typography sx={{ fontSize: '0.625rem', color: '#10B981', fontWeight: 700 }}>{trend}</Typography>
-            </Box>
-          )}
-        </Box>
-
+      <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <Box>
           <Typography
             sx={{
-              fontSize: '1.875rem',
-              fontWeight: 800,
-              color: 'var(--color-text)',
-              lineHeight: 1,
-              mb: 0.5,
               fontFamily: 'var(--font-heading)',
+              fontWeight: 800,
+              fontSize: '2rem',
+              lineHeight: 1,
+              color: 'var(--color-text)',
+              mb: 0.5,
             }}
           >
             {value}
@@ -204,22 +136,24 @@ const StatCard = ({ label, value, icon, colorClass, loading, trend }) => (
           <Typography sx={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>
             {label}
           </Typography>
+          {trend && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 1 }}>
+              <Box sx={{ color: 'var(--color-success)', display: 'flex', alignItems: 'center' }}>
+                {Icons.trendUp}
+              </Box>
+              <Typography sx={{ fontSize: '0.6875rem', color: 'var(--color-success)', fontWeight: 600 }}>
+                {trend}
+              </Typography>
+            </Box>
+          )}
+        </Box>
+        <Box className={`icon-badge icon-badge--${colorClass}`}>
+          {icon}
         </Box>
       </Box>
     )}
-  </motion.div>
+  </div>
 )
-
-// Helper for StatCard colors
-function getColor(c) {
-  const map = {
-    indigo: '#6366F1',
-    cyan: '#22D3EE',
-    amber: '#F59E0B',
-    red: '#EF4444',
-  }
-  return map[c] || '#6366F1'
-}
 
 // Custom chart tooltip
 const CustomTooltip = ({ active, payload, label }) => {
@@ -227,23 +161,17 @@ const CustomTooltip = ({ active, payload, label }) => {
     return (
       <Box
         sx={{
-          bgcolor: 'rgba(13, 17, 23, 0.85)',
-          backdropFilter: 'blur(8px)',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-          borderRadius: '12px',
-          px: 1.5, py: 1,
-          boxShadow: '0 12px 32px rgba(0,0,0,0.4)',
+          bgcolor: 'var(--color-surface-3)',
+          border: '1px solid var(--color-border)',
+          borderRadius: '10px',
+          px: 2, py: 1.5,
+          boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
         }}
       >
-        <Typography sx={{ fontSize: '0.625rem', color: 'var(--color-text-muted)', mb: 0.5, fontWeight: 600, textTransform: 'uppercase' }}>
-          {label}
+        <Typography sx={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', mb: 0.5 }}>{label}</Typography>
+        <Typography sx={{ fontSize: '0.9375rem', fontWeight: 700, color: '#818CF8' }}>
+          {payload[0].value}h
         </Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#6366F1' }} />
-          <Typography sx={{ fontSize: '0.9375rem', fontWeight: 800, color: 'var(--color-text)' }}>
-            {payload[0].value}h
-          </Typography>
-        </Box>
       </Box>
     )
   }
@@ -368,108 +296,72 @@ const Dashboard = () => {
         {/* Learning Hours chart */}
         <Grid item xs={12} md={8}>
           <motion.div variants={item} style={{ height: '100%' }}>
-            <Card
-              sx={{
-                height: '100%',
-                background: 'var(--color-surface-2)',
-                border: '1px solid var(--color-border)',
-                borderRadius: '16px',
-                overflow: 'hidden',
-              }}
-            >
+            <Card sx={{ height: '100%' }}>
               <CardHeader
                 title={
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <Box>
-                      <Typography sx={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '1.0625rem', color: 'var(--color-text)' }}>
+                      <Typography sx={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '1rem', color: 'var(--color-text)' }}>
                         {t('dashboard.learning_hours')}
                       </Typography>
-                      <Typography sx={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', mt: 0.25, fontWeight: 500 }}>
+                      <Typography sx={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', mt: 0.25 }}>
                         {t('dashboard.this_week')}
                       </Typography>
                     </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                      <Box sx={{ textAlign: 'right' }}>
-                        <Typography sx={{ fontSize: '0.625rem', color: 'var(--color-success)', fontWeight: 700, textTransform: 'uppercase' }}>
-                          Avg. 3.2h/day
-                        </Typography>
-                      </Box>
-                      <Chip
-                        label={t('dashboard.total_learning_time', { count: 21.5 })}
-                        size="small"
-                        sx={{
-                          bgcolor: alpha('#6366F1', 0.1),
-                          color: '#818CF8',
-                          border: '1px solid rgba(99,102,241,0.25)',
-                          fontWeight: 700,
-                          fontSize: '0.75rem',
-                        }}
-                      />
-                    </Box>
+                    <Chip
+                      label={t('dashboard.total_learning_time', { count: 21.5 })}
+                      size="small"
+                      sx={{
+                        bgcolor: 'rgba(99,102,241,0.12)',
+                        color: '#818CF8',
+                        border: '1px solid rgba(99,102,241,0.25)',
+                        fontWeight: 600,
+                        fontSize: '0.75rem',
+                        height: 26,
+                      }}
+                    />
                   </Box>
                 }
-                sx={{ pb: 0, px: 3, pt: 3 }}
+                sx={{ pb: 0, px: 3, pt: 2.5 }}
               />
-              <CardContent sx={{ pt: 3, px: 2, pb: '24px !important', minHeight: 280 }}>
+              <CardContent sx={{ pt: 2, px: 2, pb: '16px !important', minHeight: 280 }}>
                 {loading ? (
-                  <Skeleton variant="rounded" width="100%" height={240} sx={{ bgcolor: 'rgba(255,255,255,0.05)', borderRadius: '12px' }} />
+                  <Skeleton variant="rounded" width="100%" height={240} sx={{ bgcolor: 'rgba(33,38,45,0.6)' }} />
                 ) : (
                   <ResponsiveContainer width="100%" height={240}>
-                    <AreaChart data={chartData} margin={{ top: 8, right: 12, left: -24, bottom: 0 }}>
+                    <AreaChart data={chartData} margin={{ top: 8, right: 8, left: -24, bottom: 0 }}>
                       <defs>
                         <linearGradient id="gradHours" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#6366F1" stopOpacity={0.25} />
+                          <stop offset="5%" stopColor="#6366F1" stopOpacity={0.3} />
                           <stop offset="95%" stopColor="#6366F1" stopOpacity={0} />
                         </linearGradient>
-                        <linearGradient id="glowStroke" x1="0" y1="0" x2="1" y2="0">
+                        <linearGradient id="gradStroke" x1="0" y1="0" x2="1" y2="0">
                           <stop offset="0%" stopColor="#6366F1" />
-                          <stop offset="50%" stopColor="#818CF8" />
                           <stop offset="100%" stopColor="#22D3EE" />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid
-                        strokeDasharray="4 4"
-                        stroke="rgba(255,255,255,0.06)"
-                        vertical={true}
-                        horizontal={true}
-                      />
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(48,54,61,0.6)" />
                       <XAxis
                         dataKey="name"
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fill: 'var(--color-text-muted)', fontSize: 11, fontWeight: 600 }}
-                        dy={12}
+                        axisLine={false} tickLine={false}
+                        tick={{ fill: '#6E7681', fontSize: 12, fontFamily: 'Inter' }}
+                        dy={8}
                       />
                       <YAxis
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fill: 'var(--color-text-muted)', fontSize: 11, fontWeight: 600 }}
+                        axisLine={false} tickLine={false}
+                        tick={{ fill: '#6E7681', fontSize: 12, fontFamily: 'Inter' }}
                         tickFormatter={(v) => `${v}h`}
-                        domain={[0, 6]}
                       />
-                      <RechartsTooltip
-                        content={<CustomTooltip />}
-                        cursor={{ stroke: 'rgba(99,102,241,0.2)', strokeWidth: 1.5, strokeDasharray: '4 4' }}
-                      />
-                      {/* Reference line for daily goal */}
-                      <ReferenceLine
-                        y={4}
-                        stroke="rgba(16, 185, 129, 0.2)"
-                        label={{ value: 'GOAL', position: 'insideRight', fill: 'rgba(16, 185, 129, 0.5)', fontSize: 9, fontWeight: 800, offset: 10 }}
-                        strokeDasharray="6 6"
-                      />
+                      <RechartsTooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(99,102,241,0.3)', strokeWidth: 1 }} />
                       <Area
                         type="monotone"
                         dataKey="hours"
-                        stroke="url(#glowStroke)"
-                        strokeWidth={4}
+                        stroke="url(#gradStroke)"
+                        strokeWidth={2.5}
                         fillOpacity={1}
                         fill="url(#gradHours)"
-                        activeDot={{ r: 6, fill: '#818CF8', stroke: '#0D1117', strokeWidth: 3, shadow: '0 0 10px rgba(99,102,241,0.8)' }}
-                        dot={false}
-                        isAnimationActive={true}
-                        animationDuration={1500}
-                        animationEasing="ease-in-out"
+                        dot={{ fill: '#6366F1', strokeWidth: 0, r: 4 }}
+                        activeDot={{ r: 6, fill: '#818CF8', stroke: 'var(--color-surface-3)', strokeWidth: 2 }}
                       />
                     </AreaChart>
                   </ResponsiveContainer>
@@ -482,102 +374,104 @@ const Dashboard = () => {
         {/* Current Course progress */}
         <Grid item xs={12} md={4}>
           <motion.div variants={item} style={{ height: '100%' }}>
-            <Card
-              sx={{
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                position: 'relative',
-                overflow: 'hidden',
-                background: 'linear-gradient(135deg, var(--color-surface-2) 0%, var(--color-surface-3) 100%)',
-                border: '1px solid var(--color-border)',
-                borderRadius: '16px',
-              }}
-            >
-              <CardContent sx={{ flex: 1, p: '24px !important', position: 'relative', zIndex: 1 }}>
-                <Typography sx={{ fontWeight: 700, fontSize: '1rem', color: 'var(--color-text)', mb: 2.5 }}>
-                  {t('dashboard.continue_learning')}
-                </Typography>
-
+            <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <CardHeader
+                title={
+                  <Typography sx={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '1rem', color: 'var(--color-text)' }}>
+                    {t('dashboard.continue_learning')}
+                  </Typography>
+                }
+                sx={{ pb: 0, px: 3, pt: 2.5 }}
+              />
+              <CardContent sx={{ flex: 1, px: 3, pb: '24px !important', pt: 2 }}>
                 {loading ? (
                   <Box>
-                    <Skeleton variant="rounded" height={130} sx={{ mb: 2, borderRadius: '12px', bgcolor: 'rgba(255,255,255,0.05)' }} />
-                    <Skeleton width="80%" height={24} sx={{ mb: 1, bgcolor: 'rgba(255,255,255,0.05)' }} />
-                    <Skeleton variant="rounded" height={8} sx={{ borderRadius: 4, bgcolor: 'rgba(255,255,255,0.05)' }} />
+                    <Skeleton variant="rounded" height={130} sx={{ mb: 2, bgcolor: 'rgba(33,38,45,0.6)' }} />
+                    <Skeleton width="80%" height={22} sx={{ mb: 0.5, bgcolor: 'rgba(33,38,45,0.6)' }} />
+                    <Skeleton width="50%" height={18} sx={{ mb: 2, bgcolor: 'rgba(33,38,45,0.6)' }} />
+                    <Skeleton variant="rounded" height={6} sx={{ bgcolor: 'rgba(33,38,45,0.6)' }} />
                   </Box>
                 ) : (
                   <Box>
+                    {/* Course thumbnail */}
                     <Box
                       sx={{
                         position: 'relative',
-                        height: 140,
-                        borderRadius: '12px',
-                        mb: 3,
+                        height: 130,
+                        borderRadius: '10px',
+                        mb: 2.5,
                         overflow: 'hidden',
-                        boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+                        background: 'linear-gradient(135deg, #312E81 0%, #1E1B4B 60%, #0D1117 100%)',
                       }}
                     >
+                      {/* Decorative circles */}
+                      <Box sx={{ position: 'absolute', top: -20, right: -20, width: 100, height: 100, borderRadius: '50%', background: 'rgba(99,102,241,0.25)' }} />
+                      <Box sx={{ position: 'absolute', bottom: -10, left: -10, width: 70, height: 70, borderRadius: '50%', background: 'rgba(34,211,238,0.15)' }} />
+
+                      {/* Content overlay */}
+                      <Box sx={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', p: 2 }}>
+                        <Box
+                          sx={{
+                            width: 44, height: 44,
+                            borderRadius: '12px',
+                            bgcolor: 'rgba(99,102,241,0.3)',
+                            border: '1px solid rgba(99,102,241,0.4)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            mb: 1, color: '#C7D2FE',
+                          }}
+                        >
+                          {Icons.courses}
+                        </Box>
+                        <Typography sx={{ fontSize: '0.75rem', color: 'rgba(199,210,254,0.8)', fontWeight: 500 }}>
+                          React JS Advanced
+                        </Typography>
+                      </Box>
+
+                      {/* Play button */}
                       <Box
-                        component="img"
-                        src="/assets/dashboard_hero.png"
                         sx={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover',
-                          opacity: 0.8,
-                        }}
-                      />
-                      <Box
-                        sx={{
-                          position: 'absolute',
-                          inset: 0,
-                          background: 'linear-gradient(to top, rgba(13,17,23,0.95), transparent)',
-                        }}
-                      />
-                      <Box
-                        sx={{
-                          position: 'absolute',
-                          bottom: 12,
-                          left: 12,
-                          display: 'flex',
+                          position: 'absolute', top: 10, right: 10,
+                          width: 28, height: 28, borderRadius: '50%',
+                          bgcolor: 'rgba(99,102,241,0.4)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          color: 'white', cursor: 'pointer',
+                          transition: 'bgcolor 0.2s',
+                          '&:hover': { bgcolor: 'rgba(99,102,241,0.7)' },
                         }}
                       >
-                        <Chip
-                          label="React JS"
-                          size="small"
-                          sx={{
-                            height: 20,
-                            fontSize: '0.625rem',
-                            fontWeight: 700,
-                            bgcolor: 'rgba(99,102,241,0.8)',
-                            color: 'white',
-                          }}
-                        />
+                        {Icons.play}
                       </Box>
                     </Box>
 
-                    <Typography sx={{ fontWeight: 800, fontSize: '1.0625rem', color: 'var(--color-text)', mb: 1 }}>
+                    <Typography sx={{ fontWeight: 700, fontSize: '0.9375rem', color: 'var(--color-text)', mb: 0.5, lineHeight: 1.3 }}>
                       React JS Advanced Practices
                     </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-                      <Box sx={{ color: 'var(--color-primary-lt)', display: 'flex' }}>{Icons.clock}</Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 2 }}>
+                      <Box sx={{ color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center' }}>
+                        {Icons.clock}
+                      </Box>
                       <Typography sx={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
                         {t('dashboard.completion_status', { completed: 12, total: 24 })}
                       </Typography>
                     </Box>
 
-                    <Box sx={{ mb: 3 }}>
+                    {/* Progress */}
+                    <Box>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                        <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>
-                          {t('common.progress')}
-                        </Typography>
-                        <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: '#22D3EE' }}>
-                          50%
-                        </Typography>
+                        <Typography sx={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{t('common.progress')}</Typography>
+                        <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#818CF8' }}>50%</Typography>
                       </Box>
-                      <Box sx={{ height: 8, borderRadius: 4, bgcolor: 'rgba(255,255,255,0.05)', overflow: 'hidden' }}>
-                        <Box sx={{ height: '100%', width: '50%', background: 'linear-gradient(90deg, #6366F1, #22D3EE)' }} />
-                      </Box>
+                      <LinearProgress
+                        variant="determinate"
+                        value={50}
+                        className="progress-gradient"
+                        sx={{
+                          height: 6,
+                          borderRadius: 99,
+                          bgcolor: 'rgba(33,38,45,0.8)',
+                          mb: 3,
+                        }}
+                      />
                     </Box>
 
                     <Button
@@ -585,11 +479,17 @@ const Dashboard = () => {
                       fullWidth
                       startIcon={Icons.play}
                       sx={{
-                        height: 44,
-                        borderRadius: '12px',
-                        textTransform: 'none',
-                        fontWeight: 700,
+                        height: 40,
+                        borderRadius: '9px',
+                        fontSize: '0.875rem',
                         background: 'linear-gradient(135deg, #6366F1, #4F46E5)',
+                        cursor: 'pointer',
+                        '&:hover': {
+                          background: 'linear-gradient(135deg, #818CF8, #6366F1)',
+                          boxShadow: '0 6px 18px rgba(99,102,241,0.4)',
+                          transform: 'translateY(-1px)',
+                        },
+                        transition: 'all 0.2s',
                       }}
                     >
                       {t('dashboard.continue_learning_btn')}

@@ -19,64 +19,131 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthFilter;
-    private final AuthenticationProvider authenticationProvider;
+        private final JwtAuthenticationFilter jwtAuthFilter;
+        private final AuthenticationProvider authenticationProvider;
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/api/cke/resources/**", "/api/files/download/**",
-                                "/api/ws/**", "/ws/**", "/error")
-                        .permitAll()
-                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/v1/instructor/**").hasAnyRole("ADMIN", "INSTRUCTOR")
-                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/forum/tags").authenticated()
-                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/v1/forum/tags")
-                        .hasRole("ADMIN")
-                        .requestMatchers("/api/v1/forum/posts/*/pin").hasAnyRole("ADMIN", "INSTRUCTOR")
-                        .requestMatchers("/api/v1/forum/**").authenticated()
-                        .requestMatchers("/api/v1/courses/**").authenticated()
-                        .requestMatchers("/api/courses/**").authenticated()
-                        .requestMatchers("/api/groups/**").authenticated()
-                        .requestMatchers("/api/v1/quizzes/**").authenticated()
-                        .requestMatchers("/api/v1/assignments/**").authenticated()
-                        .requestMatchers("/api/v1/meetings/**").authenticated()
-                        .requestMatchers("/api/v1/notifications/**").authenticated()
-                        .requestMatchers("/api/v1/inventory/**").authenticated()
-                        .requestMatchers("/api/users/**").authenticated()
-                        .requestMatchers("/api/dashboard/**").authenticated()
-                        .anyRequest().authenticated())
-                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authenticationProvider(authenticationProvider)
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint((request, response, authException) -> {
-                            response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED);
-                            response.setContentType("application/json");
-                            response.getWriter().write("{\"error\": \"Unauthorized\", \"message\": \""
-                                    + authException.getMessage() + "\"}");
-                        }));
+        @Bean
+        public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                http
+                                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                                .csrf(AbstractHttpConfigurer::disable)
+                                .authorizeHttpRequests(auth -> auth
+                                                .requestMatchers("/api/auth/**", "/api/cke/resources/**",
+                                                                "/api/files/download/**",
+                                                                "/api/ws/**", "/ws/**", "/error")
+                                                .permitAll()
+                                                .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                                                .requestMatchers("/api/v1/instructor/**")
+                                                .hasAnyRole("ADMIN", "INSTRUCTOR")
 
-        return http.build();
-    }
+                                                // Forum restrictions
+                                                .requestMatchers(org.springframework.http.HttpMethod.GET,
+                                                                "/api/v1/forum/tags")
+                                                .authenticated()
+                                                .requestMatchers(org.springframework.http.HttpMethod.POST,
+                                                                "/api/v1/forum/tags")
+                                                .hasRole("ADMIN")
+                                                .requestMatchers("/api/v1/forum/posts/*/pin")
+                                                .hasAnyRole("ADMIN", "INSTRUCTOR")
+                                                .requestMatchers("/api/v1/forum/**").authenticated()
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(
-                List.of("http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:3001",
-                        "http://161.118.215.197:3000", "https://projectmf.id.vn", "https://www.projectmf.id.vn"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
-        configuration.setAllowCredentials(true);
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
+                                                // Inventory - only for Instructors and Admins
+                                                .requestMatchers("/api/v1/inventory/**")
+                                                .hasAnyRole("ADMIN", "INSTRUCTOR")
+
+                                                // Students can record attendance, ask questions and vote in polls
+                                                .requestMatchers(org.springframework.http.HttpMethod.POST,
+                                                                "/api/v1/meetings/*/attend",
+                                                                "/api/v1/meetings/*/questions",
+                                                                "/api/v1/meetings/polls/*/vote")
+                                                .authenticated()
+
+                                                // Student group interactions (Join/Leave)
+                                                .requestMatchers(org.springframework.http.HttpMethod.POST,
+                                                                "/api/groups/join/**",
+                                                                "/api/groups/*/join-requests",
+                                                                "/api/v1/groups/join/**",
+                                                                "/api/v1/groups/*/join-requests")
+                                                .authenticated()
+                                                .requestMatchers(org.springframework.http.HttpMethod.DELETE,
+                                                                "/api/groups/*/leave",
+                                                                "/api/v1/groups/*/leave")
+                                                .authenticated()
+
+                                                // Management routes (POST, PUT, DELETE) - restricted to INSTRUCTOR and ADMIN
+                                                .requestMatchers(org.springframework.http.HttpMethod.POST,
+                                                                "/api/v1/courses/**", "/api/v1/quizzes/**",
+                                                                "/api/v1/assignments/**", "/api/v1/groups/**",
+                                                                "/api/v1/meetings/**",
+                                                                "/api/courses/**", "/api/quizzes/**",
+                                                                "/api/assignments/**", "/api/groups/**",
+                                                                "/api/meetings/**")
+                                                .hasAnyRole("ADMIN", "INSTRUCTOR")
+                                                .requestMatchers(org.springframework.http.HttpMethod.PUT,
+                                                                "/api/v1/courses/**", "/api/v1/quizzes/**",
+                                                                "/api/v1/assignments/**", "/api/v1/groups/**",
+                                                                "/api/v1/meetings/**",
+                                                                "/api/courses/**", "/api/quizzes/**",
+                                                                "/api/assignments/**", "/api/groups/**",
+                                                                "/api/meetings/**")
+                                                .hasAnyRole("ADMIN", "INSTRUCTOR")
+                                                .requestMatchers(org.springframework.http.HttpMethod.DELETE,
+                                                                "/api/v1/courses/**", "/api/v1/quizzes/**",
+                                                                "/api/v1/assignments/**", "/api/v1/groups/**",
+                                                                "/api/v1/meetings/**",
+                                                                "/api/courses/**", "/api/quizzes/**",
+                                                                "/api/assignments/**", "/api/groups/**",
+                                                                "/api/meetings/**")
+                                                .hasAnyRole("ADMIN", "INSTRUCTOR")
+
+                                                // Allow GET for everyone authenticated
+                                                .requestMatchers(org.springframework.http.HttpMethod.GET,
+                                                                "/api/v1/courses/**", "/api/v1/quizzes/**",
+                                                                "/api/v1/assignments/**", "/api/v1/groups/**",
+                                                                "/api/v1/meetings/**",
+                                                                "/api/courses/**", "/api/quizzes/**",
+                                                                "/api/assignments/**", "/api/groups/**",
+                                                                "/api/meetings/**")
+                                                .authenticated()
+
+                                                // Others
+                                                .requestMatchers("/api/users/**").authenticated()
+                                                .requestMatchers("/api/dashboard/**").authenticated()
+                                                .requestMatchers("/api/v1/notifications/**").authenticated()
+                                                .anyRequest().authenticated())
+                                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                                .authenticationProvider(authenticationProvider)
+                                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                                .exceptionHandling(ex -> ex
+                                                .authenticationEntryPoint((request, response, authException) -> {
+                                                        response.setStatus(
+                                                                        jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED);
+                                                        response.setContentType("application/json");
+                                                        response.getWriter().write(
+                                                                        "{\"error\": \"Unauthorized\", \"message\": \""
+                                                                                        + authException.getMessage()
+                                                                                        + "\"}");
+                                                }));
+
+                return http.build();
+        }
+
+        @Bean
+        public CorsConfigurationSource corsConfigurationSource() {
+                CorsConfiguration configuration = new CorsConfiguration();
+                configuration.setAllowedOriginPatterns(
+                                List.of("http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:3001",
+                                                "http://161.118.215.197:3000", "https://projectmf.id.vn",
+                                                "https://www.projectmf.id.vn"));
+                configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+                configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
+                configuration.setAllowCredentials(true);
+                UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+                source.registerCorsConfiguration("/**", configuration);
+                return source;
+        }
 }

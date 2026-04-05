@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Box, Typography, Grid, Chip, Button, Divider, 
-  CircularProgress, Stack, Avatar, Accordion, AccordionSummary, AccordionDetails,
-  IconButton, Tooltip
+  Box, Typography, Paper, Grid, Chip, Button, Divider, 
+  CircularProgress, Stack, Avatar, Accordion, AccordionSummary, AccordionDetails
 } from '@mui/material';
+<<<<<<< HEAD
 import { alpha, useTheme } from '@mui/material/styles';
+=======
+>>>>>>> 0309de622c986d494be08e87aad01e4be70651fa
 import { 
   ArrowBack as BackIcon, 
   Edit as EditIcon, 
@@ -13,25 +15,11 @@ import {
   ExpandMore as ExpandMoreIcon,
   MenuBook as BookIcon,
   Description as DocIcon,
-  Quiz as QuizIcon,
-  PlayCircleOutline as PlayIcon,
-  AccessTime as TimeIcon,
-  Layers as LayersIcon
+  Quiz as QuizIcon
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { motion } from 'framer-motion';
 import courseService from '../../services/courseService';
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } }
-};
 
 const CourseDetail = () => {
   const theme = useTheme();
@@ -70,41 +58,34 @@ const CourseDetail = () => {
   }, [id]);
 
   if (loading) return (
-    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-      <CircularProgress size={60} thickness={4} sx={{ color: '#6366F1' }} />
+    <Box sx={{ display: 'flex', justifyContent: 'center', p: 8 }}>
+      <CircularProgress />
     </Box>
   );
 
   if (!course) return (
-    <Box sx={{ p: 8, textAlign: 'center' }}>
-      <Typography variant="h4" sx={{ fontWeight: 800, mb: 2 }}>Không tìm thấy khóa học mẫu!</Typography>
-      <Button variant="outlined" startIcon={<BackIcon />} onClick={() => navigate(-1)} sx={{ borderRadius: '12px' }}>
-        Quay lại kho
-      </Button>
+    <Box sx={{ p: 4, textAlign: 'center' }}>
+      <Typography variant="h5">Không tìm thấy khóa học mẫu!</Typography>
+      <Button startIcon={<BackIcon />} onClick={() => navigate(-1)} sx={{ mt: 2 }}>Quay lại</Button>
     </Box>
   );
 
   return (
-    <Box component={motion.div} variants={containerVariants} initial="hidden" animate="visible" sx={{ pb: 8 }}>
-      
-      {/* ── Navigation ─────────────────────────────────────────── */}
+    <Box sx={{ maxWidth: 1100, mx: 'auto', p: { xs: 2, md: 4 } }}>
       <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Button 
           startIcon={<BackIcon />} 
           onClick={() => navigate(-1)} 
-          sx={{ 
-            color: 'var(--color-text-sec)', fontWeight: 700, textTransform: 'none',
-            '&:hover': { color: 'var(--color-text)', bgcolor: 'rgba(255,255,255,0.05)' }
-          }}
+          sx={{ color: 'var(--color-text-secondary)', fontWeight: 700, textTransform: 'none' }}
         >
-          Quay lại kho tài liệu
+          Quay lại kho
         </Button>
         <Button 
           variant="contained" 
           startIcon={<EditIcon />} 
           onClick={() => navigate(`/inventory/courses/edit/${id}`)}
           sx={{ 
-            borderRadius: '14px', fontWeight: 800, px: 3, py: 1,
+            borderRadius: '16px', fontWeight: 800, px: 3, py: 1,
             background: 'linear-gradient(135deg, #6366F1, #4F46E5)',
             boxShadow: '0 8px 20px rgba(99, 102, 241, 0.3)',
             textTransform: 'none',
@@ -116,6 +97,7 @@ const CourseDetail = () => {
         </Button>
       </Box>
 
+<<<<<<< HEAD
       {/* ── Immersive Hero Header ─────────────────────────────── */}
       <motion.div variants={itemVariants}>
         <Box sx={{ 
@@ -199,38 +181,76 @@ const CourseDetail = () => {
                 </Stack>
               </Stack>
             </Grid>
+=======
+      {/* Main Info Card - Glassmorphism */}
+      <Paper sx={{ 
+        p: { xs: 3, md: 5 }, mb: 5, borderRadius: '32px', 
+        background: 'var(--glass-bg)', 
+        backdropFilter: 'blur(20px)',
+        border: '1px solid var(--glass-border)', 
+        boxShadow: 'var(--glass-shadow)',
+        position: 'relative', overflow: 'hidden' 
+      }}>
+        <Grid container spacing={4} alignItems="center">
+          <Grid item xs={12} md="auto">
+            <Avatar 
+              variant="rounded" 
+              src={course.thumbnailUrl} 
+              sx={{ 
+                width: 180, height: 180, borderRadius: '24px', 
+                background: 'rgba(99, 102, 241, 0.1)', 
+                border: '1px solid var(--color-border)',
+                boxShadow: '0 10px 30px rgba(0,0,0,0.1)'
+              }}
+            >
+              <SchoolIcon sx={{ fontSize: 80, color: '#6366F1' }} />
+            </Avatar>
+>>>>>>> 0309de622c986d494be08e87aad01e4be70651fa
           </Grid>
-        </Box>
-      </motion.div>
+          <Grid item xs={12} md>
+            <Stack spacing={2}>
+              <Box>
+                <Chip label="Core Template" size="small" sx={{ background: 'rgba(99, 102, 241, 0.1)', color: '#6366F1', fontWeight: 800, mb: 2, borderRadius: '8px' }} />
+                <Typography variant="h3" sx={{ fontWeight: 900, color: 'var(--color-text)', mb: 1, letterSpacing: '-0.02em', fontSize: { xs: '2rem', md: '2.5rem' } }}>
+                  {course.title}
+                </Typography>
+              </Box>
+              <Typography variant="body1" sx={{ color: 'var(--color-text-secondary)', lineHeight: 1.6, fontSize: '1.05rem', maxWidth: '800px' }}>
+                {course.description || "Chưa có nội dung mô tả chi tiết cho khóa học mẫu này."}
+              </Typography>
+              <Stack direction="row" spacing={3}>
+                <Box>
+                  <Typography variant="caption" sx={{ color: 'var(--color-text-muted)', display: 'block', mb: 0.5 }}>Chương học</Typography>
+                  <Typography variant="h6" sx={{ fontWeight: 800, color: 'var(--color-text)' }}>{chapters.length}</Typography>
+                </Box>
+              </Stack>
+            </Stack>
+          </Grid>
+        </Grid>
+      </Paper>
 
-      {/* ── Content Syllabus ─────────────────────────────── */}
-      <Box sx={{ px: { xs: 1, sm: 3 } }}>
-        <motion.div variants={itemVariants}>
-          <Box sx={{ mb: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Box sx={{ 
-              width: 48, height: 48, borderRadius: '14px', bgcolor: 'rgba(99,102,241,0.1)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6366F1'
-            }}>
-              <LayersIcon />
-            </Box>
-            <Typography sx={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '1.75rem', color: 'var(--color-text)' }}>
-              Đề cương chương trình học
+      <Grid container spacing={4}>
+        <Grid item xs={12}>
+          {/* Course Structure Preview */}
+          <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <BookIcon sx={{ color: '#6366F1' }} />
+            <Typography variant="h5" sx={{ fontWeight: 800, color: 'var(--color-text)' }}>
+              Cấu trúc chương trình
             </Typography>
           </Box>
-        </motion.div>
 
-        <Stack spacing={2.5}>
-          {chapters.map((ch, idx) => (
-            <motion.div key={ch.id} variants={itemVariants}>
+          <Stack spacing={2}>
+            {chapters.map((ch, idx) => (
               <Accordion 
+                key={ch.id} 
                 defaultExpanded={idx === 0} 
                 sx={{ 
-                  borderRadius: '24px !important', 
-                  bgcolor: 'var(--color-surface-2)', 
+                  borderRadius: '20px !important', 
+                  background: 'var(--color-surface)', 
                   border: '1px solid var(--color-border)', 
                   boxShadow: 'none',
-                  overflow: 'hidden',
                   '&:before': { display: 'none' },
+<<<<<<< HEAD
                   '&:hover': { borderColor: alpha(theme.palette.primary.main, 0.3) },
                   transition: 'border-color 0.2s'
                 }}
@@ -243,26 +263,37 @@ const CourseDetail = () => {
                     <Typography sx={{ 
                       fontSize: '1.5rem', fontWeight: 900, color: alpha(theme.palette.text.primary, 0.05),
                       fontFamily: 'var(--font-heading)', lineHeight: 1
+=======
+                  overflow: 'hidden'
+                }}
+              >
+                <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: 'var(--color-text-secondary)' }} />}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 0.5 }}>
+                    <Box sx={{ 
+                      width: 32, height: 32, borderRadius: '8px', 
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      background: 'rgba(99, 102, 241, 0.1)', color: '#6366F1', fontWeight: 800
+>>>>>>> 0309de622c986d494be08e87aad01e4be70651fa
                     }}>
-                      {String(idx + 1).padStart(2, '0')}
-                    </Typography>
-                    <Box>
-                      <Typography sx={{ fontWeight: 800, fontSize: '1.125rem', color: 'var(--color-text)' }}>
-                        {ch.title}
-                      </Typography>
-                      <Typography sx={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>
-                        {ch.lessons?.length || 0} bài học nội dung
-                      </Typography>
+                      {idx + 1}
                     </Box>
+                    <Typography sx={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--color-text)' }}>
+                      {ch.title}
+                    </Typography>
                   </Box>
                 </AccordionSummary>
+<<<<<<< HEAD
                 <AccordionDetails sx={{ bgcolor: 'var(--color-surface-3)', p: 3, borderTop: '1px solid var(--color-border)' }}>
+=======
+                <AccordionDetails sx={{ borderTop: '1px solid var(--color-border)', bgcolor: 'var(--color-surface-2)', p: 3 }}>
+>>>>>>> 0309de622c986d494be08e87aad01e4be70651fa
                   <Stack spacing={1.5}>
                     {(ch.lessons || []).map((lesson, lIdx) => (
                       <Box key={lesson.id} sx={{ 
-                        p: 2, px: 2.5, borderRadius: '16px', 
-                        bgcolor: 'var(--color-surface)', 
+                        p: 2, borderRadius: '14px', 
+                        background: 'var(--color-surface)', 
                         border: '1px solid var(--color-border)', 
+<<<<<<< HEAD
                         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                         transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                         cursor: 'default',
@@ -271,37 +302,30 @@ const CourseDetail = () => {
                           borderColor: alpha(theme.palette.primary.main, 0.3),
                           transform: 'translateX(8px)' 
                         }
+=======
+                        display: 'flex', alignItems: 'center', gap: 2,
+                        transition: 'transform 0.2s',
+                        '&:hover': { transform: 'translateX(4px)', borderColor: '#6366F1' }
+>>>>>>> 0309de622c986d494be08e87aad01e4be70651fa
                       }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
-                          <Box sx={{ color: '#6366F1', display: 'flex' }}>
-                            <PlayIcon fontSize="small" />
-                          </Box>
-                          <Typography sx={{ fontWeight: 700, fontSize: '0.9375rem', color: 'var(--color-text)' }}>
-                            {lesson.title}
-                          </Typography>
-                        </Box>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                          <Tooltip title="Xem trước nội dung">
-                            <IconButton size="small" sx={{ color: 'var(--color-text-muted)' }}>
-                              <DocIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        </Box>
+                        <DocIcon fontSize="small" sx={{ color: 'var(--color-text-muted)' }} />
+                        <Typography variant="body2" sx={{ fontWeight: 700, color: 'var(--color-text)' }}>
+                          {lIdx + 1}. {lesson.title}
+                        </Typography>
                       </Box>
                     ))}
                     {(!ch.lessons || ch.lessons.length === 0) && (
-                      <Box sx={{ py: 4, textAlign: 'center', opacity: 0.5 }}>
-                        <TimeIcon sx={{ fontSize: 40, mb: 1.5 }} />
-                        <Typography variant="body2" sx={{ fontWeight: 600 }}>Chương này hiện chưa có bài học</Typography>
-                      </Box>
+                      <Typography variant="body2" sx={{ color: 'var(--color-text-muted)', fontStyle: 'italic', textAlign: 'center', py: 2 }}>
+                        Chưa có bài học trong chương này.
+                      </Typography>
                     )}
                   </Stack>
                 </AccordionDetails>
               </Accordion>
-            </motion.div>
-          ))}
-        </Stack>
-      </Box>
+            ))}
+          </Stack>
+        </Grid>
+      </Grid>
     </Box>
   );
 };

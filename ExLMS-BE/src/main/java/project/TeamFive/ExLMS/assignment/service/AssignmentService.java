@@ -26,7 +26,6 @@ public class AssignmentService {
     private final GroupAssignmentRepository groupAssignmentRepository;
     private final StudyGroupRepository studyGroupRepository;
     private final project.TeamFive.ExLMS.group.repository.GroupMemberRepository groupMemberRepository;
-    private final org.springframework.context.ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public AssignmentResponseDTO createTemplate(CreateAssignmentRequest request, User creator) {
@@ -101,29 +100,24 @@ public class AssignmentService {
         Assignment assignment = assignmentRepository.findById(templateId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bản mẫu bài tập!"));
 
-        validateDates(config.getAssignedAt(), config.getDueAt());
+        validateDates(config.getAssignedAt(), config.getDueAt(), true);
+
+        LocalDateTime assignedAt = config.getAssignedAt() != null ? config.getAssignedAt() : LocalDateTime.now();
+        LocalDateTime dueAt = config.getDueAt() != null ? config.getDueAt() : LocalDateTime.now().plusDays(7);
+
         GroupAssignment deployment = GroupAssignment.builder()
                 .group(group)
                 .assignment(assignment)
-                .assignedAt(config.getAssignedAt() != null ? config.getAssignedAt() : LocalDateTime.now())
-                .dueAt(config.getDueAt() != null ? config.getDueAt() : LocalDateTime.now().plusDays(7))
+                .assignedAt(assignedAt)
+                .dueAt(dueAt)
                 .allowLate(config.getAllowLate() != null ? config.getAllowLate() : false)
                 .latePenaltyPercent(config.getLatePenaltyPercent() != null ? config.getLatePenaltyPercent() : 0)
-                .status(config.getAssignedAt() != null && config.getAssignedAt().isAfter(LocalDateTime.now()) 
+                .status(assignedAt.isAfter(LocalDateTime.now()) 
                         ? GroupAssignment.GroupAssignmentStatus.DRAFT 
                         : GroupAssignment.GroupAssignmentStatus.PUBLISHED)
                 .build();
 
-        GroupAssignment savedDeployment = groupAssignmentRepository.save(deployment);
-        System.out.println("DEBUG: Deployment saved with status: " + savedDeployment.getStatus());
-        if (savedDeployment.getStatus() == GroupAssignment.GroupAssignmentStatus.PUBLISHED) {
-            System.out.println("DEBUG: Publishing AssignmentCreatedEvent for deployment: " + savedDeployment.getId());
-            eventPublisher.publishEvent(new project.TeamFive.ExLMS.assignment.event.AssignmentCreatedEvent(this, savedDeployment));
-        } else {
-            System.out.println("DEBUG: Assignment status is not PUBLISHED, event not fired.");
-        }
-
-        return mapToResponseDTO(assignment, savedDeployment);
+        return mapToResponseDTO(assignment, groupAssignmentRepository.save(deployment));
     }
 
     @Transactional(readOnly = true)
@@ -134,7 +128,7 @@ public class AssignmentService {
         boolean isInstructor = "OWNER".equals(member.getRole()) || "EDITOR".equals(member.getRole());
 
         return groupAssignmentRepository.findByGroup_Id(groupId).stream()
-                .filter(ga -> isInstructor || ga.getStatus() != GroupAssignment.GroupAssignmentStatus.DRAFT)
+                .filter(ga -> isInstructor || (ga.getStatus() != GroupAssignment.GroupAssignmentStatus.DRAFT && ga.getStatus() != GroupAssignment.GroupAssignmentStatus.CLOSED))
                 .map(ga -> mapToResponseDTO(ga.getAssignment(), ga))
                 .collect(Collectors.toList());
     }
@@ -170,29 +164,53 @@ public class AssignmentService {
         GroupAssignment deployment = groupAssignmentRepository.findById(deploymentId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đợt giao bài tập này!"));
 
-        if (request.getAssignedAt() != null) {
-            if (!request.getAssignedAt().equals(deployment.getAssignedAt())) validateDates(request.getAssignedAt(), null);
-            deployment.setAssignedAt(request.getAssignedAt());
+        if (deployment.getStatus() == GroupAssignment.GroupAssignmentStatus.CLOSED) {
+            throw new RuntimeException("Bài tập này đã kết thúc (CLOSED), không thể chỉnh sửa!");
         }
+
+        if (request.getAssignedAt() != null && !request.getAssignedAt().isEqual(deployment.getAssignedAt())) {
+             throw new RuntimeException("Không được phép thay đổi thời gian bắt đầu sau khi đã giao bài tập!");
+        }
+
         if (request.getDueAt() != null) {
-            validateDates(deployment.getAssignedAt(), request.getDueAt());
+            validateDates(deployment.getAssignedAt(), request.getDueAt(), false);
             deployment.setDueAt(request.getDueAt());
         }
         if (request.getAllowLate() != null) deployment.setAllowLate(request.getAllowLate());
         if (request.getLatePenaltyPercent() != null) deployment.setLatePenaltyPercent(request.getLatePenaltyPercent());
         
         if (request.getStatus() != null) {
+            String newStatus = request.getStatus();
+            if ("CLOSED".equals(newStatus)) {
+                throw new RuntimeException("Không thể chuyển trạng thái sang CLOSED thủ công bằng chức năng này!");
+            }
             try {
-                deployment.setStatus(GroupAssignment.GroupAssignmentStatus.valueOf(request.getStatus()));
+                deployment.setStatus(GroupAssignment.GroupAssignmentStatus.valueOf(newStatus));
             } catch (Exception e) {}
         }
 
         return mapToResponseDTO(deployment.getAssignment(), groupAssignmentRepository.save(deployment));
     }
 
-    private void validateDates(java.time.LocalDateTime start, java.time.LocalDateTime end) {
+    @Transactional
+    public void deleteAssignmentDeployment(UUID deploymentId) {
+        GroupAssignment deployment = groupAssignmentRepository.findById(deploymentId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đợt giao bài tập này!"));
+
+        if (deployment.getStatus() == GroupAssignment.GroupAssignmentStatus.CLOSED) {
+            throw new RuntimeException("Dữ liệu bài tập đã kết thúc (CLOSED) sẽ được lưu trữ làm lịch sử, không thể xóa!");
+        }
+
+        groupAssignmentRepository.delete(deployment);
+    }
+
+    private void validateDates(LocalDateTime start, LocalDateTime end, boolean isNew) {
+        LocalDateTime now = LocalDateTime.now();
+        if (isNew && start != null && start.isBefore(now.minusSeconds(10))) {
+            throw new RuntimeException("Thời gian bắt đầu không được nhỏ hơn thời gian hiện tại!");
+        }
         if (start != null && end != null && end.isBefore(start)) {
-            throw new RuntimeException("Thời gian đóng đề không được nhỏ hơn thời gian bắt đầu!");
+            throw new RuntimeException("Thời gian đóng bài tập không được nhỏ hơn thời gian bắt đầu!");
         }
     }
 

@@ -35,4 +35,8 @@ public interface GroupMemberRepository extends JpaRepository<GroupMember, UUID> 
     Optional<GroupMember> findByGroupAndUser(StudyGroup group, User user);
 
     List<GroupMember> findByGroup_Id(UUID groupId);
+
+    @org.springframework.transaction.annotation.Transactional
+    @org.springframework.data.jpa.repository.Modifying
+    void deleteByGroupAndUser(StudyGroup group, User user);
 }

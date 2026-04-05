@@ -115,9 +115,14 @@ const Sidebar = () => {
 
   const sections = {
     main: { label: t('nav.sections.main'), items: allItems.filter(i => i.section === 'main') },
-    inventory: { label: t('nav.sections.inventory') || 'THƯ VIỆN CÁ NHÂN', items: allItems.filter(i => i.section === 'inventory') },
+    // Hide inventory for students
+    ...(user?.role !== 'STUDENT' ? { 
+      inventory: { label: t('nav.sections.inventory') || 'THƯ VIỆN CÁ NHÂN', items: allItems.filter(i => i.section === 'inventory') } 
+    } : {}),
     community: { label: t('nav.sections.community'), items: allItems.filter(i => i.section === 'community') },
-    ...(user?.role === 'ADMIN' ? { admin: { label: t('nav.sections.admin'), items: allItems.filter(i => i.section === 'admin') } } : {}),
+    ...(user?.role === 'ADMIN' ? { 
+      admin: { label: t('nav.sections.admin'), items: allItems.filter(i => i.section === 'admin') } 
+    } : {}),
   }
 
   const isActive = (path) =>
@@ -225,7 +230,9 @@ const Sidebar = () => {
             {user?.name || user?.fullName || user?.email?.split('@')[0] || 'Student'}
           </Typography>
           <Typography sx={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)', lineHeight: 1.2 }} className="truncate">
-            {user?.role === 'ADMIN' ? t('common.administrator') : t('common.student')}
+            {user?.role === 'ADMIN' 
+              ? t('common.administrator') 
+              : (user?.role === 'INSTRUCTOR' ? t('common.instructor') : t('common.student'))}
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>

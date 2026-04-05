@@ -166,134 +166,104 @@ const GroupFeed = ({ groupId, currentUserRole, groupCourses = [], groupAssignmen
   }
 
   return (
-    <Box sx={{ maxWidth: 840, mx: 'auto' }}>
+    <Box sx={{ maxWidth: 800, mx: 'auto' }}>
       {/* Category Filters */}
-      <Stack direction="row" spacing={1.5} sx={{ mb: 4, overflowX: 'auto', pb: 1, '&::-webkit-scrollbar': { height: 4 } }}>
+      <Stack direction="row" spacing={1} sx={{ mb: 3, overflowX: 'auto', pb: 1 }}>
         <Chip 
           label={t('common.all')} 
           onClick={() => setFilterType('')} 
-          sx={{ 
-            height: 36, px: 1, borderRadius: '10px', fontWeight: 700,
-            bgcolor: filterType === '' ? 'rgba(99,102,241,0.15)' : 'transparent',
-            color: filterType === '' ? '#818CF8' : 'var(--color-text-muted)',
-            border: `1px solid ${filterType === '' ? 'rgba(99,102,241,0.3)' : 'var(--color-border)'}`,
-            '&:hover': { bgcolor: 'rgba(99,102,241,0.1)', borderColor: 'rgba(99,102,241,0.3)' }
-          }}
+          color={filterType === '' ? 'primary' : 'default'} 
+          variant={filterType === '' ? 'filled' : 'outlined'}
         />
-        {[
-          { label: t('group_detail.tabs.courses'), type: 'COURSE', icon: <CourseIcon /> },
-          { label: t('group_detail.tabs.assignments'), type: 'ASSIGNMENT', icon: <AssignmentIcon /> },
-          { label: t('group_detail.tabs.meetings'), type: 'MEETING', icon: <MeetingIcon /> },
-          { label: t('forum.pinned'), type: 'NOTICE', icon: <PinIcon /> }
-        ].map((item) => (
-          <Chip 
-            key={item.type}
-            label={item.label} 
-            onClick={() => setFilterType(item.type)} 
-            icon={React.cloneElement(item.icon, { sx: { fontSize: '18px !important', color: filterType === item.type ? '#818CF8 !important' : 'inherit' } })}
-            sx={{ 
-              height: 36, px: 1, borderRadius: '10px', fontWeight: 700,
-              bgcolor: filterType === item.type ? 'rgba(99,102,241,0.15)' : 'transparent',
-              color: filterType === item.type ? '#818CF8' : 'var(--color-text-muted)',
-              border: `1px solid ${filterType === item.type ? 'rgba(99,102,241,0.3)' : 'var(--color-border)'}`,
-              '&:hover': { bgcolor: 'rgba(99,102,241,0.1)', borderColor: 'rgba(99,102,241,0.3)' }
-            }}
-          />
-        ))}
+        <Chip 
+          label={t('group_detail.tabs.courses')} 
+          onClick={() => setFilterType('COURSE')} 
+          color={filterType === 'COURSE' ? 'primary' : 'default'}
+          variant={filterType === 'COURSE' ? 'filled' : 'outlined'}
+          icon={<CourseIcon />}
+        />
+        <Chip 
+          label={t('group_detail.tabs.assignments')} 
+          onClick={() => setFilterType('ASSIGNMENT')} 
+          color={filterType === 'ASSIGNMENT' ? 'primary' : 'default'}
+          variant={filterType === 'ASSIGNMENT' ? 'filled' : 'outlined'}
+          icon={<AssignmentIcon />}
+        />
+        <Chip 
+          label={t('group_detail.tabs.meetings')} 
+          onClick={() => setFilterType('MEETING')} 
+          color={filterType === 'MEETING' ? 'primary' : 'default'}
+          variant={filterType === 'MEETING' ? 'filled' : 'outlined'}
+          icon={<MeetingIcon />}
+        />
+        <Chip 
+          label={t('forum.pinned')} 
+          onClick={() => setFilterType('NOTICE')} 
+          color={filterType === 'NOTICE' ? 'primary' : 'default'}
+          variant={filterType === 'NOTICE' ? 'filled' : 'outlined'}
+          icon={<PinIcon />}
+        />
       </Stack>
 
       {/* Post Creator */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-        <Paper 
-          sx={{ 
-            p: 3, mb: 5, borderRadius: '24px', 
-            background: 'var(--color-surface-2)',
-            border: '1px solid var(--color-border)',
-            boxShadow: '0 12px 40px rgba(0,0,0,0.2)',
-            transition: 'border-color 0.3s',
-            '&:focus-within': { borderColor: 'rgba(99,102,241,0.5)' }
-          }}
-        >
-          {!isCreating ? (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
-              <Avatar 
-                src={getAvatarUrl(currentUser.avatarKey)} 
-                sx={{ width: 48, height: 48, border: '2px solid var(--color-surface-3)' }}
+      <Paper sx={{ p: 2, mb: 4, borderRadius: 3, boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
+        {!isCreating ? (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Avatar src={getAvatarUrl(currentUser.avatarKey)} />
+            <Box 
+              onClick={() => setIsCreating(true)}
+              sx={{ 
+                flexGrow: 1, 
+                bgcolor: 'grey.100', 
+                borderRadius: 5, 
+                px: 3, 
+                py: 1.5, 
+                cursor: 'pointer',
+                '&:hover': { bgcolor: 'grey.200' }
+              }}
+            >
+              <Typography color="text.secondary">{t('forum.placeholder')}</Typography>
+            </Box>
+          </Box>
+        ) : (
+          <Box>
+            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>Tạo bài viết mới</Typography>
+            <Box sx={{ mb: 2 }}>
+              <CKEditorWrapper
+                value={newPostContent}
+                onChange={(data) => setNewPostContent(data)}
+                placeholder="Chia sẻ kiến thức hoặc đặt câu hỏi..."
+                minHeight="150px"
               />
-              <Box 
-                onClick={() => setIsCreating(true)}
-                sx={{ 
-                  flexGrow: 1, 
-                  bgcolor: 'var(--color-surface-3)', 
-                  borderRadius: '16px', 
-                  px: 3, 
-                  py: 1.75, 
-                  cursor: 'pointer',
-                  border: '1px solid transparent',
-                  transition: 'all 0.2s',
-                  '&:hover': { bgcolor: 'var(--color-surface-4)', borderColor: 'rgba(255,255,255,0.05)' }
-                }}
-              >
-                <Typography color="text.secondary" sx={{ fontWeight: 500 }}>{t('forum.placeholder')}</Typography>
-              </Box>
             </Box>
-          ) : (
-            <Box>
-              <Typography sx={{ fontSize: '1.125rem', fontWeight: 800, mb: 2, color: 'var(--color-text)' }}>Tạo bài viết mới</Typography>
-              <Box sx={{ mb: 3, '& .ck-editor__editable': { bgcolor: 'var(--color-surface-3)', border: '1px solid var(--color-border) !important', borderRadius: '12px !important' } }}>
-                <CKEditorWrapper
-                  value={newPostContent}
-                  onChange={(data) => setNewPostContent(data)}
-                  placeholder="Chia sẻ kiến thức hoặc đặt câu hỏi..."
-                  minHeight="180px"
-                />
-              </Box>
-              
-              {linkedEntity && (
-                <Chip
-                  icon={getEntityIcon(linkedEntity.type)}
-                  label={`Đính kèm: ${linkedEntity.title}`}
-                  onDelete={() => setLinkedEntity(null)}
-                  sx={{ 
-                    mb: 3, borderRadius: '10px', fontWeight: 700,
-                    bgcolor: 'rgba(99,102,241,0.1)', color: '#818CF8',
-                    border: '1px solid rgba(99,102,241,0.2)'
-                  }}
-                />
-              )}
+            
+            {linkedEntity && (
+              <Chip
+                icon={getEntityIcon(linkedEntity.type)}
+                label={`Đính kèm: ${linkedEntity.title}`}
+                onDelete={() => setLinkedEntity(null)}
+                color="primary"
+                variant="outlined"
+                sx={{ mb: 2 }}
+              />
+            )}
 
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Button 
-                  startIcon={<LinkIcon />} 
-                  onClick={() => setLinkDialogOpen(true)}
-                  sx={{ color: 'var(--color-text-sec)', fontWeight: 600, textTransform: 'none' }}
-                >
-                  Gắn liên kết nội bộ
-                </Button>
-                <Box sx={{ display: 'flex', gap: 1.5 }}>
-                  <Button 
-                    onClick={() => setIsCreating(false)} 
-                    sx={{ color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'none' }}
-                  >
-                    {t('common.cancel')}
-                  </Button>
-                  <Button 
-                    variant="contained" 
-                    onClick={handleCreatePost} 
-                    disabled={!newPostContent.trim()}
-                    sx={{ 
-                      borderRadius: '12px', px: 3, fontWeight: 800, textTransform: 'none',
-                      background: 'linear-gradient(135deg, #6366F1, #4F46E5)',
-                    }}
-                  >
-                    {t('common.create')}
-                  </Button>
-                </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Button 
+                startIcon={<LinkIcon />} 
+                onClick={() => setLinkDialogOpen(true)}
+                size="small"
+              >
+                Gắn liên kết
+              </Button>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Button onClick={() => setIsCreating(false)}>{t('common.cancel')}</Button>
+                <Button variant="contained" onClick={handleCreatePost} disabled={!newPostContent.trim()}>{t('common.create')}</Button>
               </Box>
             </Box>
-          )}
-        </Paper>
-      </motion.div>
+          </Box>
+        )}
+      </Paper>
 
       {/* Feed List */}
       <AnimatePresence>
@@ -482,62 +452,28 @@ const PostItem = ({ post, currentUser, currentUserRole, onDelete, onTogglePin, o
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.3 }}
     >
-      <Paper 
-        sx={{ 
-          p: 3, mb: 3.5, borderRadius: '24px', position: 'relative',
-          background: 'var(--color-surface-2)',
-          border: '1px solid var(--color-border)',
-          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          '&:hover': { 
-            borderColor: 'rgba(99, 102, 241, 0.3)',
-            boxShadow: '0 12px 32px rgba(0,0,0,0.25)' 
-          }
-        }}
-      >
+      <Paper sx={{ p: 2, mb: 3, borderRadius: 3, position: 'relative' }}>
         {post.pinned && (
-          <Box
-            sx={{
-              position: 'absolute', top: 20, right: 24,
-              display: 'flex', alignItems: 'center', gap: 0.5,
-              px: 1.25, py: 0.4, borderRadius: '6px',
-              bgcolor: 'rgba(99, 102, 241, 0.1)', border: '1px solid rgba(99, 102, 241, 0.2)',
-            }}
-          >
-            <PinIcon sx={{ fontSize: 13, color: '#818CF8' }} />
-            <Typography sx={{ fontSize: 10, fontWeight: 800, color: '#818CF8', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              Pinned
-            </Typography>
-          </Box>
+          <Chip
+            icon={<PinIcon sx={{ fontSize: '14px !important' }} />}
+            label="Đã ghim"
+            size="small"
+            color="primary"
+            sx={{ position: 'absolute', top: 12, right: 60, height: 20, fontSize: 10 }}
+          />
         )}
         
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-          <Box sx={{ display: 'flex', gap: 2.5 }}>
-            <Avatar 
-              src={getAvatarUrl(post.authorAvatarKey)} 
-              sx={{ 
-                width: 52, height: 52, 
-                border: '3px solid', 
-                borderColor: post.authorGroupRole === 'OWNER' ? 'rgba(239, 68, 68, 0.3)' : post.authorGroupRole === 'EDITOR' ? 'rgba(245, 158, 11, 0.3)' : 'rgba(255,255,255,0.05)'
-              }} 
-            />
-            <Box sx={{ pt: 0.5 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.25 }}>
-                <Typography sx={{ fontSize: '1.0625rem', fontWeight: 800, color: 'var(--color-text)' }}>{post.authorName}</Typography>
-                <Chip 
-                  label={post.authorGroupRole} 
-                  size="small" 
-                  sx={{ 
-                    height: 18, fontSize: 9, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.02em',
-                    bgcolor: post.authorGroupRole === 'OWNER' ? 'rgba(239, 68, 68, 0.1)' : post.authorGroupRole === 'EDITOR' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(255,255,255,0.05)',
-                    color: post.authorGroupRole === 'OWNER' ? '#F87171' : post.authorGroupRole === 'EDITOR' ? '#FBBF24' : 'var(--color-text-muted)',
-                    border: '1px solid transparent',
-                    borderColor: post.authorGroupRole === 'OWNER' ? 'rgba(239, 68, 68, 0.2)' : post.authorGroupRole === 'EDITOR' ? 'rgba(245, 158, 11, 0.2)' : 'transparent'
-                  }} 
-                />
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Avatar src={getAvatarUrl(post.authorAvatarKey)} sx={{ border: '2px solid', borderColor: getRoleColor(post.authorGroupRole) + '.main' }} />
+            <Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography variant="subtitle1" fontWeight="bold">{post.authorName}</Typography>
+                <Chip label={post.authorGroupRole} size="small" variant="outlined" color={getRoleColor(post.authorGroupRole)} sx={{ height: 18, fontSize: 10 }} />
               </Box>
-              <Typography sx={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>
+              <Typography variant="caption" color="text.secondary">
                 {formatDate(post.createdAt)}
               </Typography>
             </Box>
@@ -546,33 +482,20 @@ const PostItem = ({ post, currentUser, currentUserRole, onDelete, onTogglePin, o
           <Box>
             {(currentUser.id === post.authorId || currentUserRole === 'OWNER' || currentUserRole === 'EDITOR') && (
               <>
-                <IconButton 
-                  size="small" 
-                  onClick={(e) => setAnchorEl(e.currentTarget)}
-                  sx={{ color: 'var(--color-text-muted)', '&:hover': { bgcolor: 'rgba(255,255,255,0.05)' } }}
-                >
-                  <MoreVertIcon />
-                </IconButton>
-                <Menu
-                  anchorEl={anchorEl}
-                  open={Boolean(anchorEl)}
-                  onClose={() => setAnchorEl(null)}
-                  PaperProps={{
-                    sx: { bgcolor: 'var(--color-surface-3)', border: '1px solid var(--color-border)', borderRadius: '12px', minWidth: 160 }
-                  }}
-                >
-                  {(currentUserRole === 'OWNER' || currentUserRole === 'EDITOR') && (
-                    <MenuItem onClick={() => { onTogglePin(post.id); setAnchorEl(null); }} sx={{ fontSize: '0.875rem', fontWeight: 600 }}>
-                      <PinIcon fontSize="small" sx={{ mr: 1.5, color: 'var(--color-primary-lt)' }} /> {post.pinned ? 'Bỏ ghim' : 'Ghim bài viết'}
+                <IconButton size="small" onClick={(e) => setAnchorEl(e.currentTarget)}><MoreVertIcon /></IconButton>
+                <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}>
+                  { (currentUserRole === 'OWNER' || currentUserRole === 'EDITOR') && (
+                    <MenuItem onClick={() => { onTogglePin(post.id); setAnchorEl(null); }}>
+                      <PinIcon fontSize="small" sx={{ mr: 1 }} /> {post.pinned ? 'Bỏ ghim' : 'Ghim bài viết'}
                     </MenuItem>
                   )}
-                  {currentUser.id === post.authorId && (
-                    <MenuItem onClick={() => { setIsEditing(true); setAnchorEl(null); }} sx={{ fontSize: '0.875rem', fontWeight: 600 }}>
-                      <EditIcon fontSize="small" sx={{ mr: 1.5 }} /> Chỉnh sửa
+                  { currentUser.id === post.authorId && (
+                    <MenuItem onClick={() => { setIsEditing(true); setAnchorEl(null); }}>
+                      <EditIcon fontSize="small" sx={{ mr: 1 }} /> Chỉnh sửa
                     </MenuItem>
                   )}
-                  <MenuItem onClick={() => { onDelete(post.id); setAnchorEl(null); }} sx={{ fontSize: '0.875rem', fontWeight: 600, color: '#F87171' }}>
-                    <DeleteIcon fontSize="small" sx={{ mr: 1.5 }} /> Xóa bài viết
+                  <MenuItem onClick={() => { onDelete(post.id); setAnchorEl(null); }} sx={{ color: 'error.main' }}>
+                    <DeleteIcon fontSize="small" sx={{ mr: 1 }} /> Xóa bài viết
                   </MenuItem>
                 </Menu>
               </>
@@ -581,99 +504,60 @@ const PostItem = ({ post, currentUser, currentUserRole, onDelete, onTogglePin, o
         </Box>
 
         {isEditing ? (
-          <Box sx={{ mb: 3 }}>
-            <Box sx={{ '& .ck-editor__editable': { bgcolor: 'var(--color-surface-3)', border: '1px solid var(--color-border) !important', borderRadius: '12px !important' } }}>
-              <CKEditorWrapper
-                value={editedContent}
-                onChange={(data) => setEditedContent(data)}
-                placeholder="Chỉnh sửa nội dung..."
-                minHeight="150px"
-              />
-            </Box>
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1.5, mt: 2 }}>
-              <Button size="small" onClick={() => setIsEditing(false)} sx={{ fontWeight: 600, color: 'var(--color-text-muted)' }}>Hủy</Button>
-              <Button 
-                size="small" 
-                variant="contained" 
-                onClick={handleUpdatePost}
-                sx={{ borderRadius: '8px', fontWeight: 700, background: 'var(--color-primary)' }}
-              >
-                Cập nhật
-              </Button>
+          <Box sx={{ mb: 2 }}>
+            <CKEditorWrapper
+              value={editedContent}
+              onChange={(data) => setEditedContent(data)}
+              placeholder="Chỉnh sửa nội dung..."
+              minHeight="150px"
+            />
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 1 }}>
+              <Button size="small" onClick={() => setIsEditing(false)}>Hủy</Button>
+              <Button size="small" variant="contained" onClick={handleUpdatePost}>Cập nhật</Button>
             </Box>
           </Box>
         ) : (
-          <Box className="ck-content" sx={{ mb: 3, px: 0.5 }}>
-            <div 
-              style={{ 
-                fontSize: '0.9375rem', 
-                lineHeight: 1.7, 
-                color: 'var(--color-text)',
-                wordBreak: 'break-word'
-              }} 
-              dangerouslySetInnerHTML={{ __html: post.content }} 
-            />
+          <Box className="ck-content" sx={{ mb: 2 }}>
+            <div dangerouslySetInnerHTML={{ __html: post.content }} />
           </Box>
         )}
 
         {post.linkedEntityId && (
           <Box 
             sx={{ 
-              p: 2, 
-              mb: 3, 
-              borderRadius: '16px', 
-              bgcolor: 'var(--color-surface-3)', 
-              border: '1px solid var(--color-border)',
+              p: 1.5, 
+              mb: 2, 
+              borderRadius: 2, 
+              bgcolor: 'action.hover', 
+              border: '1px solid', 
+              borderColor: 'divider',
               display: 'flex',
               alignItems: 'center',
-              gap: 2.5,
+              gap: 2,
               cursor: 'pointer',
-              transition: 'all 0.2s',
-              '&:hover': { bgcolor: 'var(--color-surface-4)', borderColor: 'rgba(99,102,241,0.3)' }
+              '&:hover': { bgcolor: 'action.selected' }
             }}
           >
-            <Avatar sx={{ bgcolor: 'rgba(99,102,241,0.1)', color: '#818CF8', width: 44, height: 44, borderRadius: '10px' }}>
-              {getEntityIcon(post.linkedEntityType)}
-            </Avatar>
+            <Avatar sx={{ bgcolor: 'primary.light', width: 36, height: 36 }}>{getEntityIcon(post.linkedEntityType)}</Avatar>
             <Box sx={{ flexGrow: 1 }}>
-              <Typography sx={{ fontSize: '0.625rem', color: '#818CF8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', mb: 0.25 }}>
-                {getEntityLabel(post.linkedEntityType)}
-              </Typography>
-              <Typography sx={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--color-text)' }}>Gợi ý nội dung liên quan</Typography>
+              <Typography variant="caption" color="primary" fontWeight="bold">{getEntityLabel(post.linkedEntityType)}</Typography>
+              <Typography variant="body2" fontWeight="medium">Thực thể liên kết nội bộ (Nhấp để xem chi tiết)</Typography>
             </Box>
           </Box>
         )}
 
-        <Divider sx={{ my: 2.5, borderStyle: 'dashed', borderColor: 'var(--color-border)' }} />
+        <Divider sx={{ my: 1.5 }} />
 
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', gap: 1 }}>
             <Button 
               size="small" 
-              startIcon={post.reactionCount > 0 ? <ThumbUpIcon /> : <ThumbUpOutlinedIcon />}
+              startIcon={post.reactionCount > 0 ? <ThumbUpIcon color="primary" /> : <ThumbUpOutlinedIcon />}
               onClick={() => onToggleReaction(post.id)}
-              sx={{ 
-                height: 36, px: 2, borderRadius: '10px',
-                fontWeight: 700,
-                color: post.reactionCount > 0 ? '#818CF8' : 'var(--color-text-sec)',
-                bgcolor: post.reactionCount > 0 ? 'rgba(99,102,241,0.08)' : 'transparent',
-                '&:hover': { bgcolor: 'rgba(99,102,241,0.1)' }
-              }}
             >
               {post.reactionCount || t('forum.actions.like')}
             </Button>
-            <Button 
-              size="small" 
-              startIcon={<CommentIcon />} 
-              onClick={handleFetchComments}
-              sx={{ 
-                height: 36, px: 2, borderRadius: '10px',
-                fontWeight: 700,
-                color: showComments ? '#818CF8' : 'var(--color-text-sec)',
-                bgcolor: showComments ? 'rgba(99,102,241,0.08)' : 'transparent',
-                '&:hover': { bgcolor: 'rgba(99,102,241,0.1)' }
-              }}
-            >
+            <Button size="small" startIcon={<CommentIcon />} onClick={handleFetchComments}>
               {post.commentCount || t('forum.actions.comment')}
             </Button>
           </Box>

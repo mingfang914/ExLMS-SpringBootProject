@@ -3,7 +3,7 @@
 sleep 10;
 
 # Configure the local alias 'myminio' pointing to the MinIO container
-/usr/bin/mc alias set myminio http://lms-minio:9000 minioadmin minioadmin
+/usr/bin/mc alias set myminio http://lms-minio:9000 "${MINIO_ROOT_USER}" "${MINIO_ROOT_PASSWORD}"
 
 # Create the requested buckets, ignoring if they already exist
 /usr/bin/mc mb myminio/exlms-files --ignore-existing
