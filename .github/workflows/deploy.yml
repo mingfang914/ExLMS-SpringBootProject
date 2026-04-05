@@ -61,14 +61,14 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Copy Config Files and Assets
+      - name: Copy Config Files only (not source)
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          # Copy docker-compose, thư mục khởi tạo và cả thư mục Assets để nạp tài nguyên
-          source: "docker-compose.yml,docker-init/,Assets/"
+          # Chỉ copy docker-compose và thư mục khởi tạo, không copy toàn bộ source code
+          source: "docker-compose.yml,docker-init/"
           target: "/home/ubuntu/ExLMS/ExLMS-SpringBootProject"
           rm: false
 
