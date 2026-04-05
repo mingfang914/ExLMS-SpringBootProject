@@ -18,10 +18,7 @@ import {
   Chip,
   Skeleton,
 } from '@mui/material'
-<<<<<<< HEAD
 import { alpha, useTheme } from '@mui/material/styles'
-=======
->>>>>>> 0309de622c986d494be08e87aad01e4be70651fa
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
@@ -210,25 +207,15 @@ const GroupList = () => {
           sx={{
             display: 'flex',
             alignItems: 'center',
-<<<<<<< HEAD
             gap: 3,
             mb: 4,
             p: '10px 10px 10px 20px',
             bgcolor: 'var(--color-surface-2)',
             backdropFilter: 'blur(16px)',
-=======
-            gap: 2,
-            mb: 3,
-            p: 2,
-            bgcolor: 'var(--color-surface)',
->>>>>>> 0309de622c986d494be08e87aad01e4be70651fa
             border: '1px solid var(--color-border)',
             borderRadius: '12px',
             flexWrap: 'wrap',
-<<<<<<< HEAD
             boxShadow: `0 8px 32px rgba(0,0,0,${theme.palette.mode === 'dark' ? 0.3 : 0.08})`,
-=======
->>>>>>> 0309de622c986d494be08e87aad01e4be70651fa
           }}
         >
           {/* Search */}
@@ -295,47 +282,6 @@ const GroupList = () => {
             <Tab label={t('groups.tabs.mine')} id="tab-mine" />
           </Tabs>
 
-<<<<<<< HEAD
-          <Divider orientation="vertical" flexItem sx={{ my: 1, borderColor: 'var(--color-border)', opacity: 0.5 }} />
-
-          {/* Search */}
-          <Box
-            sx={{
-              display: 'flex', alignItems: 'center', gap: 1.5,
-              px: 2, height: 40, flex: 1,
-              borderRadius: '10px',
-              border: '1px solid var(--color-border)',
-              bgcolor: alpha(theme.palette.background.paper, 0.4),
-              '&:focus-within': { 
-                borderColor: 'var(--color-primary)', 
-                bgcolor: alpha(theme.palette.background.paper, 0.6),
-                boxShadow: `0 0 0 3px ${alpha(theme.palette.primary.main, 0.1)}`
-              },
-              transition: 'all 0.2s',
-            }}
-          >
-            <Box sx={{ color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', opacity: 0.7 }}>
-              <SearchIcon />
-            </Box>
-            <input
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder={t('groups.search_placeholder')}
-              style={{
-                flex: 1, background: 'none', border: 'none', outline: 'none',
-                color: 'var(--color-text)', fontSize: '0.875rem', fontWeight: 500,
-                fontFamily: 'var(--font-body)',
-              }}
-            />
-            {searchTerm && (
-              <IconButton size="small" onClick={() => setSearchTerm('')} sx={{ p: 0.5, color: 'var(--color-text-muted)' }}>
-                ×
-              </IconButton>
-            )}
-          </Box>
-
-=======
->>>>>>> 0309de622c986d494be08e87aad01e4be70651fa
           {/* Result count */}
           {!loading && (
             <Chip
