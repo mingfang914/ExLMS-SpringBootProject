@@ -46,6 +46,7 @@ public class MeetingService {
     private final MeetingPollVoteRepository pollVoteRepository;
     private final SimpMessagingTemplate messagingTemplate;
     private final ApplicationEventPublisher eventPublisher;
+    private final project.TeamFive.ExLMS.notification.service.NotificationService notificationService;
 
     private void broadcast(UUID meetingId, String type, Object data) {
         String destination = "/topic/meeting/" + meetingId;
@@ -76,22 +77,27 @@ public class MeetingService {
 
         requireInstructorRole(group, creator);
 
-        String roomName = group.getName().replaceAll("\\s+", "-") + "-" + UUID.randomUUID().toString().substring(0, 8);
-        String jitsiUrl = "https://meet.jit.si/" + roomName;
+        String roomName = group.getName().replaceAll("\\s+", "-").toLowerCase() + "-" + UUID.randomUUID().toString().substring(0, 8);
+        String joinUrl = roomName; // For LiveKit, we just need the room name
 
         Meeting meeting = Meeting.builder()
                 .group(group)
                 .createdBy(creator)
                 .title(request.getTitle())
                 .description(request.getDescription())
-                .platform("jitsi")
-                .joinUrl(jitsiUrl)
+                .platform("livekit")
+                .joinUrl(joinUrl)
                 .startAt(request.getStartAt() != null ? request.getStartAt() : LocalDateTime.now())
                 .endAt(request.getEndAt() != null ? request.getEndAt() : LocalDateTime.now().plusHours(1))
                 .status(request.getStatus() != null ? request.getStatus() : Meeting.MeetingStatus.DRAFT)
                 .build();
 
         meeting = meetingRepository.save(meeting);
+        
+        notificationService.notifyGroupPublishedItem(
+            group, "Buổi họp", meeting.getTitle(), meeting.getStatus().name(), 
+            meeting.getId(), "/meetings/" + meeting.getId()
+        );
 
         // Notify through event for calendar sync
         eventPublisher.publishEvent(new MeetingScheduledEvent(this, meeting));
@@ -121,16 +127,26 @@ public class MeetingService {
         meeting.setDescription(request.getDescription());
         meeting.setStartAt(request.getStartAt());
         meeting.setEndAt(request.getEndAt());
+        Meeting.MeetingStatus oldStatus = meeting.getStatus();
         if (request.getStatus() != null) {
             meeting.setStatus(request.getStatus());
         }
 
-        meeting = meetingRepository.save(meeting);
+        Meeting savedMeeting = meetingRepository.save(meeting);
+
+        if (oldStatus == Meeting.MeetingStatus.DRAFT && savedMeeting.getStatus() == Meeting.MeetingStatus.PUBLISHED) {
+            notificationService.notifyGroupPublishedItem(
+                meeting.getGroup(), "Buổi họp", meeting.getTitle(), 
+                savedMeeting.getStatus().name(), savedMeeting.getId(), "/meetings/" + savedMeeting.getId()
+            );
+        } else {
+             notificationService.broadcastResourceStatus(savedMeeting.getId(), "Buổi họp", savedMeeting.getStatus().name());
+        }
 
         // Notify through event for calendar sync update
-        eventPublisher.publishEvent(new MeetingUpdatedEvent(this, meeting));
+        eventPublisher.publishEvent(new MeetingUpdatedEvent(this, savedMeeting));
 
-        return MeetingResponseDTO.fromEntity(meeting);
+        return MeetingResponseDTO.fromEntity(savedMeeting);
     }
 
     @Transactional

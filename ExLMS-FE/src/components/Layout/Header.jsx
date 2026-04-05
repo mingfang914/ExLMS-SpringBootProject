@@ -91,14 +91,21 @@ const Header = () => {
 
   const getTimeDiff = (dateStr) => {
     try {
-      const diff = Date.now() - new Date(dateStr).getTime()
+      if (!dateStr) return ''
+      const parsed = new Date(dateStr)
+      if (isNaN(parsed.getTime()) || parsed.getFullYear() < 2000) return ''
+      
+      const diff = Date.now() - parsed.getTime()
+      if (diff < 0) return t('common.just_now')
+      
       const mins  = Math.floor(diff / 60000)
-      if (mins < 1)  return t('notifications.just_now')
-      if (mins < 60) return t('notifications.mins_ago', { count: mins })
+      if (mins < 1)  return t('common.just_now')
+      if (mins < 60) return t('common.mins_ago', { count: mins })
       const hrs = Math.floor(mins / 60)
-      if (hrs < 24)  return t('notifications.hrs_ago', { count: hrs })
+      if (hrs < 24)  return t('common.hrs_ago', { count: hrs })
       const days = Math.floor(hrs / 24)
-      return t('notifications.days_ago', { count: days })
+      if (days < 7)  return t('common.days_ago', { count: days })
+      return parsed.toLocaleDateString()
     } catch { return '' }
   }
 
@@ -366,9 +373,16 @@ const Header = () => {
                   </ListItemAvatar>
                   <ListItemText
                     primary={
-                      <Typography sx={{ fontSize: '0.8125rem', fontWeight: notif.read ? 400 : 600, color: 'var(--color-text)', lineHeight: 1.4, mb: '2px' }}>
-                        {notif.message}
-                      </Typography>
+                      <>
+                        <Typography sx={{ fontSize: '0.8125rem', fontWeight: notif.read ? 500 : 700, color: 'var(--color-text)', lineHeight: 1.4, mb: '2px' }}>
+                          {notif.title || notif.message || t('common.no_notifications')}
+                        </Typography>
+                        {(notif.body && notif.body !== notif.title) && (
+                          <Typography sx={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', lineHeight: 1.3, mb: '4px' }}>
+                            {notif.body}
+                          </Typography>
+                        )}
+                      </>
                     }
                     secondary={
                       <Typography sx={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)' }}>
@@ -451,15 +465,15 @@ const Header = () => {
           {user?.role && (
             <Box sx={{ mt: 1.5 }}>
               <Chip
-                label={user.role === 'ADMIN' ? 'Administrator' : 'Student'}
+                label={user.role === 'ADMIN' ? 'Administrator' : (user.role === 'INSTRUCTOR' ? 'Instructor' : 'Student')}
                 size="small"
                 sx={{
                   height: 20,
                   fontSize: '0.625rem',
                   fontWeight: 700,
-                  bgcolor: user.role === 'ADMIN' ? 'rgba(239,68,68,0.12)' : 'rgba(99,102,241,0.12)',
-                  color: user.role === 'ADMIN' ? '#FCA5A5' : '#818CF8',
-                  border: `1px solid ${user.role === 'ADMIN' ? 'rgba(239,68,68,0.25)' : 'rgba(99,102,241,0.25)'}`,
+                  bgcolor: user.role === 'ADMIN' ? 'rgba(239,68,68,0.12)' : (user.role === 'INSTRUCTOR' ? 'rgba(16,185,129,0.12)' : 'rgba(99,102,241,0.12)'),
+                  color: user.role === 'ADMIN' ? '#FCA5A5' : (user.role === 'INSTRUCTOR' ? '#6EE7B7' : '#818CF8'),
+                  border: `1px solid ${user.role === 'ADMIN' ? 'rgba(239,68,68,0.25)' : (user.role === 'INSTRUCTOR' ? 'rgba(16,185,129,0.25)' : 'rgba(99,102,241,0.25)')}`,
                   '& .MuiChip-label': { px: '8px' },
                 }}
               />

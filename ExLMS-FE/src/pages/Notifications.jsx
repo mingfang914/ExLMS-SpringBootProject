@@ -50,7 +50,11 @@ const item = {
 
 const timeSince = (dateStr, t, i18n) => {
   try {
-    const diff  = Date.now() - new Date(dateStr).getTime()
+    if (!dateStr) return ''
+    const parsed = new Date(dateStr)
+    if (isNaN(parsed.getTime()) || parsed.getFullYear() < 2000) return ''
+    const diff  = Date.now() - parsed.getTime()
+    if (diff < 0) return t('common.just_now')
     const mins  = Math.floor(diff / 60000)
     if (mins < 1)  return t('common.just_now')
     if (mins < 60) return t('common.mins_ago', { count: mins })
@@ -58,7 +62,7 @@ const timeSince = (dateStr, t, i18n) => {
     if (hrs < 24)  return t('common.hrs_ago', { count: hrs })
     const days = Math.floor(hrs / 24)
     if (days < 7)  return t('common.days_ago', { count: days })
-    return new Date(dateStr).toLocaleDateString(i18n.language === 'vi' ? 'vi-VN' : 'en-US')
+    return parsed.toLocaleDateString(i18n.language === 'vi' ? 'vi-VN' : 'en-US')
   } catch { return '' }
 }
 
@@ -191,16 +195,24 @@ const Notifications = () => {
                   {/* Content */}
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 1, mb: 0.5 }}>
-                      <Typography
-                        sx={{
-                          fontSize: '0.875rem',
-                          fontWeight: notif.read ? 400 : 600,
-                          color: 'var(--color-text)',
-                          lineHeight: 1.45,
-                        }}
-                      >
-                        {notif.message}
-                      </Typography>
+                        {/* Title */}
+                        <Typography
+                          sx={{
+                            fontSize: '0.875rem',
+                            fontWeight: notif.read ? 500 : 700,
+                            color: 'var(--color-text)',
+                            lineHeight: 1.45,
+                          }}
+                        >
+                          {notif.title || notif.message || t('common.no_notifications')}
+                        </Typography>
+                        {(notif.body && notif.body !== notif.title) && (
+                          <Typography
+                            sx={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', mt: 0.25, lineHeight: 1.4 }}
+                          >
+                            {notif.body}
+                          </Typography>
+                        )}
                       {!notif.read && (
                         <Tooltip title={t('common.mark_as_read')}>
                           <IconButton

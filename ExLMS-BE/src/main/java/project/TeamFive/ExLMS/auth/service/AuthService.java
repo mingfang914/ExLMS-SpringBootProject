@@ -16,6 +16,7 @@ import project.TeamFive.ExLMS.user.entity.User;
 import project.TeamFive.ExLMS.user.entity.UserSession;
 import project.TeamFive.ExLMS.user.repository.UserRepository;
 import project.TeamFive.ExLMS.user.repository.UserSessionRepository;
+import project.TeamFive.ExLMS.service.EmailService;
 
 import java.time.LocalDateTime;
 
@@ -29,6 +30,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final HttpServletRequest httpServletRequest;
+    private final EmailService emailService;
 
 
     @Transactional
@@ -39,9 +41,9 @@ public class AuthService {
 
         String password = request.getPassword();
         if (password == null || password.length() < 8 ||
-            !password.matches(".*[A-Z]..*") ||
-            !password.matches(".*[a-z]..*") ||
-            !password.matches(".*[0-9]..*") ||
+            !password.matches(".*[A-Z].*") ||
+            !password.matches(".*[a-z].*") ||
+            !password.matches(".*[0-9].*") ||
             !password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?].*")) {
             throw new RuntimeException("Mật khẩu phải dài ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt!");
         }
@@ -160,7 +162,6 @@ public class AuthService {
         User user = session.getUser();
         String newAccessToken = jwtService.generateToken(user);
         
-        // Có thể Rotate refresh token ở đây nếu muốn bảo mật tối đa, nhưng tạm giữ nguyên theo SRS
         return AuthResponse.builder()
                 .token(newAccessToken)
                 .refreshToken(refreshToken)
@@ -168,5 +169,52 @@ public class AuthService {
                 .role(user.getRole().name())
                 .message("Làm mới token thành công!")
                 .build();
+    }
+
+    @Transactional
+    public String forgotPassword(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản với email này!"));
+
+        // 1. Tạo token ngẫu nhiên
+        String token = java.util.UUID.randomUUID().toString();
+        user.setResetToken(token);
+        user.setResetTokenExpires(LocalDateTime.now().plusMinutes(30)); 
+        userRepository.save(user);
+
+        // 2. Gửi mail
+        String frontendUrl = System.getProperty("APP_FRONTEND_URL", "http://localhost:3000");
+        String resetLink = String.format("%s/reset-password?token=%s", frontendUrl, token);
+        
+        emailService.sendForgotPasswordEmail(email, resetLink);
+        
+        return "Hướng dẫn khôi phục mật khẩu đã được gửi đến email của bạn.";
+    }
+
+    @Transactional
+    public String resetPassword(project.TeamFive.ExLMS.auth.dto.request.ResetPasswordRequest request) {
+        User user = userRepository.findByResetToken(request.getToken())
+                .orElseThrow(() -> new RuntimeException("Mã khôi phục không hợp lệ hoặc đã được sử dụng!"));
+
+        if (user.getResetTokenExpires().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Mã khôi phục đã hết hạn. Vui lòng yêu cầu lại!");
+        }
+
+        // Kiểm tra độ mạnh mật khẩu (giống register)
+        String newPassword = request.getNewPassword();
+        if (newPassword == null || newPassword.length() < 8 ||
+            !newPassword.matches(".*[A-Z].*") ||
+            !newPassword.matches(".*[a-z].*") ||
+            !newPassword.matches(".*[0-9].*") ||
+            !newPassword.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?].*")) {
+            throw new RuntimeException("Mật khẩu mới không đủ mạnh! Phải bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt.");
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        user.setResetToken(null);
+        user.setResetTokenExpires(null);
+        userRepository.save(user);
+
+        return "Đặt lại mật khẩu thành công! Bây giờ bạn có thể đăng nhập.";
     }
 }

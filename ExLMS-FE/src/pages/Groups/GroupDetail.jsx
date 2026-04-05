@@ -43,6 +43,7 @@ import {
   Quiz as QuizIcon,
   Inventory2 as InventoryIcon,
   Insights as TipsIcon,
+  Logout as LeaveIcon
 } from '@mui/icons-material'
 import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom'
 import groupService from '../../services/groupService'
@@ -184,7 +185,7 @@ const GroupDetail = () => {
     if (!window.confirm(t('common.confirm_delete'))) return
     try {
       if (type === 'course') await courseService.deleteCourse(id, resId)
-      else if (type === 'assignment') await assignmentService.deleteAssignment(resId)
+      else if (type === 'assignment') await assignmentService.deleteDeployment(resId)
       else if (type === 'quiz') await quizService.deleteQuiz(resId)
       
       refreshData()
@@ -198,8 +199,22 @@ const GroupDetail = () => {
     try {
       const response = await groupService.createJoinRequest(id, t('groups.messages.join_default'))
       alert(response || t('groups.messages.join_sent'))
+      // Tải lại thông tin nhóm nếu nhóm được duyệt tự động (Auto-Join)
+      const groupData = await groupService.getGroupById(id)
+      setGroup(groupData)
     } catch (err) {
       alert(err.response?.data?.message || t('groups.errors.join_failed'))
+    }
+  }
+
+  const handleLeaveGroup = async () => {
+    if (!window.confirm('Bạn có chắc chắn muốn rời khỏi nhóm học tập này?')) return
+    try {
+      await groupService.leaveGroup(id)
+      alert('Đã rời khỏi nhóm thành công!')
+      navigate('/groups')
+    } catch (err) {
+      alert(err.response?.data?.message || 'Không thể rời nhóm lúc này!')
     }
   }
 
@@ -311,7 +326,10 @@ const GroupDetail = () => {
               {group.name.charAt(0)}
             </Avatar>
             <Box>
-              <Typography variant="h3" sx={{ fontWeight: 'bold' }}>{group.name}</Typography>
+              <Typography variant="h3" sx={{ fontWeight: 'bold' }}>
+                {group.name} 
+                <Typography variant="caption" sx={{ opacity: 0.5, ml: 1, color: 'inherit' }}>v1.0.2</Typography>
+              </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 1 }}>
                 <Chip label={group.category} size="small" sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }} />
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -349,6 +367,17 @@ const GroupDetail = () => {
                       <Button variant="contained" startIcon={<SettingsIcon />} onClick={() => setManageDialogOpen(true)}>{t('group_detail.manage')}</Button>
                     )}
                   </>
+                )}
+                {group.currentUserRole !== 'OWNER' && (
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    startIcon={<LeaveIcon />}
+                    onClick={handleLeaveGroup}
+                    sx={{ borderRadius: '12px', fontWeight: 700 }}
+                  >
+                    Rời nhóm
+                  </Button>
                 )}
               </>
             )}
@@ -413,8 +442,12 @@ const GroupDetail = () => {
               </Paper>
             ) : (
               <Grid container spacing={3}>
-                {courses.map(course => (
-                  <Grid item xs={12} sm={6} md={4} key={course.id}>
+                  {courses.map(course => {
+                    // Ẩn luôn card đối với member nếu đã CLOSED
+                    if (course.status === 'CLOSED' && group.currentUserRole === 'MEMBER') return null;
+                    
+                    return (
+                      <Grid item xs={12} sm={6} md={4} key={course.id}>
                     <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', borderRadius: 4, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
                       <CardMedia
                         component="img"
@@ -443,17 +476,18 @@ const GroupDetail = () => {
                         </Stack>
                       </CardContent>
                       <Box sx={{ p: 2, pt: 0, display: 'flex', gap: 1 }}>
-                        <Button
-                          fullWidth
-                          variant="contained"
-                          component={RouterLink}
-                          to={`/groups/${id}/courses/${course.id}/view`}
-                          disabled={course.status === 'CLOSED' && group.currentUserRole === 'MEMBER'}
-                          sx={{ borderRadius: '12px', fontWeight: 700 }}
-                        >
-                          {course.status === 'CLOSED' ? t('common.ended') : t('group_detail.actions.learn_now')}
-                        </Button>
-                        {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
+                        {!(course.status === 'CLOSED' && group.currentUserRole === 'MEMBER') && (
+                          <Button
+                            fullWidth
+                            variant="contained"
+                            component={RouterLink}
+                            to={`/groups/${id}/courses/${course.id}/view`}
+                            sx={{ borderRadius: '12px', fontWeight: 700 }}
+                          >
+                             {t('group_detail.actions.learn_now')}
+                          </Button>
+                        )}
+                        {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && course.status !== 'CLOSED' && (
                           <IconButton
                             color="primary"
                             onClick={() => setEditDeployModal({ open: true, type: 'course', resource: course })}
@@ -462,7 +496,7 @@ const GroupDetail = () => {
                             <EditIcon />
                           </IconButton>
                         )}
-                        {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
+                        {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && course.status !== 'CLOSED' && (
                           <IconButton
                             color="error"
                             onClick={() => handleDeleteResource('course', course.id)}
@@ -474,8 +508,9 @@ const GroupDetail = () => {
                       </Box>
                     </Card>
                   </Grid>
-                ))}
-              </Grid>
+                );
+              })}
+            </Grid>
             )}
           </Box>
         )}
@@ -564,12 +599,12 @@ const GroupDetail = () => {
                             variant="contained" 
                             component={RouterLink} 
                             to={`/groups/${id}/assignments/${asgn.id}`}
-                            disabled={asgn.status === 'CLOSED' && !asgn.allowLate && group.currentUserRole === 'MEMBER'}
+                            disabled={String(asgn.status).toUpperCase() === 'CLOSED' && !asgn.allowLate && group.currentUserRole === 'MEMBER'}
                             sx={{ borderRadius: '12px', bgcolor: 'rgba(252, 211, 77, 0.1)', color: '#FCD34D', '&:hover': { bgcolor: 'rgba(252, 211, 77, 0.2)' } }}
                           >
-                            {asgn.status === 'CLOSED' ? (asgn.allowLate ? 'Nộp muộn' : t('common.closed')) : t('group_detail.actions.details')}
+                            {String(asgn.status).toUpperCase() === 'CLOSED' ? (asgn.allowLate ? 'Nộp muộn' : t('common.closed')) : t('group_detail.actions.details')}
                           </Button>
-                          {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
+                          {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && String(asgn.status).toUpperCase() !== 'CLOSED' && (
                             <IconButton 
                               size="small" 
                               color="primary"
@@ -579,7 +614,7 @@ const GroupDetail = () => {
                               <EditIcon fontSize="small" />
                             </IconButton>
                           )}
-                          {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
+                          {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && asgn.status !== 'CLOSED' && (
                             <IconButton 
                               size="small" 
                               color="error"
@@ -686,15 +721,17 @@ const GroupDetail = () => {
                           </Button>
                           {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
                             <>
-                              <Tooltip title="Thiết lập">
-                                <IconButton 
-                                  color="primary"
-                                  onClick={() => setEditDeployModal({ open: true, type: 'quiz', resource: quiz })}
-                                  sx={{ bgcolor: 'rgba(99, 102, 241, 0.1)', '&:hover': { bgcolor: 'rgba(99, 102, 241, 0.2)' } }}
-                                >
-                                  <EditIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
+                              {quiz.status !== 'CLOSED' && (
+                                <Tooltip title="Thiết lập">
+                                  <IconButton 
+                                    color="primary"
+                                    onClick={() => setEditDeployModal({ open: true, type: 'quiz', resource: quiz })}
+                                    sx={{ bgcolor: 'rgba(99, 102, 241, 0.1)', '&:hover': { bgcolor: 'rgba(99, 102, 241, 0.2)' } }}
+                                  >
+                                    <EditIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                              )}
                               <Tooltip title="Xem thống kê & lịch sử">
                                 <IconButton 
                                   color="info"
@@ -705,13 +742,15 @@ const GroupDetail = () => {
                                   <TipsIcon fontSize="small" />
                                 </IconButton>
                               </Tooltip>
-                              <IconButton 
-                                color="error"
-                                onClick={() => handleDeleteResource('quiz', quiz.id)}
-                                sx={{ bgcolor: 'rgba(239, 68, 68, 0.1)', '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.2)' } }}
-                              >
-                                <DeleteIcon fontSize="small" />
-                              </IconButton>
+                              {quiz.status !== 'CLOSED' && (
+                                <IconButton 
+                                  color="error"
+                                  onClick={() => handleDeleteResource('quiz', quiz.id)}
+                                  sx={{ bgcolor: 'rgba(239, 68, 68, 0.1)', '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.2)' } }}
+                                >
+                                  <DeleteIcon fontSize="small" />
+                                </IconButton>
+                              )}
                             </>
                           )}
                         </Stack>
@@ -923,12 +962,14 @@ const GroupDetail = () => {
             <TextField 
               fullWidth label={t('group_detail.meetings.start_time')} margin="normal" type="datetime-local" required
               InputLabelProps={{ shrink: true }}
+              inputProps={{ min: new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) }}
               value={newMeetingData.startAt} 
               onChange={(e) => setNewMeetingData({...newMeetingData, startAt: e.target.value})} 
             />
             <TextField 
               fullWidth label={t('group_detail.meetings.end_time') || 'Thời gian kết thúc'} margin="normal" type="datetime-local" required
               InputLabelProps={{ shrink: true }}
+              inputProps={{ min: newMeetingData.startAt || new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) }}
               value={newMeetingData.endAt} 
               onChange={(e) => setNewMeetingData({...newMeetingData, endAt: e.target.value})} 
             />
@@ -966,12 +1007,14 @@ const GroupDetail = () => {
             <TextField 
               fullWidth label={t('group_detail.meetings.start_time')} margin="normal" type="datetime-local" required
               InputLabelProps={{ shrink: true }}
+              inputProps={{ min: new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) }}
               value={editMeetingData.startAt} 
               onChange={(e) => setEditMeetingData({...editMeetingData, startAt: e.target.value})} 
             />
             <TextField 
               fullWidth label={t('group_detail.meetings.end_time') || 'Thời gian kết thúc'} margin="normal" type="datetime-local" required
               InputLabelProps={{ shrink: true }}
+              inputProps={{ min: editMeetingData.startAt || new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) }}
               value={editMeetingData.endAt} 
               onChange={(e) => setEditMeetingData({...editMeetingData, endAt: e.target.value})} 
             />

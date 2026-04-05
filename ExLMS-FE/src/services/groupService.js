@@ -69,6 +69,11 @@ const groupService = {
   transferOwnership: async (groupId, newOwnerId) => {
     const response = await api.put(`/groups/${groupId}/transfer-owner/${newOwnerId}`)
     return response.data
+  },
+
+  leaveGroup: async (groupId) => {
+    const response = await api.delete(`/groups/${groupId}/leave`)
+    return response.data
   }
 }
 

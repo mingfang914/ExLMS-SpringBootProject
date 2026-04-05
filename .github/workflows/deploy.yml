@@ -1,27 +1,78 @@
-name: Deploy ExLMS to Oracle Cloud
+name: Deploy ExLMS to Oracle Cloud via Docker Hub
 
 on:
   push:
-    branches: [ "develop" ] 
+    branches: [ "develop", "main" ] 
 
 jobs:
-  build-and-deploy:
+  build-and-push:
     runs-on: ubuntu-latest
     steps:
-      - name: Tải code từ GitHub về Runner
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Copy code từ Runner sang Server Oracle
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and Push Backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./ExLMS-BE
+          push: true
+          tags: mingfang914/exlms-backend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and Push Frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./ExLMS-FE
+          push: true
+          tags: mingfang914/exlms-frontend:latest
+          build-args: |
+            VITE_GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+            VITE_LIVEKIT_SERVICE_URL=${{ secrets.LIVEKIT_TOKEN_SERVICE_URL }}
+            VITE_LIVEKIT_SERVER_URL=${{ secrets.LIVEKIT_SERVER_URL }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and Push Meeting Service
+        uses: docker/build-push-action@v5
+        with:
+          context: ./ExLMS-Meeting-Service
+          push: true
+          tags: mingfang914/exlms-meeting-service:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Copy Config Files only (not source)
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          source: "." # Copy toàn bộ thư mục hiện tại (sẽ tự động bỏ qua các file trong .gitignore)
+          # Chỉ copy docker-compose và thư mục khởi tạo, không copy toàn bộ source code
+          source: "docker-compose.yml,docker-init/"
           target: "/home/ubuntu/ExLMS/ExLMS-SpringBootProject"
-          rm: true # Xóa code cũ trên server trước khi đè code mới lên để tránh rác
+          rm: false
 
-      - name: Chạy lệnh Docker Compose trên Server
+      - name: Deploy to Server via SSH
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -30,24 +81,35 @@ jobs:
           script: |
             cd /home/ubuntu/ExLMS/ExLMS-SpringBootProject
             
-            # Tạo file .env từ secrets (Lưu ý: Bạn cần đặt các key này trong GitHub Settings)
-            echo "VITE_GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" > .env
-            echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> .env
-            echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
+            # Tạo file .env cho runtime container
+            cat <<EOF > .env
+            DB_URL=${{ secrets.DB_URL }}
+            DB_USERNAME=${{ secrets.DB_USERNAME }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
+            MINIO_URL=${{ secrets.MINIO_URL }}
+            MINIO_ROOT_USER=${{ secrets.MINIO_ROOT_USER }}
+            MINIO_ROOT_PASSWORD=${{ secrets.MINIO_ROOT_PASSWORD }}
+            GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+            GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+            LIVEKIT_API_KEY=${{ secrets.LIVEKIT_API_KEY }}
+            LIVEKIT_API_SECRET=${{ secrets.LIVEKIT_API_SECRET }}
+            VITE_GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+            MAIL_HOST=${{ secrets.MAIL_HOST }}
+            MAIL_PORT=${{ secrets.MAIL_PORT }}
+            MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
+            MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
+            MAIL_FROM=${{ secrets.MAIL_FROM }}
+            APP_FRONTEND_URL=${{ secrets.APP_FRONTEND_URL }}
+            APP_BACKEND_URL=${{ secrets.APP_BACKEND_URL }}
+            LOGGING_LEVEL_PROJECT_TEAMFIVE_EXLMS=INFO
+            EOF
             
-            echo "DB_URL=${{ secrets.DB_URL }}" >> .env
-            echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> .env
-            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+            # Kéo (pull) bản build mới nhất từ Docker Hub về server
+            docker compose pull
             
-            echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" >> .env
+            # Khởi chạy bản mới nhất
+            docker compose up -d
             
-            echo "MINIO_URL=${{ secrets.MINIO_URL }}" >> .env
-            echo "MINIO_ROOT_USER=${{ secrets.MINIO_ROOT_USER }}" >> .env
-            echo "MINIO_ROOT_PASSWORD=${{ secrets.MINIO_ROOT_PASSWORD }}" >> .env
-            echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" >> .env
-            
-            # Cấu hình log levels
-            echo "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=DEBUG" >> .env
-            
-            # Chỉ build lại backend và frontend, không đụng tới database để tránh mất dữ liệu
-            docker compose up -d --build lms-backend lms-frontend
+            # Dọn dẹp các bản build/layer cũ bị thừa để giải phóng dung lượng SSD
+            docker image prune -a -f

@@ -60,6 +60,12 @@ public class StudyGroupController {
         return ResponseEntity.ok(studyGroupService.joinGroupByInviteCode(inviteCode));
     }
 
+    // [LEAVE] Rời khỏi nhóm
+    @DeleteMapping("/{id}/leave")
+    public ResponseEntity<String> leaveGroup(@PathVariable UUID id) {
+        return ResponseEntity.ok(studyGroupService.leaveGroup(id));
+    }
+
     // [READ] Lấy danh sách thành viên của nhóm
     @GetMapping("/{id}/members")
     public ResponseEntity<List<GroupMemberDetailView>> getGroupMembers(@PathVariable UUID id) {
