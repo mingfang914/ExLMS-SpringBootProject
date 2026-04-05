@@ -149,45 +149,6 @@ const CustomControlBar = () => {
   );
 };
 
-const PremiumMeetingUI = () => {
-  const tracks = useTracks([
-    { source: Track.Source.Camera, Array: true },
-    { source: Track.Source.ScreenShare, Array: true },
-  ], { onlySubscribed: false });
-
-  // Separate screen shares from camera tracks
-  const screenShareTrack = tracks.find(t => t.source === Track.Source.ScreenShare);
-  const cameraTracks = tracks.filter(t => t.source === Track.Source.Camera);
-
-  return (
-    <Box sx={{ 
-      position: 'relative', 
-      width: '100%', 
-      height: '100%', 
-      bgcolor: '#0f172a', 
-      overflow: 'hidden',
-      display: 'flex',
-      flexDirection: 'column'
-    }}>
-      {/* Main Content Area */}
-      <Box sx={{ flexGrow: 1, padding: 2, display: 'flex' }}>
-         <GridContainer tracks={cameraTracks} screenShareTrack={screenShareTrack} />
-      </Box>
-
-      {/* Controls */}
-      <CustomControlBar />
-
-      <style dangerouslySetInnerHTML={{ __html: `
-        @keyframes pulse {
-          0% { transform: scale(1); opacity: 1; }
-          50% { transform: scale(1.5); opacity: 0.5; }
-          100% { transform: scale(1); opacity: 1; }
-        }
-      `}} />
-    </Box>
-  );
-};
-
 const GridContainer = ({ tracks, screenShareTrack }) => {
   if (screenShareTrack) {
     return (
@@ -233,6 +194,45 @@ const GridContainer = ({ tracks, screenShareTrack }) => {
           <ParticipantTile key={t.participant.sid} trackRef={t} />
         ))}
       </AnimatePresence>
+    </Box>
+  );
+};
+
+const PremiumMeetingUI = () => {
+  const tracks = useTracks([
+    { source: Track.Source.Camera, withPlaceholder: true },
+    { source: Track.Source.ScreenShare, withPlaceholder: false },
+  ], { onlySubscribed: false });
+
+  // Separate screen shares from camera tracks
+  const screenShareTrack = tracks.find(t => t.source === Track.Source.ScreenShare);
+  const cameraTracks = tracks.filter(t => t.source === Track.Source.Camera);
+
+  return (
+    <Box sx={{ 
+      position: 'relative', 
+      width: '100%', 
+      height: '100%', 
+      bgcolor: '#0f172a', 
+      overflow: 'hidden',
+      display: 'flex',
+      flexDirection: 'column'
+    }}>
+      {/* Main Content Area */}
+      <Box sx={{ flexGrow: 1, padding: 2, display: 'flex' }}>
+         <GridContainer tracks={cameraTracks} screenShareTrack={screenShareTrack} />
+      </Box>
+
+      {/* Controls */}
+      <CustomControlBar />
+
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes pulse {
+          0% { transform: scale(1); opacity: 1; }
+          50% { transform: scale(1.5); opacity: 0.5; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+      `}} />
     </Box>
   );
 };

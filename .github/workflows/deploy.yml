@@ -40,7 +40,7 @@ jobs:
           tags: mingfang914/exlms-frontend:latest
           build-args: |
             VITE_GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
-            VITE_LIVEKIT_TOKEN_SERVICE_URL=${{ secrets.LIVEKIT_TOKEN_SERVICE_URL }}
+            VITE_LIVEKIT_SERVICE_URL=${{ secrets.LIVEKIT_TOKEN_SERVICE_URL }}
             VITE_LIVEKIT_SERVER_URL=${{ secrets.LIVEKIT_SERVER_URL }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

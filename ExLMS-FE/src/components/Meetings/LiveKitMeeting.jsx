@@ -1,10 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   LiveKitRoom,
-  VideoConference,
-  LayoutContextProvider,
   RoomAudioRenderer,
-  ControlBar
 } from '@livekit/components-react';
 import '@livekit/components-styles';
 import axios from 'axios';
@@ -16,7 +13,7 @@ const LiveKitMeeting = ({ roomName, identity, name, role, onMeetingEnd }) => {
   const [error, setError] = useState(null);
 
   // Configuration from .env or fallback for local dev
-  const tokenServiceUrl = import.meta.env.VITE_LIVEKIT_TOKEN_SERVICE_URL || 'http://localhost:4000/getToken';
+  const tokenServiceUrl = import.meta.env.VITE_LIVEKIT_SERVICE_URL || 'http://localhost:4000/getToken';
   const livekitServerUrl = import.meta.env.VITE_LIVEKIT_SERVER_URL || 'ws://localhost:7800';
 
   useEffect(() => {
