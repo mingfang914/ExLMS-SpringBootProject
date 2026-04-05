@@ -44,7 +44,7 @@ const QuizResult = () => {
     <Box sx={{ maxWidth: 1000, mx: 'auto', p: { xs: 2, md: 4 } }}>
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
         {/* Score Hero Section */}
-        <Paper sx={{ 
+        <Paper className="premium-glass animate-float" sx={{ 
           p: { xs: 4, md: 8 }, textAlign: 'center', borderRadius: '40px', mb: 6, 
           background: isPassed 
             ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05))' 
@@ -117,8 +117,8 @@ const QuizResult = () => {
         <Grid container spacing={3}>
           {(result.responses || []).map((resp, idx) => (
             <Grid item xs={12} key={idx}>
-              <Paper sx={{ 
-                p: { xs: 3, md: 5 }, borderRadius: '32px', bgcolor: 'var(--color-surface)', 
+              <Paper className="premium-glass glow-on-hover" sx={{ 
+                p: { xs: 3, md: 5 }, borderRadius: '32px',
                 border: '1px solid', borderColor: resp.correct ? alpha('#10B981', 0.1) : alpha('#EF4444', 0.1),
                 position: 'relative', overflow: 'hidden'
               }}>

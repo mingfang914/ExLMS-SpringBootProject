@@ -3,20 +3,22 @@ import {
   Box, Typography, TextField, Button, Paper, Select, MenuItem,
   FormControl, InputLabel, Accordion, AccordionSummary, AccordionDetails,
   IconButton, Chip, Divider, Alert, CircularProgress, Snackbar, Stack, Grid,
-  Dialog, DialogTitle, DialogContent, DialogActions, List, ListItem, 
+  Dialog, DialogTitle, DialogContent, DialogActions, List, ListItem,
   ListItemText, Checkbox, FormControlLabel
 } from '@mui/material'
 import {
   ExpandMore as ExpandMoreIcon, Add as AddIcon, Delete as DeleteIcon,
   DragIndicator as DragIcon, Save as SaveIcon,
-  Description as DocIcon, MenuBook as BookIcon
+  Description as DocIcon, MenuBook as BookIcon, PlayCircle as PlayIcon, AttachFile as FileIcon
 } from '@mui/icons-material'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import courseService from '../../services/courseService'
 
 const CONTENT_TYPES = [
-  { value: 'DOCUMENT', label: 'Document', icon: <DocIcon /> },
+  { value: 'DOCUMENT', label: 'Tài liệu HTML', icon: <DocIcon /> },
+  { value: 'VIDEO', label: 'Video Nhúng', icon: <PlayIcon /> },
+  { value: 'FILE', label: 'Tệp Tải Xuống', icon: <FileIcon /> }
 ]
 
 // Custom Upload Adapter for CKEditor
@@ -153,9 +155,9 @@ const CourseEditor = () => {
         try {
           let data
           if (groupId) {
-             data = await courseService.getCourseDeploymentById(courseId)
+            data = await courseService.getCourseDeploymentById(courseId)
           } else {
-             data = await courseService.getTemplateById(courseId)
+            data = await courseService.getTemplateById(courseId)
           }
           setCourse({
             title: data.title,
@@ -163,12 +165,12 @@ const CourseEditor = () => {
             status: data.status,
             templateId: data.templateId || data.id
           })
-          
+
           const targetId = data.templateId || data.id;
           const [chapterList] = await Promise.all([
             groupId ? courseService.getChapters(targetId) : courseService.getTemplateChapters(targetId)
           ])
-          
+
           const chapterWithLessons = await Promise.all(
             chapterList.map(async (ch) => ({
               ...ch,
@@ -283,7 +285,7 @@ const CourseEditor = () => {
       await courseService.updateLesson(chapterId, lesson.id, {
         title: lesson.title,
         content: lesson.content,
-        contentType: 'DOCUMENT',
+        contentType: lesson.contentType || 'DOCUMENT',
       })
       showSnack(t('course_editor.messages.lesson_saved'))
     } catch (e) {
@@ -308,10 +310,10 @@ const CourseEditor = () => {
   return (
     <Box sx={{ maxWidth: 1000, mx: 'auto', p: { xs: 2, md: 4 } }}>
       {/* Header section with glassmorphism */}
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
+      <Box sx={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
         mb: 4,
         p: 3,
         background: 'var(--glass-bg)',
@@ -329,12 +331,12 @@ const CourseEditor = () => {
             {isEdit ? 'Cập nhật nội dung và thiết kế cho khóa học này' : 'Bắt đầu xây dựng nền tảng tri thức mới'}
           </Typography>
         </Box>
-        <Button 
-          variant="contained" 
-          startIcon={<SaveIcon />} 
-          onClick={handleSaveCourse} 
+        <Button
+          variant="contained"
+          startIcon={<SaveIcon />}
+          onClick={handleSaveCourse}
           disabled={saving}
-          sx={{ 
+          sx={{
             height: 48, borderRadius: '16px', px: 4, fontWeight: 800,
             background: 'linear-gradient(135deg, #6366F1, #4F46E5)',
             boxShadow: '0 8px 20px rgba(99, 102, 241, 0.4)',
@@ -356,14 +358,14 @@ const CourseEditor = () => {
             </Typography>
             <Stack spacing={3}>
               <TextField
-                label={t('course_editor.course_name_label')} 
+                label={t('course_editor.course_name_label')}
                 fullWidth
                 value={course.title || ''}
                 onChange={e => setCourse(p => ({ ...p, title: e.target.value }))}
                 sx={{ '& .MuiOutlinedInput-root': { borderRadius: '14px' } }}
               />
               <TextField
-                label={t('course_editor.course_desc_label')} 
+                label={t('course_editor.course_desc_label')}
                 fullWidth multiline rows={4}
                 value={course.description || ''}
                 onChange={e => setCourse(p => ({ ...p, description: e.target.value }))}
@@ -384,11 +386,11 @@ const CourseEditor = () => {
         {isEdit && (
           <Stack direction="row" spacing={2}>
 
-            <Button 
-              startIcon={<AddIcon />} 
+            <Button
+              startIcon={<AddIcon />}
               onClick={handleAddChapter}
-              sx={{ 
-                borderRadius: '16px', px: 3, fontWeight: 800, 
+              sx={{
+                borderRadius: '16px', px: 3, fontWeight: 800,
                 background: 'linear-gradient(135deg, #6366F1, #4F46E5)', color: 'white',
                 '&:hover': { transform: 'translateY(-2px)' }
               }}
@@ -400,9 +402,8 @@ const CourseEditor = () => {
       </Box>
 
       {!isEdit ? (
-        <Paper sx={{ 
-          p: 6, textAlign: 'center', borderRadius: '32px', 
-          background: 'var(--glass-bg)', border: '2px dashed var(--glass-border)',
+        <Paper className="premium-glass" sx={{
+          p: 6, textAlign: 'center', borderRadius: '32px', border: '2px dashed var(--glass-border)',
           mb: 4
         }}>
           <BookIcon sx={{ fontSize: 48, color: 'var(--color-text-muted)', mb: 2, opacity: 0.3 }} />
@@ -412,8 +413,8 @@ const CourseEditor = () => {
           <Typography variant="body2" sx={{ color: 'var(--color-text-secondary)', mb: 3 }}>
             {t('course_editor.save_to_start_building')}
           </Typography>
-          <Button 
-            variant="contained" 
+          <Button
+            variant="contained"
             onClick={handleSaveCourse}
             disabled={saving}
             sx={{ borderRadius: '12px', px: 4, background: 'var(--color-primary)', fontWeight: 800 }}
@@ -424,22 +425,21 @@ const CourseEditor = () => {
       ) : (
         <>
           {chapters.map((ch, idx) => (
-            <Accordion 
-              key={ch.id} 
+            <Accordion
+              key={ch.id}
               expanded={expandedChapter === ch.id}
               onChange={(_, exp) => setExpandedChapter(exp ? ch.id : null)}
-              sx={{ 
-                mb: 2, 
-                borderRadius: '20px !important', 
-                border: '1px solid var(--color-border)', 
-                bgcolor: 'var(--color-surface)', 
+              className="premium-glass glow-on-hover"
+              sx={{
+                mb: 3,
+                borderRadius: '24px !important',
                 overflow: 'hidden',
-                boxShadow: expandedChapter === ch.id ? 'var(--glass-shadow)' : 'none',
+                borderColor: expandedChapter === ch.id ? 'var(--color-primary)' : 'var(--glass-border)',
                 transition: 'all 0.3s ease',
-                '&:before': { display: 'none' } 
+                '&:before': { display: 'none' }
               }}
             >
-              <AccordionSummary 
+              <AccordionSummary
                 expandIcon={<ExpandMoreIcon sx={{ color: 'var(--color-text-sec)' }} />}
                 sx={{ p: 3, '&.Mui-expanded': { background: 'var(--color-surface-2)' } }}
               >
@@ -447,42 +447,42 @@ const CourseEditor = () => {
                 <Typography fontWeight={800} sx={{ flexGrow: 1, color: 'var(--color-text)', fontSize: '1.1rem' }}>
                   Chương {idx + 1}: {ch.title}
                 </Typography>
-                <Chip 
-                  label={`${ch.lessons?.length || 0} bài học`} 
-                  size="small" 
-                  sx={{ 
-                    mr: 2, 
-                    fontWeight: 800, 
-                    bgcolor: 'rgba(99, 102, 241, 0.1)', 
-                    color: 'var(--color-primary)' 
-                  }} 
+                <Chip
+                  label={`${ch.lessons?.length || 0} bài học`}
+                  size="small"
+                  sx={{
+                    mr: 2,
+                    fontWeight: 800,
+                    bgcolor: 'rgba(99, 102, 241, 0.1)',
+                    color: 'var(--color-primary)'
+                  }}
                 />
               </AccordionSummary>
               <AccordionDetails sx={{ p: 4 }}>
                 {/* Chapter Config */}
                 <Box sx={{ display: 'flex', gap: 2, mb: 4, p: 2, borderRadius: '16px', background: 'var(--color-surface-2)' }}>
-                  <TextField 
-                    label="Tên chương học" 
-                    size="small" 
+                  <TextField
+                    label="Tên chương học"
+                    size="small"
                     fullWidth
                     value={ch.title || ''}
                     onChange={e => updateChapterField(ch.id, 'title', e.target.value)}
                     sx={{ bgcolor: 'var(--color-surface)', '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
                   />
-                  <Button 
-                    variant="contained" 
+                  <Button
+                    variant="contained"
                     onClick={() => handleSaveChapter(ch)}
                     sx={{ borderRadius: '10px', px: 4, fontWeight: 700 }}
                   >
                     Lưu
                   </Button>
-                  <IconButton 
-                    color="error" 
-                    onClick={() => handleDeleteChapter(ch.id)} 
-                    sx={{ 
-                      borderRadius: '10px', 
+                  <IconButton
+                    color="error"
+                    onClick={() => handleDeleteChapter(ch.id)}
+                    sx={{
+                      borderRadius: '10px',
                       background: 'rgba(239, 68, 68, 0.05)',
-                      border: '1px solid rgba(239, 68, 68, 0.1)' 
+                      border: '1px solid rgba(239, 68, 68, 0.1)'
                     }}
                   >
                     <DeleteIcon />
@@ -496,64 +496,100 @@ const CourseEditor = () => {
 
                 <Stack spacing={2.5}>
                   {(ch.lessons || []).map((lesson, lIdx) => (
-                    <Paper 
-                      key={lesson.id} 
-                      elevation={0} 
-                      sx={{ 
-                        p: 0, 
-                        mb: 2, 
-                        borderRadius: '20px', 
-                        border: '1px solid var(--color-border)', 
-                        bgcolor: 'var(--color-surface)',
+                    <Paper
+                      key={lesson.id}
+                      elevation={0}
+                      className="premium-glass"
+                      sx={{
+                        p: 0,
+                        mb: 2.5,
+                        borderRadius: '20px',
                         overflow: 'hidden'
                       }}
                     >
                       <Box sx={{ display: 'flex', gap: 1.5, p: 2, background: 'var(--color-surface-2)', borderBottom: '1px solid var(--color-border)' }}>
-                        <TextField 
-                          label={`Bài ${lIdx + 1}: Tên bài học`} 
-                          size="small" 
+                        <FormControl size="small" sx={{ minWidth: 140 }}>
+                          <Select
+                            value={lesson.contentType || 'DOCUMENT'}
+                            onChange={e => updateLessonField(ch.id, lesson.id, 'contentType', e.target.value)}
+                            sx={{ borderRadius: '8px', fontWeight: 700, bgcolor: 'var(--color-surface)' }}
+                          >
+                            <MenuItem value="DOCUMENT">Tài liệu HTML</MenuItem>
+                            <MenuItem value="VIDEO">Video Nhúng</MenuItem>
+                            <MenuItem value="FILE">Tệp Tải Xuống</MenuItem>
+                          </Select>
+                        </FormControl>
+                        <TextField
+                          label={`Bài ${lIdx + 1}: Tên bài học`}
+                          size="small"
                           fullWidth
-                          variant="standard"
+                          variant="outlined"
                           value={lesson.title || ''}
                           onChange={e => updateLessonField(ch.id, lesson.id, 'title', e.target.value)}
-                          sx={{ '& .MuiInput-root': { fontWeight: 700 } }}
+                          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px', bgcolor: 'var(--color-surface)' }, '& .MuiInputBase-input': { fontWeight: 700 } }}
                         />
-                        <Button 
-                          variant="text" 
-                          size="small" 
+                        <Button
+                          variant="contained"
+                          size="small"
                           startIcon={<SaveIcon />}
                           onClick={() => handleSaveLesson(ch.id, lesson)}
-                          sx={{ borderRadius: '8px', fontWeight: 700 }}
+                          sx={{ borderRadius: '8px', fontWeight: 700, background: 'linear-gradient(135deg, #6366F1, #4F46E5)' }}
                         >
                           Lưu
                         </Button>
-                        <IconButton 
-                          color="error" 
-                          size="small" 
+                        <IconButton
+                          color="error"
+                          size="small"
                           onClick={() => handleDeleteLesson(ch.id, lesson.id)}
-                          sx={{ borderRadius: '8px' }}
+                          sx={{ borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.2)', bgcolor: 'rgba(239, 68, 68, 0.05)' }}
                         >
                           <DeleteIcon fontSize="small" />
                         </IconButton>
                       </Box>
                       <Box sx={{ p: 2 }}>
-                        <CKEditorWrapper
-                          lessonId={lesson.id}
-                          value={lesson.content || ''}
-                          onChange={val => updateLessonField(ch.id, lesson.id, 'content', val)}
-                        />
+                        {(!lesson.contentType || lesson.contentType === 'DOCUMENT') && (
+                          <CKEditorWrapper
+                            lessonId={lesson.id}
+                            value={lesson.content || ''}
+                            onChange={val => updateLessonField(ch.id, lesson.id, 'content', val)}
+                          />
+                        )}
+                        {lesson.contentType === 'VIDEO' && (
+                          <Box sx={{ p: 3, border: '2px dashed var(--color-border)', borderRadius: '16px', bgcolor: 'var(--color-surface-2)', textAlign: 'center' }}>
+                            <PlayIcon sx={{ fontSize: 40, color: '#6366F1', mb: 1 }} />
+                            <TextField
+                              fullWidth
+                              label="URL Video (VD: YouTube, Vimeo...)"
+                              value={lesson.content || ''}
+                              onChange={e => updateLessonField(ch.id, lesson.id, 'content', e.target.value)}
+                              sx={{ mt: 2, '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: 'var(--color-surface)' } }}
+                            />
+                          </Box>
+                        )}
+                        {lesson.contentType === 'FILE' && (
+                          <Box sx={{ p: 3, border: '2px dashed var(--color-border)', borderRadius: '16px', bgcolor: 'var(--color-surface-2)', textAlign: 'center' }}>
+                            <FileIcon sx={{ fontSize: 40, color: '#F59E0B', mb: 1 }} />
+                            <TextField
+                              fullWidth
+                              label="Đường dẫn tĩnh tới File"
+                              value={lesson.content || ''}
+                              onChange={e => updateLessonField(ch.id, lesson.id, 'content', e.target.value)}
+                              sx={{ mt: 2, '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: 'var(--color-surface)' } }}
+                            />
+                          </Box>
+                        )}
                       </Box>
                     </Paper>
                   ))}
                 </Stack>
 
-                <Button 
+                <Button
                   fullWidth
                   onClick={() => handleAddLesson(ch.id)}
-                  sx={{ 
-                    mt: 3, 
+                  sx={{
+                    mt: 3,
                     py: 2,
-                    borderRadius: '16px', 
+                    borderRadius: '16px',
                     border: '2px dashed var(--color-border)',
                     color: 'var(--color-primary)',
                     fontWeight: 800,

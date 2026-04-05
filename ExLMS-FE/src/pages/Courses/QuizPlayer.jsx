@@ -120,9 +120,8 @@ const QuizPlayer = () => {
         {/* Main Quiz Area */}
         <Box>
           <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }}>
-            <Paper sx={{ 
-              p: { xs: 3, md: 6 }, borderRadius: '32px', border: '1px solid var(--color-border)', 
-              background: 'var(--color-surface)', position: 'relative', overflow: 'hidden' 
+            <Paper className="premium-glass" sx={{ 
+              p: { xs: 3, md: 6 }, borderRadius: '32px', position: 'relative', overflow: 'hidden' 
             }}>
               {/* Question Header */}
               <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -148,16 +147,12 @@ const QuizPlayer = () => {
                     {(currentQ.questionType === 'SINGLE_CHOICE' || currentQ.questionType === 'TRUE_FALSE') && (
                       <RadioGroup value={answers[currentQ.id] || ''} onChange={(e) => handleAnswer(currentQ.id, e.target.value)}>
                         {currentQ.answers.map(a => (
-                          <FormControlLabel key={a.id} value={a.id} control={<Radio sx={{ display: 'none' }} />} 
-                            label={<Typography sx={{ fontWeight: 700, p: 2, textAlign: 'center', width: '100%' }}>{a.content}</Typography>}
-                            sx={{ 
-                              mb: 2, mx: 0, borderRadius: '16px', border: '2px solid', width: '100%',
-                              borderColor: answers[currentQ.id] === a.id ? '#6366F1' : 'var(--color-border)',
-                              bgcolor: answers[currentQ.id] === a.id ? alpha('#6366F1', 0.05) : 'transparent',
-                              '&:hover': { bgcolor: alpha('#6366F1', 0.02) },
-                              '& .MuiFormControlLabel-label': { width: '100%' }
-                            }} 
-                          />
+                          <Box key={a.id} className={`answer-tile ${answers[currentQ.id] === a.id ? 'selected' : ''}`} sx={{ mb: 2, borderRadius: '16px' }}>
+                            <FormControlLabel value={a.id} control={<Radio sx={{ display: 'none' }} />} 
+                              label={<Typography sx={{ fontWeight: 700, p: 2, textAlign: 'center', width: '100%', color: answers[currentQ.id] === a.id ? 'var(--color-primary)' : 'var(--color-text)' }}>{a.content}</Typography>}
+                              sx={{ m: 0, width: '100%', '& .MuiFormControlLabel-label': { width: '100%' } }} 
+                            />
+                          </Box>
                         ))}
                       </RadioGroup>
                     )}
@@ -167,14 +162,12 @@ const QuizPlayer = () => {
                         {currentQ.answers.map(a => {
                           const isSel = (answers[currentQ.id] || []).includes(a.id)
                           return (
-                            <FormControlLabel key={a.id} control={<Checkbox checked={isSel} onChange={(e) => handleAnswer(currentQ.id, a.id, true, e.target.checked)} />} 
-                              label={<Typography sx={{ fontWeight: 700, p: 2 }}>{a.content}</Typography>}
-                              sx={{ 
-                                mb: 2, mx: 0, borderRadius: '16px', border: '2px solid',
-                                borderColor: isSel ? '#6366F1' : 'var(--color-border)',
-                                bgcolor: isSel ? alpha('#6366F1', 0.05) : 'transparent'
-                              }}
-                            />
+                            <Box key={a.id} className={`answer-tile ${isSel ? 'selected' : ''}`} sx={{ mb: 2, borderRadius: '16px' }}>
+                              <FormControlLabel control={<Checkbox checked={isSel} onChange={(e) => handleAnswer(currentQ.id, a.id, true, e.target.checked)} />} 
+                                label={<Typography sx={{ fontWeight: 700, p: 2, color: isSel ? 'var(--color-primary)' : 'var(--color-text)' }}>{a.content}</Typography>}
+                                sx={{ m: 0, width: '100%', '& .MuiFormControlLabel-label': { width: '100%' } }}
+                              />
+                            </Box>
                           )
                         })}
                       </Box>
@@ -213,7 +206,7 @@ const QuizPlayer = () => {
         {/* Sidebar Info */}
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           {/* Timer Card */}
-          <Paper sx={{ p: 4, borderRadius: '24px', textAlign: 'center', background: 'var(--glass-bg)', backdropFilter: 'blur(10px)', border: '1px solid var(--glass-border)' }}>
+          <Paper className="premium-glass" sx={{ p: 4, borderRadius: '24px', textAlign: 'center' }}>
             <Typography variant="overline" color="var(--color-text-muted)" fontWeight={800}>THỜI GIAN CÒN LẠI</Typography>
             <Typography variant="h2" fontWeight={900} sx={{ color: timeLeft < 60 ? '#EF4444' : '#6366F1', fontFamily: 'monospace', mb: 2 }}>
               {formatTime(timeLeft)}
@@ -222,7 +215,7 @@ const QuizPlayer = () => {
           </Paper>
 
           {/* Question Grid */}
-          <Paper sx={{ p: 4, borderRadius: '24px', bgcolor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
+          <Paper className="premium-glass" sx={{ p: 4, borderRadius: '24px' }}>
             <Typography variant="h6" fontWeight={800} sx={{ mb: 3 }}>DANH SÁCH CÂU HỎI</Typography>
             <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 1.5 }}>
               {quiz.questions.map((q, i) => {
