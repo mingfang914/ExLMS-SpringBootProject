@@ -112,10 +112,22 @@ const QuizDetail = () => {
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <Stack direction="row" spacing={2} alignItems="center" sx={{ p: 2, borderRadius: 2, bgcolor: 'rgba(255,255,255,0.02)' }}>
-              <ShuffleIcon color="secondary" />
+              <ShuffleIcon sx={{ color: quiz.shuffleQuestions ? '#818CF8' : 'var(--color-text-muted)' }} />
               <Box>
                 <Typography variant="caption" color="var(--color-text-muted)">Trộn câu hỏi</Typography>
-                <Typography variant="body1" fontWeight={700} color="#FFF">{quiz.shuffleQuestions ? 'Có' : 'Không'}</Typography>
+                <Box sx={{ mt: 0.5 }}>
+                  <Chip 
+                    label={quiz.shuffleQuestions ? 'Đang bật' : 'Tắt'} 
+                    size="small" 
+                    variant={quiz.shuffleQuestions ? 'filled' : 'outlined'}
+                    sx={{ 
+                        height: 20, fontSize: '0.65rem', fontWeight: 800,
+                        bgcolor: quiz.shuffleQuestions ? 'rgba(129, 140, 248, 0.2)' : 'transparent',
+                        color: quiz.shuffleQuestions ? '#818CF8' : 'var(--color-text-muted)',
+                        borderColor: quiz.shuffleQuestions ? 'transparent' : 'rgba(255,255,255,0.1)'
+                    }} 
+                  />
+                </Box>
               </Box>
             </Stack>
           </Grid>

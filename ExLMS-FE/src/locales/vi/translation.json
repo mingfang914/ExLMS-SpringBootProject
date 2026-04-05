@@ -1,4 +1,9 @@
 {
+  "navigation": {
+    "notifications": "Thông báo",
+    "unread_count": "Bạn có {{count}} thông báo mới",
+    "all_caught_up": "Bạn đã xem hết thông báo rồi!"
+  },
   "common": {
     "search": "Tìm kiếm...",
     "save": "Lưu",
@@ -33,7 +38,10 @@
     "confirm_delete": "Bạn có chắc chắn muốn xóa không?",
     "language_vi": "Tiếng Việt",
     "language_en": "Tiếng Anh",
-    "copy": "Chép mã"
+    "copy": "Chép mã",
+    "no_notifications": "Chưa có thông báo nào",
+    "mark_all_read": "Đánh dấu tất cả là đã đọc",
+    "view_details": "Xem chi tiết"
   },
   "nav": {
     "dashboard": "Bảng điều khiển",
@@ -694,6 +702,7 @@
     "max_attempts_label": "Số lần làm lại tối đa",
     "passing_score_label": "Điểm qua môn (%)",
     "shuffle_questions_label": "Xáo trộn thứ tự câu hỏi",
+    "shuffle_questions_hint": "Xáo trộn thứ tự các câu hỏi và đáp án cho từng sinh viên.",
     "visibility_label": "Hiển thị kết quả",
     "visibility": {
       "immediate": "Ngay sau khi nộp",

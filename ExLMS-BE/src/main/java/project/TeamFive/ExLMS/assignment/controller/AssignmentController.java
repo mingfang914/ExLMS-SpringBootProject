@@ -56,7 +56,7 @@ public class AssignmentController {
     @DeleteMapping("/assignments/{id}")
     public ResponseEntity<Void> deleteAssignment(
             @PathVariable UUID id) {
-        assignmentService.deleteAssignment(id);
+        assignmentService.deleteAssignmentDeployment(id);
         return ResponseEntity.noContent().build();
     }
 }

@@ -287,7 +287,20 @@ const Login = () => {
               <Box sx={{ mt: 2, mb: 0.5 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.75 }}>
                   <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600, color: '#8B949E' }}>{t('auth.password')}</Typography>
-                  <Typography component="a" sx={{ fontSize: '0.75rem', color: '#818CF8', cursor: 'pointer', '&:hover': { color: '#22D3EE' }, transition: 'color 0.2s' }}>{t('auth.forgot_password')}</Typography>
+                  <Typography 
+                    component={RouterLink} 
+                    to="/forgot-password"
+                    sx={{ 
+                      fontSize: '0.75rem', 
+                      color: '#818CF8', 
+                      textDecoration: 'none',
+                      cursor: 'pointer', 
+                      '&:hover': { color: '#22D3EE' }, 
+                      transition: 'color 0.2s' 
+                    }}
+                  >
+                    {t('auth.forgot_password')}
+                  </Typography>
                 </Box>
                 <TextField fullWidth id="password" name="password" type={showPwd ? 'text' : 'password'} placeholder={t('auth.placeholder_password')} value={password} onChange={(e) => setPassword(e.target.value)} InputProps={{ startAdornment: <InputAdornment position="start" sx={{ color: '#6E7681' }}><LockIcon /></InputAdornment>, endAdornment: <InputAdornment position="end"><IconButton onClick={() => setShowPwd(!showPwd)} edge="end" sx={{ color: '#6E7681', '&:hover': { color: '#F0F6FC' }, mr: -0.5 }}>{showPwd ? <EyeOffIcon /> : <EyeIcon />}</IconButton></InputAdornment> }} sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'rgba(33,38,45,0.6)', borderRadius: '10px', color: '#F0F6FC' } }} />
               </Box>

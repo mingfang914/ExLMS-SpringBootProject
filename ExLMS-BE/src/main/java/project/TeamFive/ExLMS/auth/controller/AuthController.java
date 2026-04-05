@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import project.TeamFive.ExLMS.auth.dto.request.GoogleOAuth2Request;
 import project.TeamFive.ExLMS.auth.dto.request.RegisterRequest;
 import project.TeamFive.ExLMS.auth.dto.request.LoginRequest;
+import project.TeamFive.ExLMS.auth.dto.request.ForgotPasswordRequest;
+import project.TeamFive.ExLMS.auth.dto.request.ResetPasswordRequest;
 import project.TeamFive.ExLMS.auth.dto.response.AuthResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -42,5 +44,15 @@ public class AuthController {
     @PostMapping("/oauth2/google")
     public ResponseEntity<AuthResponse> googleLogin(@Valid @RequestBody GoogleOAuth2Request request) {
         return ResponseEntity.ok(oAuth2GoogleService.authenticateWithGoogle(request));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        return ResponseEntity.ok(authService.forgotPassword(request));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        return ResponseEntity.ok(authService.resetPassword(request));
     }
 }

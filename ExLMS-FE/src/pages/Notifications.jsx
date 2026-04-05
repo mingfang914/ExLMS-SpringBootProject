@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import {
   Box,
   Typography,
@@ -10,8 +10,10 @@ import {
   Chip,
 } from '@mui/material'
 import { useSelector, useDispatch } from 'react-redux'
-import { markAsRead, markAllAsRead } from '../store/notificationSlice'
+import { markAsRead, markAllAsRead, setNotifications } from '../store/notificationSlice'
+import notificationService from '../services/notificationService'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 
 // ── SVG Icons ─────────────────────────────────────────────────────
@@ -36,6 +38,11 @@ const CheckAllIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="20 6 9 17 4 12"/><polyline points="16 6 5 17"/>
   </svg>
+)
+const ArrowIcon = () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/>
+    </svg>
 )
 
 const container = {
@@ -66,6 +73,30 @@ const Notifications = () => {
   const { t, i18n } = useTranslation()
   const { notifications, unreadCount } = useSelector((state) => state.notifications)
   const dispatch = useDispatch()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    notificationService.getNotifications()
+        .then(data => dispatch(setNotifications(data)))
+        .catch(err => console.error(err))
+  }, [dispatch]);
+
+  const handleMarkRead = (id) => {
+    dispatch(markAsRead(id))
+    notificationService.markAsRead(id).catch(err => console.error(err))
+  }
+
+  const handleMarkAll = () => {
+    dispatch(markAllAsRead())
+    notificationService.markAllAsRead().catch(err => console.error(err))
+  }
+
+  const handleAction = (notif) => {
+    if (!notif.read) handleMarkRead(notif.id)
+    if (notif.actionUrl) {
+        navigate(notif.actionUrl)
+    }
+  }
 
   return (
     <Box sx={{ maxWidth: 720, mx: 'auto', pb: 6 }}>
@@ -102,7 +133,7 @@ const Notifications = () => {
 
           {unreadCount > 0 && (
             <Button
-              onClick={() => dispatch(markAllAsRead())}
+              onClick={handleMarkAll}
               variant="outlined"
               startIcon={<CheckAllIcon />}
               sx={{
@@ -168,14 +199,14 @@ const Notifications = () => {
                     gap: 2,
                     px: 3, py: 2.5,
                     bgcolor: notif.read ? 'transparent' : 'rgba(99,102,241,0.04)',
-                    borderLeft: notif.read ? '3px solid transparent' : '3px solid rgba(99,102,241,0.5)',
+                    borderLeft: notif.read ? '3px solid transparent' : '3px solid #6366F1',
                     transition: 'all 0.2s',
-                    cursor: notif.read ? 'default' : 'pointer',
+                    cursor: 'pointer',
                     '&:hover': {
                       bgcolor: 'rgba(240,246,252,0.02)',
                     },
                   }}
-                  onClick={() => !notif.read && dispatch(markAsRead(notif.id))}
+                  onClick={() => handleAction(notif)}
                 >
                   {/* Icon */}
                   <Avatar
@@ -190,22 +221,22 @@ const Notifications = () => {
 
                   {/* Content */}
                   <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 1, mb: 0.5 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 1, mb: 1 }}>
                       <Typography
                         sx={{
-                          fontSize: '0.875rem',
-                          fontWeight: notif.read ? 400 : 600,
+                          fontSize: '0.9375rem',
+                          fontWeight: notif.read ? 600 : 800,
                           color: 'var(--color-text)',
                           lineHeight: 1.45,
                         }}
                       >
-                        {notif.message}
+                        {notif.title}
                       </Typography>
                       {!notif.read && (
                         <Tooltip title={t('common.mark_as_read')}>
                           <IconButton
                             size="small"
-                            onClick={(e) => { e.stopPropagation(); dispatch(markAsRead(notif.id)) }}
+                            onClick={(e) => { e.stopPropagation(); handleMarkRead(notif.id) }}
                             sx={{
                               width: 28, height: 28, flexShrink: 0,
                               color: 'var(--color-text-muted)', cursor: 'pointer',
@@ -217,25 +248,56 @@ const Notifications = () => {
                         </Tooltip>
                       )}
                     </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                      <Typography sx={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                        {timeSince(notif.createdAt, t, i18n)}
-                      </Typography>
-                      {!notif.read && (
-                        <Box
-                          sx={{
-                            width: 6, height: 6, borderRadius: '50%',
-                            background: 'linear-gradient(135deg, #6366F1, #22D3EE)',
-                            flexShrink: 0,
-                          }}
-                        />
-                      )}
+                    <Typography
+                      sx={{
+                        fontSize: '0.875rem',
+                        color: 'var(--color-text-sec)',
+                        mb: 1.5,
+                        lineHeight: 1.5
+                      }}
+                    >
+                      {notif.body}
+                    </Typography>
+                    
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <Typography sx={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                            {timeSince(notif.createdAt, t, i18n)}
+                        </Typography>
+                        {!notif.read && (
+                            <Box
+                            sx={{
+                                width: 6, height: 6, borderRadius: '50%',
+                                background: 'linear-gradient(135deg, #6366F1, #22D3EE)',
+                                flexShrink: 0,
+                            }}
+                            />
+                        )}
+                        </Box>
+                        
+                        {notif.actionUrl && (
+                        <Button
+                            size="small"
+                            variant="text"
+                            endIcon={<ArrowIcon />}
+                            sx={{
+                                fontSize: '0.75rem',
+                                fontWeight: 600,
+                                color: 'var(--color-primary-lt)',
+                                textTransform: 'none',
+                                p: 0, minWidth: 0,
+                                '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' }
+                            }}
+                        >
+                            {t('common.view_details')}
+                        </Button>
+                        )}
                     </Box>
                   </Box>
                 </Box>
 
                 {index < notifications.length - 1 && (
-                  <Divider sx={{ borderColor: 'rgba(48,54,61,0.5)' }} />
+                  <Divider sx={{ borderColor: 'var(--color-border)', opacity: 0.6 }} />
                 )}
               </motion.div>
             ))}

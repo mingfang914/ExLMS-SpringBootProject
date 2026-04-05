@@ -36,6 +36,9 @@ public interface GroupMemberRepository extends JpaRepository<GroupMember, UUID> 
 
     List<GroupMember> findByGroup_Id(UUID groupId);
 
+    @Query("SELECT gm.user.email FROM GroupMember gm WHERE gm.group.id = :groupId AND gm.status = 'ACTIVE'")
+    List<String> findEmailsByGroupId(@Param("groupId") UUID groupId);
+
     @org.springframework.transaction.annotation.Transactional
     @org.springframework.data.jpa.repository.Modifying
     void deleteByGroupAndUser(StudyGroup group, User user);

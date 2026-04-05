@@ -3,6 +3,8 @@ import { Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 import LandingPage from './pages/LandingPage'
 import Dashboard from './pages/Dashboard'
 import GroupList from './pages/Groups/GroupList'
@@ -35,7 +37,7 @@ import InventoryAssignmentDetail from './pages/Inventory/AssignmentDetail'
 import InventoryQuizDetail from './pages/Inventory/QuizDetail'
 import Layout from './components/Layout'
 import ProtectedRoute from './components/Common/ProtectedRoute'
-import { initSocket, disconnectSocket } from './services/socketService'
+import SocketManager from './components/Notification/SocketManager'
 import { setUser } from './store/authSlice'
 import authService from './services/authService'
 
@@ -44,26 +46,21 @@ function App() {
   const dispatch = useDispatch()
 
   useEffect(() => {
-    if (isAuthenticated) {
-      initSocket()
-      if (!user) {
-        authService.getCurrentUser()
-          .then(data => dispatch(setUser(data)))
-          .catch(err => console.error('Failed to restore user session:', err))
-      }
-    } else {
-      disconnectSocket()
-    }
-
-    return () => {
-      disconnectSocket()
+    if (isAuthenticated && !user) {
+      authService.getCurrentUser()
+        .then(data => dispatch(setUser(data)))
+        .catch(err => console.error('Failed to restore user session:', err))
     }
   }, [isAuthenticated, user, dispatch])
 
   return (
+    <>
+    <SocketManager />
     <Routes>
       <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/" />} />
       <Route path="/register" element={!isAuthenticated ? <Register /> : <Navigate to="/" />} />
+      <Route path="/forgot-password" element={!isAuthenticated ? <ForgotPassword /> : <Navigate to="/" />} />
+      <Route path="/reset-password" element={!isAuthenticated ? <ResetPassword /> : <Navigate to="/" />} />
       
       <Route
         path="/"
@@ -139,6 +136,7 @@ function App() {
       {/* Fallback routes */}
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
+    </>
   )
 }
 

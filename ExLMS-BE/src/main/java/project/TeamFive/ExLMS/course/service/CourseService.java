@@ -34,6 +34,7 @@ public class CourseService {
     private final StudyGroupRepository studyGroupRepository;
     private final GroupMemberRepository groupMemberRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final project.TeamFive.ExLMS.notification.service.NotificationService notificationService;
 
     private void requireInstructorRole(StudyGroup group, User user) {
         GroupMember member = groupMemberRepository.findByGroup_IdAndUser_Id(group.getId(), user.getId())
@@ -54,7 +55,12 @@ public class CourseService {
         }
     }
 
-    private GroupCourse.GroupCourseStatus determineInitialStatus(LocalDateTime startDate, LocalDateTime endDate) {
+    private GroupCourse.GroupCourseStatus determineInitialStatus(String requestedStatus, LocalDateTime startDate, LocalDateTime endDate) {
+        if (requestedStatus != null) {
+            try {
+                return GroupCourse.GroupCourseStatus.valueOf(requestedStatus);
+            } catch (Exception e) {}
+        }
         LocalDateTime now = LocalDateTime.now();
         if (startDate != null && startDate.isAfter(now)) {
             return GroupCourse.GroupCourseStatus.DRAFT;
@@ -90,9 +96,19 @@ public class CourseService {
                 .course(template)
                 .startDate(request.getStartDate())
                 .endDate(request.getEndDate())
-                .status(determineInitialStatus(request.getStartDate(), request.getEndDate()))
+                .status(determineInitialStatus(request.getStatus(), request.getStartDate(), request.getEndDate()))
                 .build();
         deployment = groupCourseRepository.save(deployment);
+
+        // Gửi thông báo (Async)
+        notificationService.notifyGroupPublishedItem(
+            group, 
+            "Khóa học", 
+            template.getTitle(), 
+            deployment.getStatus().name(), 
+            deployment.getId(), 
+            "/courses/" + deployment.getId()
+        );
 
         eventPublisher.publishEvent(new CourseCreatedEvent(this, deployment));
         return mapToResponse(deployment);
@@ -161,6 +177,8 @@ public class CourseService {
             deployment.setEndDate(request.getEndDate());
         }
 
+        GroupCourse.GroupCourseStatus oldStatus = deployment.getStatus();
+        
         // Chỉ cho phép chuyển đổi giữa DRAFT và PUBLISHED (System sẽ tự chuyển qua CLOSED)
         if (request.getStatus() != null) {
             String newStatus = request.getStatus();
@@ -173,6 +191,19 @@ public class CourseService {
         }
 
         deployment = groupCourseRepository.save(deployment);
+        
+        // Nếu chuyển trạng thái sang PUBLISHED, gửi thông báo
+        if (oldStatus == GroupCourse.GroupCourseStatus.DRAFT && deployment.getStatus() == GroupCourse.GroupCourseStatus.PUBLISHED) {
+            notificationService.notifyGroupPublishedItem(
+                deployment.getGroup(), 
+                "Khóa học", 
+                deployment.getCourse().getTitle(), 
+                deployment.getStatus().name(), 
+                deployment.getId(), 
+                "/courses/" + deployment.getId()
+            );
+        }
+
         eventPublisher.publishEvent(new CourseUpdatedEvent(this, deployment));
         return mapToResponse(deployment);
     }
@@ -225,10 +256,21 @@ public class CourseService {
                     .course(template)
                     .startDate(request.getStartDate())
                     .endDate(request.getEndDate())
-                    .status(determineInitialStatus(request.getStartDate(), request.getEndDate()))
+                    .status(determineInitialStatus(request.getStatus(), request.getStartDate(), request.getEndDate()))
                     .build();
-            groupCourseRepository.save(deployment);
-            eventPublisher.publishEvent(new CourseCreatedEvent(this, deployment));
+            GroupCourse saved = groupCourseRepository.save(deployment);
+
+            // Thông báo (Async)
+            notificationService.notifyGroupPublishedItem(
+                group, 
+                "Khóa học", 
+                template.getTitle(), 
+                saved.getStatus().name(), 
+                saved.getId(), 
+                "/courses/" + saved.getId()
+            );
+
+            eventPublisher.publishEvent(new CourseCreatedEvent(this, saved));
         }
     }
 

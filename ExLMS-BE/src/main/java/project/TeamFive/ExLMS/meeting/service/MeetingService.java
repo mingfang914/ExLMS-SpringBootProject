@@ -24,6 +24,7 @@ import project.TeamFive.ExLMS.meeting.dto.request.QuestionRequest;
 import project.TeamFive.ExLMS.meeting.dto.response.*;
 import project.TeamFive.ExLMS.meeting.entity.*;
 import project.TeamFive.ExLMS.meeting.repository.*;
+import project.TeamFive.ExLMS.notification.service.NotificationService;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -46,6 +47,7 @@ public class MeetingService {
     private final MeetingPollVoteRepository pollVoteRepository;
     private final SimpMessagingTemplate messagingTemplate;
     private final ApplicationEventPublisher eventPublisher;
+    private final NotificationService notificationService;
 
     private void broadcast(UUID meetingId, String type, Object data) {
         String destination = "/topic/meeting/" + meetingId;
@@ -92,6 +94,16 @@ public class MeetingService {
                 .build();
 
         meeting = meetingRepository.save(meeting);
+        
+        // Notify Group members if published
+        notificationService.notifyGroupPublishedItem(
+            group,
+            "Cuộc họp",
+            meeting.getTitle(),
+            meeting.getStatus().name(),
+            meeting.getId(),
+            "/meetings/" + meeting.getId()
+        );
 
         // Notify through event for calendar sync
         eventPublisher.publishEvent(new MeetingScheduledEvent(this, meeting));
@@ -126,6 +138,16 @@ public class MeetingService {
         }
 
         meeting = meetingRepository.save(meeting);
+        
+        // Notify Group members if status changed to published
+        notificationService.notifyGroupPublishedItem(
+            meeting.getGroup(),
+            "Cuộc họp",
+            meeting.getTitle(),
+            meeting.getStatus().name(),
+            meeting.getId(),
+            "/meetings/" + meeting.getId()
+        );
 
         // Notify through event for calendar sync update
         eventPublisher.publishEvent(new MeetingUpdatedEvent(this, meeting));

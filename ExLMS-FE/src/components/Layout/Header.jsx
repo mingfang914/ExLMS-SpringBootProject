@@ -26,6 +26,7 @@ import { logout } from '../../store/authSlice'
 import { markAsRead, markAllAsRead } from '../../store/notificationSlice'
 import { useNavigate } from 'react-router-dom'
 import authService from '../../services/authService'
+import notificationService from '../../services/notificationService'
 import { motion, AnimatePresence } from 'framer-motion'
 import { alpha } from '@mui/material/styles'
 import ThemeToggle from '../Common/ThemeToggle'
@@ -87,7 +88,15 @@ const Header = () => {
     navigate('/')
   }
 
-  const handleNotifClick = (id) => dispatch(markAsRead(id))
+  const handleNotifClick = (id) => {
+    dispatch(markAsRead(id))
+    notificationService.markAsRead(id).catch(err => console.error(err))
+  }
+
+  const handleMarkAll = () => {
+    dispatch(markAllAsRead())
+    notificationService.markAllAsRead().catch(err => console.error(err))
+  }
 
   const getTimeDiff = (dateStr) => {
     try {
@@ -311,7 +320,7 @@ const Header = () => {
             <Button
               size="small"
               startIcon={<CheckAllIcon />}
-              onClick={() => dispatch(markAllAsRead())}
+              onClick={handleMarkAll}
               sx={{
                 fontSize: '0.75rem',
                 color: 'var(--color-primary-lt)',
@@ -365,15 +374,22 @@ const Header = () => {
                     </Avatar>
                   </ListItemAvatar>
                   <ListItemText
+                    primaryTypographyProps={{ component: 'div' }}
+                    secondaryTypographyProps={{ component: 'div' }}
                     primary={
-                      <Typography sx={{ fontSize: '0.8125rem', fontWeight: notif.read ? 400 : 600, color: 'var(--color-text)', lineHeight: 1.4, mb: '2px' }}>
-                        {notif.message}
+                      <Typography component="div" sx={{ fontSize: '0.8125rem', fontWeight: notif.read ? 400 : 700, color: 'var(--color-text)', lineHeight: 1.4, mb: '2px' }}>
+                        {notif.title}
                       </Typography>
                     }
                     secondary={
-                      <Typography sx={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)' }}>
-                        {getTimeDiff(notif.createdAt)}
-                      </Typography>
+                      <Box component="div">
+                        <Typography component="div" sx={{ fontSize: '0.75rem', color: 'var(--color-text-sec)', mb: 0.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                          {notif.body}
+                        </Typography>
+                        <Typography component="div" sx={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)' }}>
+                          {getTimeDiff(notif.createdAt)}
+                        </Typography>
+                      </Box>
                     }
                   />
                   {!notif.read && (

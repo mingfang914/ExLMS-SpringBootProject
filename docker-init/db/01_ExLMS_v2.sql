@@ -1,11 +1,11 @@
 -- ExLMS Database Schema Refactored (Template/Deployment Pattern)
 -- v2.1 - Complete Schema Fix
 
-CREATE DATABASE IF NOT EXISTS ExLMS
+CREATE DATABASE IF NOT EXISTS exlms
     CHARACTER SET utf8mb4
     COLLATE utf8mb4_unicode_ci;
 
-USE ExLMS;
+USE exlms;
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -221,6 +221,7 @@ CREATE TABLE `quizzes` (
   `time_limit_sec` int DEFAULT NULL,
   `max_attempts` int NOT NULL DEFAULT '1',
   `passing_score` int NOT NULL DEFAULT '50',
+  `shuffle_questions` tinyint(1) NOT NULL DEFAULT '0',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -294,6 +295,7 @@ CREATE TABLE `group_quizzes` (
   `close_at` datetime DEFAULT NULL,
   `status` enum('DRAFT', 'PUBLISHED','CLOSED') NOT NULL DEFAULT 'DRAFT',
   `result_visibility` enum('IMMEDIATE','AFTER_DEADLINE','OPENED') NOT NULL DEFAULT 'IMMEDIATE',
+  `shuffle_questions` tinyint(1) NOT NULL DEFAULT '0',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),

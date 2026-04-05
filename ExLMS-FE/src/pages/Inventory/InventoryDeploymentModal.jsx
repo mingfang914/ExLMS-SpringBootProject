@@ -56,6 +56,7 @@ const InventoryDeploymentModal = ({ open, onClose, type, groupId, onDeploySucces
     resultVisibility: 'IMMEDIATE',
     allowLate: false,
     latePenaltyPercent: 0,
+    status: 'PUBLISHED',
   })
 
   useEffect(() => {
@@ -269,6 +270,19 @@ const InventoryDeploymentModal = ({ open, onClose, type, groupId, onDeploySucces
                   />
                 </>
               )}
+              
+              <Divider sx={{ mb: 1 }} />
+              <FormControl fullWidth size="small" sx={{ mt: 1 }}>
+                <InputLabel>Trạng thái</InputLabel>
+                <Select
+                  value={config.status}
+                  label="Trạng thái"
+                  onChange={(e) => setConfig({...config, status: e.target.value})}
+                >
+                  <MenuItem value="DRAFT">Bản nháp</MenuItem>
+                  <MenuItem value="PUBLISHED">Công khai ngay</MenuItem>
+                </Select>
+              </FormControl>
             </Box>
                );
             })()}

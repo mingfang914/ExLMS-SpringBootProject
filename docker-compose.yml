@@ -81,6 +81,8 @@ services:
       dockerfile: Dockerfile
       args:
         - VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}
+        - VITE_MEETING_SERVICE_URL=${VITE_MEETING_SERVICE_URL}
+        - VITE_LIVEKIT_URL=${VITE_LIVEKIT_URL}
     image: mingfang914/exlms-frontend:latest
     container_name: lms-frontend
     restart: always
@@ -114,6 +116,7 @@ services:
       - PORT=4000
       - LIVEKIT_API_KEY=${LIVEKIT_API_KEY}
       - LIVEKIT_API_SECRET=${LIVEKIT_API_SECRET}
+      - LIVEKIT_URL=http://lms-livekit:7800
     ports:
       - "4000:4000"
 
