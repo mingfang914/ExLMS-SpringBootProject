@@ -40,8 +40,6 @@ jobs:
           tags: mingfang914/exlms-frontend:latest
           build-args: |
             VITE_GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
-            VITE_MEETING_SERVICE_URL=${{ secrets.VITE_MEETING_SERVICE_URL }}
-            VITE_LIVEKIT_URL=${{ secrets.VITE_LIVEKIT_URL }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -94,11 +92,7 @@ jobs:
             GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
             LIVEKIT_API_KEY=${{ secrets.LIVEKIT_API_KEY }}
             LIVEKIT_API_SECRET=${{ secrets.LIVEKIT_API_SECRET }}
-            LIVEKIT_URL=${{ secrets.LIVEKIT_URL }}
-            MEETING_SERVICE_URL=${{ secrets.MEETING_SERVICE_URL }}
             VITE_GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
-            VITE_MEETING_SERVICE_URL=${{ secrets.VITE_MEETING_SERVICE_URL }}
-            VITE_LIVEKIT_URL=${{ secrets.VITE_LIVEKIT_URL }}
             LOGGING_LEVEL_PROJECT_TEAMFIVE_EXLMS=INFO
             EOF
             

@@ -18,8 +18,7 @@ const LiveKitMeeting = ({ roomName, identity, name, role, onMeetingEnd }) => {
   useEffect(() => {
     const fetchToken = async () => {
       try {
-        const meetingServiceUrl = import.meta.env.VITE_MEETING_SERVICE_URL || 'http://localhost:4000';
-        const response = await axios.post(`${meetingServiceUrl}/getToken`, {
+        const response = await axios.post('http://localhost:4000/getToken', {
           roomName,
           identity,
           name,
@@ -56,7 +55,7 @@ const LiveKitMeeting = ({ roomName, identity, name, role, onMeetingEnd }) => {
       video={true}
       audio={true}
       token={token}
-      serverUrl={import.meta.env.VITE_LIVEKIT_URL || 'ws://localhost:7800'}
+      serverUrl="ws://localhost:7800"
       onDisconnected={onMeetingEnd}
       data-lk-theme="default"
       style={{ height: '100%', width: '100%' }}

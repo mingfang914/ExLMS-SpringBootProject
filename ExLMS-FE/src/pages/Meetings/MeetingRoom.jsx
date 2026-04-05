@@ -42,9 +42,17 @@ const MeetingRoom = () => {
   const [pollForm, setPollForm] = useState({ question: '', options: ['', ''] })
   const stompClientRef = useRef(null)
   
+  if (!user) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    )
+  }
+
   const roomName = location.state?.roomName || meeting?.joinUrl?.split('/').pop() || `exlms-meeting-${id}`
   const meetingTitle = meeting?.title || location.state?.title || t('common.loading')
-
+  
   const handleMeetingEnd = useCallback(() => {
     navigate(`/groups/${groupId}/meetings/${id}`)
   }, [navigate, groupId, id])
@@ -132,8 +140,6 @@ const MeetingRoom = () => {
   }, [user?.id, isInstructor, fetchData, t])
 
   useEffect(() => {
-    if (!user) return; // Only record/fetch if user exists
-    
     meetingService.recordAttendance(id, true)
     fetchData()
     
@@ -178,7 +184,9 @@ const MeetingRoom = () => {
       }
       meetingService.recordAttendance(id, false)
     }
-  }, [id, user, fetchData, handleWebSocketEvent])
+  }, [id, fetchData, handleWebSocketEvent])
+
+
 
   const handleSendQuestion = useCallback(async () => {
     if (!newQuestion.trim()) return
@@ -213,14 +221,6 @@ const MeetingRoom = () => {
       alert(t('meetings.already_voted'))
     }
   }, [t])
-
-  if (!user) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <CircularProgress />
-      </Box>
-    )
-  }
 
   const handleCreatePoll = async () => {
     if (!pollForm.question.trim() || pollForm.options.some(o => !o.trim())) {

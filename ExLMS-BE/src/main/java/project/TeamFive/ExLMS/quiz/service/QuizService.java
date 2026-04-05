@@ -18,8 +18,6 @@ import project.TeamFive.ExLMS.quiz.repository.QuizQuestionRepository;
 import project.TeamFive.ExLMS.quiz.repository.QuizRepository;
 import project.TeamFive.ExLMS.user.entity.User;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -34,7 +32,6 @@ public class QuizService {
     private final GroupQuizRepository groupQuizRepository;
     private final StudyGroupRepository studyGroupRepository;
     private final project.TeamFive.ExLMS.group.repository.GroupMemberRepository groupMemberRepository;
-    private final project.TeamFive.ExLMS.notification.service.NotificationService notificationService;
 
     @Transactional
     public QuizResponseDTO createTemplate(CreateQuizRequest request, User user) {
@@ -44,7 +41,6 @@ public class QuizService {
                 .timeLimitSec(request.getTimeLimitSec())
                 .maxAttempts(request.getMaxAttempts())
                 .passingScore(request.getPassingScore())
-                .shuffleQuestions(request.isShuffleQuestions())
                 .createdBy(user)
                 .build();
 
@@ -71,7 +67,6 @@ public class QuizService {
         quiz.setTimeLimitSec(request.getTimeLimitSec());
         quiz.setMaxAttempts(request.getMaxAttempts());
         quiz.setPassingScore(request.getPassingScore());
-        quiz.setShuffleQuestions(request.isShuffleQuestions());
 
         quiz = quizRepository.save(quiz);
 
@@ -116,21 +111,6 @@ public class QuizService {
         LocalDateTime openAt = config.getOpenAt() != null ? config.getOpenAt() : java.time.LocalDateTime.now();
         LocalDateTime closeAt = config.getCloseAt() != null ? config.getCloseAt() : openAt.plusHours(2);
 
-        GroupQuiz.GroupQuizStatus targetStatus;
-        if (config.getStatus() != null) {
-            try {
-                targetStatus = GroupQuiz.GroupQuizStatus.valueOf(config.getStatus());
-            } catch (Exception e) {
-                targetStatus = openAt.isAfter(java.time.LocalDateTime.now()) 
-                        ? GroupQuiz.GroupQuizStatus.DRAFT 
-                        : GroupQuiz.GroupQuizStatus.PUBLISHED;
-            }
-        } else {
-            targetStatus = openAt.isAfter(java.time.LocalDateTime.now()) 
-                    ? GroupQuiz.GroupQuizStatus.DRAFT 
-                    : GroupQuiz.GroupQuizStatus.PUBLISHED;
-        }
-
         GroupQuiz deployment = GroupQuiz.builder()
                 .group(group)
                 .quiz(template)
@@ -138,22 +118,12 @@ public class QuizService {
                 .closeAt(closeAt)
                 .shuffleQuestions(config.isShuffleQuestions())
                 .resultVisibility(config.getResultVisibility() != null ? config.getResultVisibility() : GroupQuiz.ResultVisibility.IMMEDIATE)
-                .status(targetStatus)
+                .status(openAt.isAfter(java.time.LocalDateTime.now()) 
+                        ? GroupQuiz.GroupQuizStatus.DRAFT 
+                        : GroupQuiz.GroupQuizStatus.PUBLISHED)
                 .build();
 
-        GroupQuiz savedDeployment = groupQuizRepository.save(deployment);
-
-        // Gửi thông báo (Async)
-        notificationService.notifyGroupPublishedItem(
-            group, 
-            "Bài kiểm tra", 
-            template.getTitle(), 
-            savedDeployment.getStatus().name(), 
-            savedDeployment.getId(), 
-            "/quizzes/" + savedDeployment.getId()
-        );
-
-        return mapToResponseDTO(template, savedDeployment);
+        return mapToResponseDTO(template, groupQuizRepository.save(deployment));
     }
 
     @Transactional(readOnly = true)
@@ -214,26 +184,10 @@ public class QuizService {
     }
 
     private QuizResponseDTO mapToResponseDTO(Quiz quiz, GroupQuiz deployment) {
-        List<QuizQuestion> questionsList = questionRepository.findByQuizId(quiz.getId());
-        
-        // [SHUFFLE QUESTIONS] Logic
-        boolean shouldShuffle = (deployment != null && deployment.isShuffleQuestions()) 
-                                || (deployment == null && quiz.isShuffleQuestions());
-        
-        if (shouldShuffle) {
-            questionsList = new ArrayList<>(questionsList);
-            Collections.shuffle(questionsList);
-        }
-
-        List<QuizResponseDTO.QuestionResponse> questionResponses = questionsList.stream()
+        List<QuizQuestion> questions = questionRepository.findByQuizId(quiz.getId());
+        List<QuizResponseDTO.QuestionResponse> questionResponses = questions.stream()
                 .map(q -> {
-                    List<QuizAnswer> answers = new ArrayList<>(answerRepository.findByQuestion_IdOrderByOrderIndexAsc(q.getId()));
-                    
-                    // [SHUFFLE ANSWERS] Logic (if questions are shuffled, answers usually should be too)
-                    if (shouldShuffle) {
-                        Collections.shuffle(answers);
-                    }
-
+                    List<QuizAnswer> answers = answerRepository.findByQuestion_IdOrderByOrderIndexAsc(q.getId());
                     return QuizResponseDTO.QuestionResponse.builder()
                             .id(q.getId())
                             .content(project.TeamFive.ExLMS.util.UrlUtils.normalizeCkeUrls(q.getContent()))
@@ -258,7 +212,7 @@ public class QuizService {
                 .timeLimitSec(quiz.getTimeLimitSec())
                 .maxAttempts(quiz.getMaxAttempts())
                 .passingScore(quiz.getPassingScore())
-                .questionCount(questionsList.size())
+                .questionCount(questions.size())
                 .questions(questionResponses);
 
         if (deployment != null) {
@@ -322,8 +276,6 @@ public class QuizService {
             deployment.setResultVisibility(request.getResultVisibility());
         }
         
-        GroupQuiz.GroupQuizStatus oldStatus = deployment.getStatus();
-
         if (request.getStatus() != null) {
             String newStatus = request.getStatus();
             if ("CLOSED".equals(newStatus)) {
@@ -334,21 +286,7 @@ public class QuizService {
             } catch (Exception e) {}
         }
 
-        GroupQuiz savedDeployment = groupQuizRepository.save(deployment);
-        
-        // Nếu (Vừa tạo & PUBLISHED) hoặc (Cũ là DRAFT & Mới là PUBLISHED), gửi thông báo
-        if (oldStatus == GroupQuiz.GroupQuizStatus.DRAFT && savedDeployment.getStatus() == GroupQuiz.GroupQuizStatus.PUBLISHED) {
-            notificationService.notifyGroupPublishedItem(
-                deployment.getGroup(), 
-                "Bài kiểm tra", 
-                deployment.getQuiz().getTitle(), 
-                savedDeployment.getStatus().name(), 
-                savedDeployment.getId(), 
-                "/quizzes/" + savedDeployment.getId()
-            );
-        }
-
-        return mapToResponseDTO(deployment.getQuiz(), savedDeployment);
+        return mapToResponseDTO(deployment.getQuiz(), groupQuizRepository.save(deployment));
     }
 
     private void validateDates(java.time.LocalDateTime start, java.time.LocalDateTime end, boolean isNew) {

@@ -14,8 +14,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     
     boolean existsByEmail(String email);
 
-    Optional<User> findByResetToken(String token);
-
     org.springframework.data.domain.Page<User> findByEmailContainingIgnoreCaseOrFullNameContainingIgnoreCase(
             String email, String fullName, org.springframework.data.domain.Pageable pageable);
 }

@@ -107,13 +107,9 @@ const GroupDetail = () => {
 
   useEffect(() => {
     // WebSocket setup
-    const token = localStorage.getItem('token')
     const socket = new SockJS('/api/ws')
     const client = new Client({
       webSocketFactory: () => socket,
-      connectHeaders: {
-        'Authorization': `Bearer ${token}`
-      },
       debug: (str) => console.log('STOMP: ' + str),
       reconnectDelay: 5000,
       heartbeatIncoming: 4000,

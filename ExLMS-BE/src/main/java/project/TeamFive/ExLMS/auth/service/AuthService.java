@@ -16,12 +16,8 @@ import project.TeamFive.ExLMS.user.entity.User;
 import project.TeamFive.ExLMS.user.entity.UserSession;
 import project.TeamFive.ExLMS.user.repository.UserRepository;
 import project.TeamFive.ExLMS.user.repository.UserSessionRepository;
-import project.TeamFive.ExLMS.service.EmailService;
-import project.TeamFive.ExLMS.auth.dto.request.ForgotPasswordRequest;
-import project.TeamFive.ExLMS.auth.dto.request.ResetPasswordRequest;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -33,10 +29,6 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final HttpServletRequest httpServletRequest;
-    private final EmailService emailService;
-    
-    @org.springframework.beans.factory.annotation.Value("${APP_FRONTEND_URL:http://localhost:3000}")
-    private String frontendUrl;
 
 
     @Transactional
@@ -176,57 +168,5 @@ public class AuthService {
                 .role(user.getRole().name())
                 .message("Làm mới token thành công!")
                 .build();
-    }
-
-    @Transactional
-    public String forgotPassword(ForgotPasswordRequest request) {
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Email không tồn tại trong hệ thống!"));
-
-        // Tạo token ngẫu nhiên
-        String token = UUID.randomUUID().toString();
-        user.setResetToken(token);
-        user.setResetTokenExpires(LocalDateTime.now().plusHours(1)); // Hết hạn sau 1 giờ
-
-        userRepository.save(user);
-
-        // Gửi email
-        String resetUrl = frontendUrl + "/reset-password?token=" + token;
-        try {
-            emailService.sendPasswordResetEmail(user.getEmail(), resetUrl);
-        } catch (jakarta.mail.MessagingException e) {
-            throw new RuntimeException("Không thể gửi email lúc này. Vui lòng thử lại sau!");
-        }
-
-        return "Link đặt lại mật khẩu đã được gửi vào email của bạn. Vui lòng kiểm tra hộp thư!";
-    }
-
-    @Transactional
-    public String resetPassword(ResetPasswordRequest request) {
-        User user = userRepository.findByResetToken(request.getToken())
-                .orElseThrow(() -> new RuntimeException("Link đổi mật khẩu không hợp lệ hoặc đã hết hạn!"));
-
-        if (user.getResetTokenExpires().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Link đổi mật khẩu đã hết hạn!");
-        }
-
-        // Validate mật khẩu mới
-        String password = request.getNewPassword();
-        if (password == null || password.length() < 8 ||
-            !password.matches(".*[A-Z]..*") ||
-            !password.matches(".*[a-z]..*") ||
-            !password.matches(".*[0-9]..*") ||
-            !password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?].*")) {
-            throw new RuntimeException("Mật khẩu mới phải dài ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt!");
-        }
-
-        // Cập nhật mật khẩu
-        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
-        user.setResetToken(null);
-        user.setResetTokenExpires(null);
-
-        userRepository.save(user);
-
-        return "Đặt lại mật khẩu thành công! Bạn có thể đăng nhập bằng mật khẩu mới.";
     }
 }

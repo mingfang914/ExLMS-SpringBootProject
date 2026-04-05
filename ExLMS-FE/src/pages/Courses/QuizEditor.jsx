@@ -39,8 +39,7 @@ const QuizEditor = () => {
     timeLimitSec: 3600,
     maxAttempts: 1,
     passingScore: 50,
-    chapterId: '',
-    shuffleQuestions: false
+    chapterId: ''
   })
   const [questions, setQuestions] = useState([emptyQuestion()])
   const [loading, setLoading] = useState(isEdit)
@@ -65,8 +64,7 @@ const QuizEditor = () => {
             timeLimitSec: data.timeLimitSec,
             maxAttempts: data.maxAttempts || 1,
             passingScore: data.passingScore || 50,
-            chapterId: data.chapterId,
-            shuffleQuestions: data.shuffleQuestions || false
+            chapterId: data.chapterId
           })
           if (data.questions && data.questions.length > 0) {
             setQuestions(data.questions.map(q => ({
@@ -199,22 +197,6 @@ const QuizEditor = () => {
               value={quiz.passingScore}
               onChange={e => updateQuiz('passingScore', Math.max(0, Math.min(100, parseInt(e.target.value) || 0)))} />
           </Box>
-
-          <FormControlLabel
-            control={
-              <Switch 
-                checked={quiz.shuffleQuestions} 
-                onChange={e => updateQuiz('shuffleQuestions', e.target.checked)} 
-                color="primary"
-              />
-            }
-            label={
-                <Box>
-                    <Typography variant="body1" fontWeight={600}>{t('quizzes.shuffle_questions_label')}</Typography>
-                    <Typography variant="caption" color="var(--color-text-muted)">{t('quizzes.shuffle_questions_hint')}</Typography>
-                </Box>
-            }
-          />
 
 
         </Box>

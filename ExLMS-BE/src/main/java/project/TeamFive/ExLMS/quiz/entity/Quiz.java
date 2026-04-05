@@ -36,10 +36,6 @@ public class Quiz extends BaseEntity {
     @Builder.Default
     private int passingScore = 50;
 
-    @Column(name = "shuffle_questions", nullable = false)
-    @Builder.Default
-    private boolean shuffleQuestions = false;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
     private User createdBy;
