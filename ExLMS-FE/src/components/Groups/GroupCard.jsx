@@ -9,6 +9,7 @@ import {
 } from '@mui/material'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { alpha, useTheme } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
 
 // ── SVG Icons ─────────────────────────────────────────────────────
@@ -62,6 +63,7 @@ const initials = (name = '') =>
   name.split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase() || 'G'
 
 const GroupCard = ({ group, onJoin }) => {
+  const theme = useTheme()
   const { t } = useTranslation()
   const { id, name, description, ownerName, visibility, memberCount, category, coverUrl, isJoined, currentUserRole } = group
   const isPublic   = visibility === 'PUBLIC'
@@ -85,8 +87,14 @@ const GroupCard = ({ group, onJoin }) => {
           cursor: 'pointer',
           transition: 'border-color 0.2s, box-shadow 0.2s',
           '&:hover': {
+<<<<<<< HEAD
+            borderColor: alpha(theme.palette.primary.main, 0.4),
+            boxShadow: `0 20px 40px rgba(0,0,0,${theme.palette.mode === 'dark' ? 0.4 : 0.12}), 0 0 0 1px ${alpha(theme.palette.primary.main, 0.1)}`,
+            '& .card-banner-img': { transform: 'scale(1.1)' }
+=======
             borderColor: 'var(--color-border-lt)',
             boxShadow: '0 12px 36px rgba(0,0,0,0.4), 0 0 0 1px rgba(99,102,241,0.1)',
+>>>>>>> 0309de622c986d494be08e87aad01e4be70651fa
           },
         }}
       >
@@ -109,6 +117,20 @@ const GroupCard = ({ group, onJoin }) => {
           <Box sx={{ position: 'absolute', top: 10, right: 10 }}>
             <Box
               sx={{
+<<<<<<< HEAD
+                display: 'flex', alignItems: 'center', gap: '6px',
+                px: 1.5, py: 0.5,
+                borderRadius: '8px',
+                bgcolor: isPublic ? alpha(theme.palette.success.main, 0.15) : alpha(theme.palette.warning.main, 0.15),
+                border: `1px solid ${isPublic ? alpha(theme.palette.success.main, 0.3) : alpha(theme.palette.warning.main, 0.3)}`,
+                backdropFilter: 'blur(8px)',
+              }}
+            >
+              <Box sx={{ color: isPublic ? theme.palette.success.main : theme.palette.warning.main, display: 'flex' }}>
+                {isPublic ? <PublicIcon /> : <LockIcon />}
+              </Box>
+              <Typography sx={{ fontSize: '0.625rem', fontWeight: 800, color: isPublic ? theme.palette.success.main : theme.palette.warning.main, letterSpacing: '0.02em', textTransform: 'uppercase' }}>
+=======
                 display: 'flex', alignItems: 'center', gap: '4px',
                 px: '8px', py: '3px',
                 borderRadius: '99px',
@@ -121,6 +143,7 @@ const GroupCard = ({ group, onJoin }) => {
                 {isPublic ? <PublicIcon /> : <LockIcon />}
               </Box>
               <Typography sx={{ fontSize: '0.5625rem', fontWeight: 700, color: isPublic ? '#86EFAC' : '#FDE68A', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+>>>>>>> 0309de622c986d494be08e87aad01e4be70651fa
                 {isPublic ? t('group_card.public') : t('group_card.private')}
               </Typography>
             </Box>
@@ -179,6 +202,24 @@ const GroupCard = ({ group, onJoin }) => {
             {name}
           </Typography>
 
+<<<<<<< HEAD
+            {/* Meta data */}
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Avatar sx={{ width: 18, height: 18, fontSize: '0.6rem', bgcolor: 'var(--color-surface-3)', border: '1px solid var(--color-border)', color: 'var(--color-primary-lt)' }}>
+                  {ownerName.charAt(0)}
+                </Avatar>
+                <Typography sx={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>
+                  {ownerName}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, color: 'var(--color-text-muted)' }}>
+                <PeopleIcon />
+                <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-sec)' }}>
+                  {memberCount ?? 0}
+                </Typography>
+              </Box>
+=======
           <Typography
             sx={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', lineHeight: 1.5, mb: 2 }}
             className="clamp-2"
@@ -193,6 +234,7 @@ const GroupCard = ({ group, onJoin }) => {
               <Typography sx={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--color-text-sec)' }}>
                 {t('group_card.members_count', { count: memberCount ?? 0 })}
               </Typography>
+>>>>>>> 0309de622c986d494be08e87aad01e4be70651fa
             </Box>
             <Box sx={{ width: 3, height: 3, borderRadius: '50%', bgcolor: 'var(--color-border-lt)' }} />
             <Typography sx={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
