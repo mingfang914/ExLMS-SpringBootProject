@@ -19,7 +19,7 @@ import {
   Skeleton,
   Divider,
 } from '@mui/material'
-import { alpha } from '@mui/material/styles'
+import { alpha, useTheme } from '@mui/material/styles'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
@@ -72,6 +72,7 @@ const item = {
 }
 
 const GroupList = () => {
+  const theme = useTheme()
   const { t } = useTranslation()
   const [groups,  setGroups]  = useState([])
   const [loading, setLoading] = useState(true)
@@ -220,12 +221,12 @@ const GroupList = () => {
             gap: 3,
             mb: 4,
             p: '10px 10px 10px 20px',
-            bgcolor: 'rgba(22, 27, 34, 0.5)',
-            backdropFilter: 'blur(12px)',
+            bgcolor: 'var(--color-surface-2)',
+            backdropFilter: 'blur(16px)',
             border: '1px solid var(--color-border)',
             borderRadius: '16px',
             flexWrap: 'wrap',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+            boxShadow: `0 8px 32px rgba(0,0,0,${theme.palette.mode === 'dark' ? 0.3 : 0.08})`,
           }}
         >
           {/* Tab filter */}
@@ -252,7 +253,7 @@ const GroupList = () => {
             <Tab label={t('groups.tabs.mine')}  id="tab-mine" />
           </Tabs>
 
-          <Divider orientation="vertical" flexItem sx={{ my: 1, borderColor: 'rgba(255,255,255,0.05)' }} />
+          <Divider orientation="vertical" flexItem sx={{ my: 1, borderColor: 'var(--color-border)', opacity: 0.5 }} />
 
           {/* Search */}
           <Box
@@ -260,9 +261,13 @@ const GroupList = () => {
               display: 'flex', alignItems: 'center', gap: 1.5,
               px: 2, height: 40, flex: 1,
               borderRadius: '10px',
-              border: '1px solid rgba(255,255,255,0.05)',
-              bgcolor: 'rgba(13, 17, 23, 0.4)',
-              '&:focus-within': { borderColor: 'rgba(99,102,241,0.5)', bgcolor: 'rgba(13, 17, 23, 0.6)' },
+              border: '1px solid var(--color-border)',
+              bgcolor: alpha(theme.palette.background.paper, 0.4),
+              '&:focus-within': { 
+                borderColor: 'var(--color-primary)', 
+                bgcolor: alpha(theme.palette.background.paper, 0.6),
+                boxShadow: `0 0 0 3px ${alpha(theme.palette.primary.main, 0.1)}`
+              },
               transition: 'all 0.2s',
             }}
           >
@@ -312,7 +317,7 @@ const GroupList = () => {
               <Skeleton
                 variant="rounded"
                 height={280}
-                sx={{ bgcolor: 'rgba(33,38,45,0.8)', borderRadius: '14px' }}
+                sx={{ bgcolor: 'var(--color-surface-3)', borderRadius: '14px' }}
               />
             </Grid>
           ))}
@@ -417,8 +422,12 @@ const GroupList = () => {
               px: 1.5, height: 44,
               borderRadius: '10px',
               border: '1px solid var(--color-border)',
-              bgcolor: 'rgba(33,38,45,0.6)',
-              '&:focus-within': { borderColor: 'var(--color-primary)', boxShadow: '0 0 0 3px rgba(99,102,241,0.12)' },
+              bgcolor: alpha(theme.palette.background.paper, 0.4),
+              '&:focus-within': { 
+                borderColor: 'var(--color-primary)', 
+                boxShadow: `0 0 0 3px ${alpha(theme.palette.primary.main, 0.12)}`,
+                bgcolor: alpha(theme.palette.background.paper, 0.6)
+              },
               transition: 'all 0.2s',
             }}
           >

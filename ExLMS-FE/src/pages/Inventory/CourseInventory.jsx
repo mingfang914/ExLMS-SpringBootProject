@@ -15,7 +15,7 @@ import {
   Stack,
   Divider,
 } from '@mui/material'
-import { alpha } from '@mui/material/styles'
+import { alpha, useTheme } from '@mui/material/styles'
 import {
   Add as AddIcon,
   Edit as EditIcon,
@@ -45,6 +45,7 @@ const item = {
 }
 
 const CourseInventory = () => {
+  const theme = useTheme()
   const { t } = useTranslation()
   const [courses, setCourses] = useState([])
   const [loading, setLoading] = useState(true)
@@ -135,20 +136,24 @@ const CourseInventory = () => {
         <Box sx={{
           display: 'flex', alignItems: 'center', gap: 3, mb: 5,
           p: '12px 12px 12px 24px',
-          bgcolor: alpha('#161B22', 0.6),
+          bgcolor: 'var(--color-surface-2)',
           backdropFilter: 'blur(16px)',
           border: '1px solid var(--color-border)',
           borderRadius: '18px',
           flexWrap: 'wrap',
-          boxShadow: '0 12px 40px rgba(0,0,0,0.3)',
+          boxShadow: `0 12px 40px rgba(0,0,0,${theme.palette.mode === 'dark' ? 0.3 : 0.08})`,
         }}>
           <Box sx={{ 
             display: 'flex', alignItems: 'center', gap: 2, 
             px: 2, height: 44, flex: 1, minWidth: '280px',
             borderRadius: '12px',
-            bgcolor: 'rgba(13, 17, 23, 0.4)',
-            border: '1px solid rgba(255,255,255,0.05)',
-            '&:focus-within': { borderColor: 'rgba(99,102,241,0.5)', bgcolor: 'rgba(13, 17, 23, 0.6)' },
+            bgcolor: alpha(theme.palette.background.paper, 0.4),
+            border: '1px solid var(--color-border)',
+            '&:focus-within': { 
+              borderColor: 'var(--color-primary)', 
+              bgcolor: alpha(theme.palette.background.paper, 0.6),
+              boxShadow: `0 0 0 3px ${alpha(theme.palette.primary.main, 0.1)}`
+            },
             transition: 'all 0.3s'
           }}>
             <SearchIcon sx={{ color: 'var(--color-text-muted)', fontSize: 20 }} />
@@ -164,11 +169,11 @@ const CourseInventory = () => {
             />
           </Box>
           
-          <Divider orientation="vertical" flexItem sx={{ my: 1, borderColor: 'rgba(255,255,255,0.05)', display: { xs: 'none', md: 'block' } }} />
+          <Divider orientation="vertical" flexItem sx={{ my: 1, borderColor: 'var(--color-border)', opacity: 0.5, display: { xs: 'none', md: 'block' } }} />
           
           <Stack direction="row" spacing={1}>
             <Tooltip title="Lọc theo thể loại">
-              <IconButton sx={{ bgcolor: 'rgba(255,255,255,0.03)', borderRadius: '12px', color: 'var(--color-text-sec)' }}>
+              <IconButton sx={{ bgcolor: 'var(--color-surface-3)', borderRadius: '12px', color: 'var(--color-text-sec)', border: '1px solid var(--color-border)' }}>
                 <FilterIcon />
               </IconButton>
             </Tooltip>
@@ -188,12 +193,12 @@ const CourseInventory = () => {
         <Grid container spacing={3.5}>
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <Grid item xs={12} sm={6} md={4} key={i}>
-              <Skeleton variant="rounded" height={320} sx={{ borderRadius: '24px', bgcolor: 'rgba(33,38,45,0.8)' }} />
+              <Skeleton variant="rounded" height={320} sx={{ borderRadius: '24px', bgcolor: 'var(--color-surface-3)' }} />
             </Grid>
           ))}
         </Grid>
       ) : filteredCourses.length === 0 ? (
-        <Box sx={{ textAlign: 'center', py: 12, bgcolor: 'rgba(255,255,255,0.02)', borderRadius: '24px', border: '1px dashed var(--color-border)' }}>
+        <Box sx={{ textAlign: 'center', py: 12, bgcolor: 'var(--color-surface-2)', borderRadius: '24px', border: '1px dashed var(--color-border)' }}>
           <InventoryIcon sx={{ fontSize: 80, mb: 2, color: 'var(--color-text-muted)', opacity: 0.3 }} />
           <Typography variant="h5" sx={{ fontWeight: 700, color: 'var(--color-text)', mb: 1 }}>Kho của bạn đang trống</Typography>
           <Typography sx={{ color: 'var(--color-text-muted)' }}>Bắt đầu bằng cách tạo khóa học mẫu đầu tiên của bạn.</Typography>
@@ -210,8 +215,8 @@ const CourseInventory = () => {
                   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                   '&:hover': {
                     transform: 'translateY(-10px)',
-                    borderColor: 'rgba(99, 102, 241, 0.5)',
-                    boxShadow: '0 20px 48px rgba(0,0,0,0.4)',
+                    borderColor: alpha(theme.palette.primary.main, 0.5),
+                    boxShadow: `0 20px 48px rgba(0,0,0,${theme.palette.mode === 'dark' ? 0.4 : 0.12})`,
                     '& .card-banner': { transform: 'scale(1.1)' }
                   }
                 }}>
@@ -233,7 +238,7 @@ const CourseInventory = () => {
                       sx={{ 
                         position: 'absolute', top: 16, right: 16,
                         height: 22, fontSize: '0.625rem', fontWeight: 900, textTransform: 'uppercase',
-                        bgcolor: 'rgba(0,0,0,0.5)', color: '#FFF', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.1)'
+                        bgcolor: 'rgba(0,0,0,0.6)', color: '#FFF', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.2)'
                       }}
                     />
                   </Box>
@@ -272,8 +277,8 @@ const CourseInventory = () => {
                           onClick={() => navigate(`/inventory/courses/view/${course.templateId}`)}
                           sx={{ 
                             borderRadius: '12px', fontWeight: 800, height: 44,
-                            background: 'rgba(99, 102, 241, 0.1)', color: '#818CF8',
-                            '&:hover': { background: '#6366F1', color: '#FFF' }
+                            background: alpha(theme.palette.primary.main, 0.1), color: theme.palette.primary.light,
+                            '&:hover': { background: theme.palette.primary.main, color: '#FFF' }
                           }}
                         >
                           Chi tiết
@@ -281,7 +286,7 @@ const CourseInventory = () => {
                         <Tooltip title="Sửa bản mẫu">
                           <IconButton 
                             onClick={(e) => { e.stopPropagation(); navigate(`/inventory/courses/edit/${course.templateId}`); }}
-                            sx={{ borderRadius: '12px', bgcolor: 'rgba(255,255,255,0.03)', color: 'var(--color-text-sec)', border: '1px solid var(--color-border)' }}
+                            sx={{ borderRadius: '12px', bgcolor: 'var(--color-surface-3)', color: 'var(--color-text-sec)', border: '1px solid var(--color-border)' }}
                           >
                             <EditIcon fontSize="small" />
                           </IconButton>
@@ -295,7 +300,7 @@ const CourseInventory = () => {
                                 fetchInventory();
                               }
                             }}
-                            sx={{ borderRadius: '12px', bgcolor: 'rgba(239, 68, 68, 0.05)', color: '#F87171', border: '1px solid rgba(239, 68, 68, 0.1)' }}
+                            sx={{ borderRadius: '12px', bgcolor: alpha(theme.palette.error.main, 0.05), color: theme.palette.error.main, border: `1px solid ${alpha(theme.palette.error.main, 0.1)}` }}
                           >
                             <DeleteIcon fontSize="small" />
                           </IconButton>

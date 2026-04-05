@@ -34,7 +34,10 @@ import {
   Person as UserIcon,
   Description as BioIcon,
   Verified as VerifiedIcon,
-  LocalFireDepartment as StreakIcon
+  LocalFireDepartment as StreakIcon,
+  Book as BookIcon,
+  CheckCircle as CheckCircleIcon,
+  EmojiEvents as AwardIcon
 } from '@mui/icons-material'
 
 const container = {
@@ -51,23 +54,27 @@ const item = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } }
 }
 
-const StatCard = ({ icon, label, value, color }) => (
-  <Box sx={{
-    p: 2.5, borderRadius: '20px',
-    bgcolor: 'var(--color-surface-2)',
-    border: '1px solid var(--color-border)',
-    display: 'flex', alignItems: 'center', gap: 2.5,
-    minWidth: '200px', flex: 1,
-    transition: 'all 0.3s',
-    '&:hover': {
-      transform: 'translateY(-5px)',
-      borderColor: alpha(color, 0.4),
-      boxShadow: `0 12px 24px ${alpha(color, 0.15)}`
-    }
-  }}>
+const StatCard = ({ icon, label, value, color, colorClass }) => (
+  <Box 
+    className={colorClass}
+    sx={{
+      p: 2.5, borderRadius: '20px',
+      bgcolor: 'var(--color-surface-2)',
+      border: '1px solid var(--color-border)',
+      display: 'flex', alignItems: 'center', gap: 2.5,
+      minWidth: '200px', flex: 1,
+      transition: 'all 0.3s',
+      '&:hover': {
+        transform: 'translateY(-5px)',
+        borderColor: color ? alpha(color, 0.4) : 'var(--color-primary-light)',
+        boxShadow: color ? `0 12px 24px ${alpha(color, 0.15)}` : 'none'
+      }
+    }}
+  >
     <Box sx={{ 
       width: 48, height: 48, borderRadius: '14px', 
-      bgcolor: alpha(color, 0.1), color: color,
+      bgcolor: color ? alpha(color, 0.1) : 'rgba(99, 102, 241, 0.1)', 
+      color: color || 'var(--color-primary)',
       display: 'flex', alignItems: 'center', justifyContent: 'center'
     }}>
       {icon}
@@ -90,6 +97,7 @@ const Profile = () => {
   const dispatch = useDispatch()
 
   const [profileData, setProfileData] = useState({ fullName: '', bio: '', avatarKey: '' })
+  const [stats, setStats] = useState({ coursesInProgress: 0, averageCompletion: 0, totalAchievement: 0 })
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [successMsg, setSuccessMsg] = useState('')
@@ -106,10 +114,11 @@ const Profile = () => {
         ])
 
         setProfileData({
-          fullName: res.data.fullName || '',
-          bio: res.data.bio || '',
-          avatarKey: res.data.avatarKey || '',
+          fullName: userRes.data.fullName || '',
+          bio: userRes.data.bio || '',
+          avatarKey: userRes.data.avatarKey || '',
         })
+        setStats(statsRes.data || { coursesInProgress: 0, averageCompletion: 0, totalAchievement: 0 })
       } catch (err) {
         console.error('Failed to load profile:', err)
 
@@ -330,39 +339,36 @@ const Profile = () => {
                 </Stack>
               </form>
             </Box>
-          </Box>
-        </Box>
-      </motion.div>
+          </motion.div>
 
-      {/* ── Statistics Row ─────────────────────────────────────── */}
-      <motion.div variants={item}>
-        <Box className="stats-container">
-          <StatCard
-            icon={<BookIcon />}
-            label={t('dashboard.stats.courses')}
-            value={stats.coursesInProgress || 0}
-            colorClass="stat-card--indigo"
-          />
-          <StatCard
-            icon={<CheckCircleIcon />}
-            label={t('common.course_completion')}
-            value={`${Math.round(stats.averageCompletion || 0)}%`}
-            colorClass="stat-card--green"
-          />
-          <StatCard
-            icon={<AwardIcon />}
-            label={t('common.achievement')}
-            value={(stats.totalAchievement || 0).toLocaleString()}
-            colorClass="stat-card--amber"
-          />
-          <StatCard
-            icon={<UserIcon />}
-            label={t('common.members_since')}
-            value={profileData.createdAt ? new Date(profileData.createdAt).toLocaleDateString(undefined, { month: 'short', year: 'numeric' }) : '---'}
-            colorClass="stat-card--cyan"
-          />
-        </Box>
-      </motion.div>
+          {/* ── Statistics Row ─────────────────────────────────────── */}
+          <motion.div variants={item} style={{ marginTop: '24px' }}>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+              <StatCard
+                icon={<BookIcon />}
+                label={t('dashboard.stats.courses')}
+                value={stats.coursesInProgress || 0}
+                colorClass="stat-card--indigo"
+                color="#6366F1"
+              />
+              <StatCard
+                icon={<CheckCircleIcon />}
+                label={t('common.course_completion')}
+                value={`${Math.round(stats.averageCompletion || 0)}%`}
+                colorClass="stat-card--green"
+                color="#10B981"
+              />
+              <StatCard
+                icon={<AwardIcon />}
+                label={t('common.achievement')}
+                value={(stats.totalAchievement || 0).toLocaleString()}
+                colorClass="stat-card--amber"
+                color="#F59E0B"
+              />
+            </Box>
+          </motion.div>
+        </Grid>
+
         {/* ── Right Column: Stats & Completion ───────────────────── */}
         <Grid item xs={12} md={5}>
           <Stack spacing={4}>
@@ -404,7 +410,6 @@ const Profile = () => {
               }}>
                 <Typography sx={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '1.125rem', color: 'var(--color-text)', mb: 3 }}>
                   Hoạt động & Thành tựu
-
                 </Typography>
                 <Stack spacing={2}>
                   <StatCard icon={<CourseIcon />} label="Khóa học" value="12" color="#6366F1" />
@@ -413,11 +418,12 @@ const Profile = () => {
                 </Stack>
               </Box>
             </motion.div>
+
             {/* Reward Badges Preview */}
             <motion.div variants={item}>
               <Box sx={{ 
                 p: 3.5, borderRadius: '24px', bgcolor: alpha('#4338CA', 0.05), 
-                border: '1px dashed alpha(#6366F1, 0.3)', textAlign: 'center'
+                border: '1px dashed rgba(99,102,241, 0.3)', textAlign: 'center'
               }}>
                 <TrophyIcon sx={{ fontSize: 40, color: '#F59E0B', mb: 1 }} />
                 <Typography sx={{ fontSize: '0.875rem', fontWeight: 800, color: 'var(--color-text)' }}>
@@ -432,7 +438,6 @@ const Profile = () => {
               </Box>
             </motion.div>
           </Stack>
-
         </Grid>
       </Grid>
 

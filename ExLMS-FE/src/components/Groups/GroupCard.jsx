@@ -9,6 +9,7 @@ import {
 } from '@mui/material'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { alpha, useTheme } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
 
 // ── SVG Icons ─────────────────────────────────────────────────────
@@ -62,6 +63,7 @@ const initials = (name = '') =>
   name.split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase() || 'G'
 
 const GroupCard = ({ group, onJoin }) => {
+  const theme = useTheme()
   const { t } = useTranslation()
   const { id, name, description, ownerName, visibility, memberCount, category, coverUrl } = group
   const isPublic   = visibility === 'PUBLIC'
@@ -85,8 +87,8 @@ const GroupCard = ({ group, onJoin }) => {
           position: 'relative',
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           '&:hover': {
-            borderColor: 'rgba(99, 102, 241, 0.4)',
-            boxShadow: '0 20px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(99,102,241,0.1)',
+            borderColor: alpha(theme.palette.primary.main, 0.4),
+            boxShadow: `0 20px 40px rgba(0,0,0,${theme.palette.mode === 'dark' ? 0.4 : 0.12}), 0 0 0 1px ${alpha(theme.palette.primary.main, 0.1)}`,
             '& .card-banner-img': { transform: 'scale(1.1)' }
           },
         }}
@@ -114,15 +116,15 @@ const GroupCard = ({ group, onJoin }) => {
                 display: 'flex', alignItems: 'center', gap: '6px',
                 px: 1.5, py: 0.5,
                 borderRadius: '8px',
-                bgcolor: isPublic ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)',
-                border: `1px solid ${isPublic ? 'rgba(16, 185, 129, 0.3)' : 'rgba(245, 158, 11, 0.3)'}`,
+                bgcolor: isPublic ? alpha(theme.palette.success.main, 0.15) : alpha(theme.palette.warning.main, 0.15),
+                border: `1px solid ${isPublic ? alpha(theme.palette.success.main, 0.3) : alpha(theme.palette.warning.main, 0.3)}`,
                 backdropFilter: 'blur(8px)',
               }}
             >
-              <Box sx={{ color: isPublic ? '#34D399' : '#FBBF24', display: 'flex' }}>
+              <Box sx={{ color: isPublic ? theme.palette.success.main : theme.palette.warning.main, display: 'flex' }}>
                 {isPublic ? <PublicIcon /> : <LockIcon />}
               </Box>
-              <Typography sx={{ fontSize: '0.625rem', fontWeight: 800, color: isPublic ? '#34D399' : '#FBBF24', letterSpacing: '0.02em', textTransform: 'uppercase' }}>
+              <Typography sx={{ fontSize: '0.625rem', fontWeight: 800, color: isPublic ? theme.palette.success.main : theme.palette.warning.main, letterSpacing: '0.02em', textTransform: 'uppercase' }}>
                 {isPublic ? t('group_card.public') : t('group_card.private')}
               </Typography>
             </Box>
@@ -176,7 +178,7 @@ const GroupCard = ({ group, onJoin }) => {
             {/* Meta data */}
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Avatar sx={{ width: 18, height: 18, fontSize: '0.6rem', bgcolor: 'rgba(255,255,255,0.1)' }}>
+                <Avatar sx={{ width: 18, height: 18, fontSize: '0.6rem', bgcolor: 'var(--color-surface-3)', border: '1px solid var(--color-border)', color: 'var(--color-primary-lt)' }}>
                   {ownerName.charAt(0)}
                 </Avatar>
                 <Typography sx={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>

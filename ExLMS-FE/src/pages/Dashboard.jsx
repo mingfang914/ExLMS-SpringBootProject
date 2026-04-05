@@ -21,6 +21,7 @@ import {
 } from 'recharts'
 import { alpha } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
+import { useTheme } from '@mui/material/styles'
 
 // ───────────────────────────────────────────────────────────────────
 // Data
@@ -253,6 +254,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 // Main Component
 // ───────────────────────────────────────────────────────────────────
 const Dashboard = () => {
+  const theme = useTheme()
   const { t, i18n } = useTranslation()
   const { user } = useSelector((state) => state.auth)
   const [loading, setLoading] = useState(true)
@@ -732,9 +734,14 @@ const Dashboard = () => {
                         border: '1px solid var(--color-border)',
                         mb: 1.5,
                         cursor: 'pointer',
-                        bgcolor: 'rgba(33,38,45,0.5)',
-                        '&:hover': { borderColor: 'var(--color-border-lt)', bgcolor: 'rgba(33,38,45,0.8)' },
-                        transition: 'all 0.15s',
+                        bgcolor: 'var(--color-surface-2)',
+                        '&:hover': { 
+                          borderColor: 'var(--color-primary-lt)', 
+                          bgcolor: 'var(--color-surface-3)',
+                          transform: 'translateY(-2px)',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                        },
+                        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                       }}
                     >
                       <Box
@@ -743,9 +750,14 @@ const Dashboard = () => {
                           borderRadius: '10px',
                           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                           bgcolor: meeting.status === 'today'
-                            ? 'rgba(239,68,68,0.12)'
-                            : 'rgba(99,102,241,0.1)',
-                          border: `1px solid ${meeting.status === 'today' ? 'rgba(239,68,68,0.25)' : 'rgba(99,102,241,0.2)'}`,
+                            ? alpha(theme.palette.error.main, 0.1)
+                            : alpha(theme.palette.primary.main, 0.1),
+                          border: `1px solid ${meeting.status === 'today' 
+                            ? alpha(theme.palette.error.main, 0.2) 
+                            : alpha(theme.palette.primary.main, 0.2)}`,
+                          color: meeting.status === 'today' 
+                            ? theme.palette.error.main 
+                            : theme.palette.primary.main,
                           flexShrink: 0,
                         }}
                       >
@@ -763,13 +775,13 @@ const Dashboard = () => {
                             label={meeting.group}
                             size="small"
                             sx={{
-                              height: 16,
-                              fontSize: '0.5625rem',
+                              height: 18,
+                              fontSize: '0.625rem',
                               fontWeight: 600,
-                              bgcolor: 'rgba(33,38,45,0.8)',
-                              color: 'var(--color-text-muted)',
+                              bgcolor: 'var(--color-surface-3)',
+                              color: 'var(--color-text-sec)',
                               border: '1px solid var(--color-border)',
-                              '& .MuiChip-label': { px: '6px' },
+                              '& .MuiChip-label': { px: '8px' },
                             }}
                           />
                         </Box>
@@ -778,13 +790,13 @@ const Dashboard = () => {
                         <Box sx={{ flexShrink: 0 }}>
                           <Box
                             sx={{
-                              px: '8px', py: '3px',
+                              px: '10px', py: '4px',
                               borderRadius: '99px',
-                              bgcolor: 'rgba(239,68,68,0.12)',
-                              border: '1px solid rgba(239,68,68,0.25)',
+                              bgcolor: alpha(theme.palette.error.main, 0.1),
+                              border: `1px solid ${alpha(theme.palette.error.main, 0.25)}`,
                             }}
                           >
-                            <Typography sx={{ fontSize: '0.5625rem', fontWeight: 700, color: '#FCA5A5', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                            <Typography sx={{ fontSize: '0.625rem', fontWeight: 700, color: theme.palette.error.main, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
                               {t('common.today')}
                             </Typography>
                           </Box>
