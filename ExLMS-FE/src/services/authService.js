@@ -8,7 +8,7 @@ const authService = {
 
   register: async (fullName, email, password, desiredRole) => {
     const response = await api.post('/auth/register', { fullName, email, password, desiredRole })
-    return response.data
+    return response.data.message || response.data
   },
 
   refreshToken: async (token) => {
@@ -38,12 +38,12 @@ const authService = {
 
   forgotPassword: async (email) => {
     const response = await api.post('/auth/forgot-password', { email })
-    return response.data
+    return response.data.message || response.data
   },
 
   resetPassword: async (token, newPassword) => {
     const response = await api.post('/auth/reset-password', { token, newPassword })
-    return response.data
+    return response.data.message || response.data
   },
 }
 
