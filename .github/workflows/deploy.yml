@@ -115,7 +115,7 @@ jobs:
             docker compose pull
             
             # Khởi chạy bản mới nhất
-            docker compose up -d
+            docker compose up -d --build
             
             # Dọn dẹp các bản build/layer cũ bị thừa để giải phóng dung lượng SSD
             docker image prune -a -f
