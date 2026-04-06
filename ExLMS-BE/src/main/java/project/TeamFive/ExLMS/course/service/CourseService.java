@@ -224,7 +224,7 @@ public class CourseService {
 
     @Transactional(readOnly = true)
     public List<CourseResponse> getTemplatesByCreator(User creator) {
-        return courseRepository.findByCreatedBy(creator)
+        return courseRepository.findByCreatedByAndDeletedAtIsNull(creator)
                 .stream()
                 .map(this::mapTemplateToResponse)
                 .collect(Collectors.toList());
@@ -305,17 +305,16 @@ public class CourseService {
     @Transactional
     public String deleteTemplate(UUID templateId, User user) {
         Course template = courseRepository.findById(templateId)
-                .orElseThrow(() -> new RuntimeException("Template not found"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bản mẫu khóa học!"));
 
         if (!template.getCreatedBy().getId().equals(user.getId()) && !"ADMIN".equals(user.getRole().name())) {
             throw new RuntimeException("Bạn không có quyền xóa bản mẫu này!");
         }
 
-        try {
-            courseRepository.delete(template);
-        } catch (Exception e) {
-            throw new RuntimeException("Không thể xóa bản mẫu này vì đã có lớp học triển khai từ nó.", e);
-        }
+        // Soft delete: chỉ đánh dấu xóa, không xóa vật lý để bảo toàn dữ liệu  
+        // group_courses, enrollments, lesson_progress vẫn được giữ nguyên
+        template.softDelete();
+        courseRepository.save(template);
         return "Đã xóa bản mẫu thành công!";
     }
 

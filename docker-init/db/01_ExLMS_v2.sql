@@ -1,11 +1,11 @@
 -- ExLMS Database Schema Refactored (Template/Deployment Pattern)
 -- v2.1 - Complete Schema Fix
 
-CREATE DATABASE IF NOT EXISTS ExLMS
+CREATE DATABASE IF NOT EXISTS exlms
     CHARACTER SET utf8mb4
     COLLATE utf8mb4_unicode_ci;
 
-USE ExLMS;
+USE exlms;
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -163,9 +163,11 @@ CREATE TABLE `courses` (
   `completion_threshold` tinyint NOT NULL DEFAULT '80',
   `has_certificate` tinyint(1) NOT NULL DEFAULT '0',
   `certificate_key` char(36) DEFAULT NULL,
+  `deleted_at` datetime DEFAULT NULL COMMENT 'Soft delete timestamp. NULL = active',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
+  KEY `idx_courses_deleted_at` (`deleted_at`),
   CONSTRAINT `fk_courses_creator` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -177,10 +179,12 @@ CREATE TABLE `course_chapters` (
   `order_index` int NOT NULL,
   `is_locked` tinyint(1) NOT NULL DEFAULT '0',
   `unlock_after_chapter` binary(16) DEFAULT NULL,
+  `deleted_at` datetime DEFAULT NULL COMMENT 'Soft delete timestamp. NULL = active',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  CONSTRAINT `fk_chapters_course` FOREIGN KEY (`course_id`) REFERENCES `courses` (`id`) ON DELETE CASCADE
+  KEY `idx_chapters_deleted_at` (`deleted_at`),
+  CONSTRAINT `fk_chapters_course` FOREIGN KEY (`course_id`) REFERENCES `courses` (`id`) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `course_lessons` (
@@ -192,10 +196,12 @@ CREATE TABLE `course_lessons` (
   `resource_key` varchar(36) DEFAULT NULL,
   `duration_seconds` int DEFAULT NULL,
   `order_index` int NOT NULL,
+  `deleted_at` datetime DEFAULT NULL COMMENT 'Soft delete timestamp. NULL = active',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  CONSTRAINT `fk_lessons_chapter` FOREIGN KEY (`chapter_id`) REFERENCES `course_chapters` (`id`) ON DELETE CASCADE
+  KEY `idx_lessons_deleted_at` (`deleted_at`),
+  CONSTRAINT `fk_lessons_chapter` FOREIGN KEY (`chapter_id`) REFERENCES `course_chapters` (`id`) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `assignments` (
@@ -207,9 +213,11 @@ CREATE TABLE `assignments` (
   `submission_type` enum('FILE','TEXT','MIXED') NOT NULL DEFAULT 'FILE',
   `allowed_file_types` varchar(255) DEFAULT NULL,
   `max_file_size_mb` int NOT NULL DEFAULT '50',
+  `deleted_at` datetime DEFAULT NULL COMMENT 'Soft delete timestamp. NULL = active',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
+  KEY `idx_assignments_deleted_at` (`deleted_at`),
   CONSTRAINT `fk_asgn_creator` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -221,9 +229,11 @@ CREATE TABLE `quizzes` (
   `time_limit_sec` int DEFAULT NULL,
   `max_attempts` int NOT NULL DEFAULT '1',
   `passing_score` int NOT NULL DEFAULT '50',
+  `deleted_at` datetime DEFAULT NULL COMMENT 'Soft delete timestamp. NULL = active',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
+  KEY `idx_quizzes_deleted_at` (`deleted_at`),
   CONSTRAINT `fk_quizzes_creator` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -236,6 +246,7 @@ CREATE TABLE `quiz_questions` (
   `explanation` text,
   `order_index` int NOT NULL,
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_questions_quiz` FOREIGN KEY (`quiz_id`) REFERENCES `quizzes` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -247,6 +258,7 @@ CREATE TABLE `quiz_answers` (
   `is_correct` tinyint(1) NOT NULL DEFAULT '0',
   `order_index` int NOT NULL,
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_answers_question` FOREIGN KEY (`question_id`) REFERENCES `quiz_questions` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -267,7 +279,7 @@ CREATE TABLE `group_courses` (
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_gc_group` FOREIGN KEY (`group_id`) REFERENCES `study_groups` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_gc_course` FOREIGN KEY (`course_id`) REFERENCES `courses` (`id`) ON DELETE CASCADE
+  CONSTRAINT `fk_gc_course` FOREIGN KEY (`course_id`) REFERENCES `courses` (`id`) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `group_assignments` (
@@ -283,7 +295,7 @@ CREATE TABLE `group_assignments` (
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_ga_group` FOREIGN KEY (`group_id`) REFERENCES `study_groups` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_ga_assignment` FOREIGN KEY (`assignment_id`) REFERENCES `assignments` (`id`) ON DELETE CASCADE
+  CONSTRAINT `fk_ga_assignment` FOREIGN KEY (`assignment_id`) REFERENCES `assignments` (`id`) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `group_quizzes` (
@@ -298,7 +310,7 @@ CREATE TABLE `group_quizzes` (
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_gq_group` FOREIGN KEY (`group_id`) REFERENCES `study_groups` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_gq_quiz` FOREIGN KEY (`quiz_id`) REFERENCES `quizzes` (`id`) ON DELETE CASCADE
+  CONSTRAINT `fk_gq_quiz` FOREIGN KEY (`quiz_id`) REFERENCES `quizzes` (`id`) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- CREATE TABLE `course_quizzes` (
@@ -325,6 +337,8 @@ CREATE TABLE `course_enrollments` (
   `is_completed` tinyint(1) NOT NULL DEFAULT '0',
   `completed_at` datetime DEFAULT NULL,
   `enrolled_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_enrollments` (`group_course_id`,`user_id`),
   CONSTRAINT `fk_enroll_gc` FOREIGN KEY (`group_course_id`) REFERENCES `group_courses` (`id`) ON DELETE CASCADE,
@@ -338,6 +352,7 @@ CREATE TABLE `lesson_progress` (
   `is_completed` tinyint(1) NOT NULL DEFAULT '0',
   `last_position_sec` int NOT NULL DEFAULT '0',
   `completed_at` datetime DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_lp_enroll` FOREIGN KEY (`enrollment_id`) REFERENCES `course_enrollments` (`id`) ON DELETE CASCADE,
@@ -356,6 +371,8 @@ CREATE TABLE `assignment_submissions` (
   `is_late` tinyint(1) NOT NULL DEFAULT '0',
   `attempt_number` int NOT NULL DEFAULT '1',
   `submitted_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_sub_ga` FOREIGN KEY (`group_assignment_id`) REFERENCES `group_assignments` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_sub_u` FOREIGN KEY (`student_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
@@ -369,6 +386,8 @@ CREATE TABLE `assignment_grades` (
   `feedback` text,
   `status` enum('PENDING','GRADED','RETURNED') NOT NULL DEFAULT 'GRADED',
   `graded_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_grades` (`submission_id`),
   CONSTRAINT `fk_grades_sub` FOREIGN KEY (`submission_id`) REFERENCES `assignment_submissions` (`id`) ON DELETE CASCADE,
@@ -386,6 +405,8 @@ CREATE TABLE `quiz_attempts` (
   `is_passed` tinyint(1) DEFAULT NULL,
   `started_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `submitted_at` datetime DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_att_q` FOREIGN KEY (`quiz_id`) REFERENCES `quizzes` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_att_u` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
@@ -399,6 +420,8 @@ CREATE TABLE `quiz_responses` (
   `text_response` text,
   `is_correct` tinyint(1) DEFAULT NULL,
   `points_earned` int NOT NULL DEFAULT '0',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_resp_att` FOREIGN KEY (`attempt_id`) REFERENCES `quiz_attempts` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_resp_q` FOREIGN KEY (`question_id`) REFERENCES `quiz_questions` (`id`) ON DELETE CASCADE
@@ -422,6 +445,7 @@ CREATE TABLE `meetings` (
   `end_at` datetime NOT NULL,
   `status` enum('DRAFT','PUBLISHED','CLOSED') NOT NULL DEFAULT 'DRAFT',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_meet_g` FOREIGN KEY (`group_id`) REFERENCES `study_groups` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_meet_u` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE RESTRICT
@@ -435,6 +459,8 @@ CREATE TABLE `meeting_attendances` (
   `left_at` datetime DEFAULT NULL,
   `duration_sec` int NOT NULL DEFAULT '0',
   `is_present` tinyint(1) NOT NULL DEFAULT '1',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_att_m` FOREIGN KEY (`meeting_id`) REFERENCES `meetings` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_att_mu` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
@@ -454,6 +480,7 @@ CREATE TABLE `calendar_events` (
   `is_personal` tinyint(1) NOT NULL DEFAULT '0',
   `group_id` binary(16) DEFAULT NULL,
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_cal_u` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -483,6 +510,7 @@ CREATE TABLE `forum_comments` (
   `content` text NOT NULL,
   `upvote_count` int NOT NULL DEFAULT '0',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_for_c_p` FOREIGN KEY (`post_id`) REFERENCES `forum_posts` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_for_c_u` FOREIGN KEY (`author_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
@@ -497,6 +525,7 @@ CREATE TABLE `group_feed_posts` (
   `reaction_count` int NOT NULL DEFAULT '0',
   `comment_count` int NOT NULL DEFAULT '0',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_feed_g` FOREIGN KEY (`group_id`) REFERENCES `study_groups` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_feed_u` FOREIGN KEY (`author_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
@@ -515,6 +544,7 @@ CREATE TABLE `notifications` (
   `action_url` text,
   `is_read` tinyint(1) NOT NULL DEFAULT '0',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_notif_u` FOREIGN KEY (`recipient_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -524,6 +554,8 @@ CREATE TABLE `notification_settings` (
   `user_id` binary(16) NOT NULL,
   `email_enabled` tinyint(1) NOT NULL DEFAULT '1',
   `push_enabled` tinyint(1) NOT NULL DEFAULT '1',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_notif_settings` (`user_id`),
   CONSTRAINT `fk_notif_s_u` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE

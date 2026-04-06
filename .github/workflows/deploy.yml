@@ -40,8 +40,8 @@ jobs:
           tags: mingfang914/exlms-frontend:latest
           build-args: |
             VITE_GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
-            VITE_LIVEKIT_SERVICE_URL=${{ secrets.LIVEKIT_TOKEN_SERVICE_URL }}
-            VITE_LIVEKIT_SERVER_URL=${{ secrets.LIVEKIT_SERVER_URL }}
+            VITE_LIVEKIT_SERVICE_URL=${{ secrets.VITE_LIVEKIT_SERVICE_URL }}
+            VITE_LIVEKIT_SERVER_URL=${{ secrets.VITE_LIVEKIT_SERVICE_URL }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -87,21 +87,27 @@ jobs:
             DB_USERNAME=${{ secrets.DB_USERNAME }}
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
             JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
+            
             MINIO_URL=${{ secrets.MINIO_URL }}
             MINIO_ROOT_USER=${{ secrets.MINIO_ROOT_USER }}
             MINIO_ROOT_PASSWORD=${{ secrets.MINIO_ROOT_PASSWORD }}
+            
             GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
             GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+            VITE_GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+            
             LIVEKIT_API_KEY=${{ secrets.LIVEKIT_API_KEY }}
             LIVEKIT_API_SECRET=${{ secrets.LIVEKIT_API_SECRET }}
-            VITE_GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+
             MAIL_HOST=${{ secrets.MAIL_HOST }}
             MAIL_PORT=${{ secrets.MAIL_PORT }}
             MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
             MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
             MAIL_FROM=${{ secrets.MAIL_FROM }}
+            
             APP_FRONTEND_URL=${{ secrets.APP_FRONTEND_URL }}
             APP_BACKEND_URL=${{ secrets.APP_BACKEND_URL }}
+            
             LOGGING_LEVEL_PROJECT_TEAMFIVE_EXLMS=INFO
             EOF
             
@@ -109,7 +115,7 @@ jobs:
             docker compose pull
             
             # Khởi chạy bản mới nhất
-            docker compose up -d
+            docker compose up -d --build
             
             # Dọn dẹp các bản build/layer cũ bị thừa để giải phóng dung lượng SSD
             docker image prune -a -f

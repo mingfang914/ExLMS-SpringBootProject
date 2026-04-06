@@ -2,19 +2,21 @@ package project.TeamFive.ExLMS.quiz.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import project.TeamFive.ExLMS.entity.BaseEntity;
+import org.hibernate.annotations.SQLDelete;
+import project.TeamFive.ExLMS.entity.SoftDeletableEntity;
 import project.TeamFive.ExLMS.user.entity.User;
 
 import java.util.List;
 
 @Entity
 @Table(name = "quizzes")
+@SQLDelete(sql = "UPDATE quizzes SET deleted_at = NOW() WHERE id = ?")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Quiz extends BaseEntity {
+public class Quiz extends SoftDeletableEntity {
 
     @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<QuizQuestion> questions;

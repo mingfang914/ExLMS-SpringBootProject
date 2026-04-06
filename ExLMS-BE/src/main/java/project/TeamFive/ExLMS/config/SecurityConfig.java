@@ -74,6 +74,13 @@ public class SecurityConfig {
                                                                 "/api/v1/groups/*/leave")
                                                 .authenticated()
 
+                                                // Student submissions and attempts
+                                                .requestMatchers(org.springframework.http.HttpMethod.POST,
+                                                                "/api/v1/assignments/*/submit",
+                                                                "/api/v1/quizzes/*/attempts",
+                                                                "/api/v1/quizzes/attempts/*/submit")
+                                                .authenticated()
+
                                                 // Management routes (POST, PUT, DELETE) - restricted to INSTRUCTOR and ADMIN
                                                 .requestMatchers(org.springframework.http.HttpMethod.POST,
                                                                 "/api/v1/courses/**", "/api/v1/quizzes/**",
