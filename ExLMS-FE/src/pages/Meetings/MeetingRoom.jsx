@@ -42,14 +42,6 @@ const MeetingRoom = () => {
   const [pollForm, setPollForm] = useState({ question: '', options: ['', ''] })
   const stompClientRef = useRef(null)
   
-  if (!user) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <CircularProgress />
-      </Box>
-    )
-  }
-
   const roomName = location.state?.roomName || meeting?.joinUrl?.split('/').pop() || `exlms-meeting-${id}`
   const meetingTitle = meeting?.title || location.state?.title || t('common.loading')
   
@@ -140,6 +132,8 @@ const MeetingRoom = () => {
   }, [user?.id, isInstructor, fetchData, t])
 
   useEffect(() => {
+    if (!user) return
+
     meetingService.recordAttendance(id, true)
     fetchData()
     
@@ -184,7 +178,15 @@ const MeetingRoom = () => {
       }
       meetingService.recordAttendance(id, false)
     }
-  }, [id, fetchData, handleWebSocketEvent])
+  }, [id, user, fetchData, handleWebSocketEvent])
+
+  if (!user) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    )
+  }
 
 
 

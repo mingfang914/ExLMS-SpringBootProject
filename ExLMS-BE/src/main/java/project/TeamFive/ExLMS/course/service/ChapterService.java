@@ -74,7 +74,9 @@ public class ChapterService {
         CourseChapter chapter = chapterRepository.findById(chapterId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy chương học!"));
         requireInstructorRole(chapter.getCourse(), currentUser);
-        chapterRepository.delete(chapter);
+        // Soft delete: đánh dấu xóa, bảo toàn lesson_progress của học sinh
+        chapter.softDelete();
+        chapterRepository.save(chapter);
         return "Đã xóa chương học!";
     }
 
