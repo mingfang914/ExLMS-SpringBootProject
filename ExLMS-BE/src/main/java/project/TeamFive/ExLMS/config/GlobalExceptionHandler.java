@@ -13,6 +13,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.http.MediaType;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -24,7 +25,9 @@ public class GlobalExceptionHandler {
         System.err.println("DEBUG: Accept Header: " + request.getHeader("Accept"));
         Map<String, String> error = new HashMap<>();
         error.put("message", e.getReason());
-        return ResponseEntity.status(e.getStatusCode()).body(error);
+        return ResponseEntity.status(e.getStatusCode())
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(error);
     }
 
     @ExceptionHandler(RuntimeException.class)
@@ -33,21 +36,27 @@ public class GlobalExceptionHandler {
         e.printStackTrace();
         Map<String, String> error = new HashMap<>();
         error.put("message", "Đã xảy ra lỗi hệ thống: " + (e.getMessage() != null ? e.getMessage() : "Unknown Error"));
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(error);
     }
 
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<Map<String, String>> handleAuthException(AuthenticationException e) {
         Map<String, String> error = new HashMap<>();
         error.put("message", "Bạn chưa đăng nhập hoặc phiên đã hết hạn.");
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(error);
     }
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<Map<String, String>> handleAccessDeniedException(AccessDeniedException e) {
         Map<String, String> error = new HashMap<>();
         error.put("message", "Bạn không có quyền thực hiện hành động này.");
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(error);
     }
 
     /**
@@ -59,7 +68,9 @@ public class GlobalExceptionHandler {
         Map<String, String> error = new HashMap<>();
         String message = e.getMessage() != null ? e.getMessage() : "Xác thực Google thất bại. Vui lòng thử lại.";
         error.put("message", message);
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(error);
     }
 
     /**
@@ -73,7 +84,9 @@ public class GlobalExceptionHandler {
                 .findFirst()
                 .orElse("Dữ liệu không hợp lệ.");
         error.put("message", message);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(error);
     }
 
     @ExceptionHandler(NullPointerException.class)
@@ -82,14 +95,18 @@ public class GlobalExceptionHandler {
         e.printStackTrace();
         Map<String, String> error = new HashMap<>();
         error.put("message", "Đã xảy ra lỗi lập trình (NPE): " + e.getMessage());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(error);
     }
 
     @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
     public ResponseEntity<Map<String, String>> handleNoResourceFoundException(org.springframework.web.servlet.resource.NoResourceFoundException e) {
         Map<String, String> error = new HashMap<>();
         error.put("message", "Tài nguyên không tồn tại: " + e.getResourcePath());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(error);
     }
 
     @ExceptionHandler(Exception.class)
@@ -98,6 +115,8 @@ public class GlobalExceptionHandler {
         e.printStackTrace();
         Map<String, String> error = new HashMap<>();
         error.put("message", "Đã xảy ra lỗi không mong muốn: " + e.getMessage());
-        return ResponseEntity.internalServerError().body(error);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(error);
     }
 }

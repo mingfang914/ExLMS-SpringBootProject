@@ -43,8 +43,8 @@ public class SubmissionService {
             }
         }
 
-        // Check assigned_at
-        if (deployment.getAssignedAt() != null && deployment.getAssignedAt().isAfter(LocalDateTime.now())) {
+        // Check assigned_at với 5 phút linh động tránh sai lệch clock
+        if (deployment.getAssignedAt() != null && deployment.getAssignedAt().isAfter(LocalDateTime.now().plusMinutes(5))) {
             throw new RuntimeException("Bài tập này chưa đến thời gian giao bài!");
         }
 
