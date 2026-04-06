@@ -22,9 +22,11 @@ public class AuthController {
     private final OAuth2GoogleService oAuth2GoogleService;
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<java.util.Map<String, String>> register(@RequestBody RegisterRequest request) {
         String responseMessage = authService.register(request);
-        return ResponseEntity.ok(responseMessage);
+        java.util.Map<String, String> body = new java.util.HashMap<>();
+        body.put("message", responseMessage);
+        return ResponseEntity.ok(body);
     }
 
     @PostMapping("/login")
@@ -47,12 +49,14 @@ public class AuthController {
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<String> forgotPassword(@RequestBody ForgotPasswordRequest request) {
-        return ResponseEntity.ok(authService.forgotPassword(request.getEmail()));
+    public ResponseEntity<java.util.Map<String, String>> forgotPassword(@RequestBody ForgotPasswordRequest request) {
+        String message = authService.forgotPassword(request.getEmail());
+        return ResponseEntity.ok(java.util.Map.of("message", message));
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordRequest request) {
-        return ResponseEntity.ok(authService.resetPassword(request));
+    public ResponseEntity<java.util.Map<String, String>> resetPassword(@RequestBody ResetPasswordRequest request) {
+        String message = authService.resetPassword(request);
+        return ResponseEntity.ok(java.util.Map.of("message", message));
     }
 }
