@@ -95,7 +95,9 @@ public class LessonService {
         CourseLesson lesson = lessonRepository.findById(lessonId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bài học!"));
         requireInstructorRole(lesson.getChapter(), currentUser);
-        lessonRepository.delete(lesson);
+        // Soft delete: đánh dấu xóa, bảo toàn lesson_progress đã ghi nhận
+        lesson.softDelete();
+        lessonRepository.save(lesson);
         return "Đã xóa bài học!";
     }
 

@@ -82,7 +82,7 @@ public class AssignmentService {
 
     @Transactional(readOnly = true)
     public List<AssignmentResponseDTO> getTemplatesByCreator(User user) {
-        return assignmentRepository.findByCreatedBy(user).stream()
+        return assignmentRepository.findByCreatedByAndDeletedAtIsNull(user).stream()
                 .map(a -> mapToResponseDTO(a, null))
                 .collect(Collectors.toList());
     }
@@ -169,8 +169,12 @@ public class AssignmentService {
 
     @Transactional
     public void deleteAssignment(UUID id) {
-        groupAssignmentRepository.deleteByAssignment_Id(id);
-        assignmentRepository.deleteById(id);
+        Assignment assignment = assignmentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bản mẫu bài tập!"));
+        // Soft delete template: các GroupAssignment vẫn giữ nguyên, 
+        // submissions/grades được bảo toàn hoàn toàn
+        assignment.softDelete();
+        assignmentRepository.save(assignment);
     }
 
     @Transactional
@@ -182,8 +186,9 @@ public class AssignmentService {
             throw new RuntimeException("Bạn không có quyền xóa bản mẫu này!");
         }
 
-        groupAssignmentRepository.deleteByAssignment_Id(id);
-        assignmentRepository.delete(assignment);
+        // Soft delete: bảo toàn submission/grade, chỉ ẩn khỏi danh sách
+        assignment.softDelete();
+        assignmentRepository.save(assignment);
     }
 
     @Transactional

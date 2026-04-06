@@ -88,7 +88,7 @@ public class QuizService {
 
     @Transactional(readOnly = true)
     public List<QuizResponseDTO> getTemplatesByCreator(User user) {
-        return quizRepository.findByCreatedBy(user).stream()
+        return quizRepository.findByCreatedByAndDeletedAtIsNull(user).stream()
                 .map(q -> mapToResponseDTO(q, null))
                 .collect(Collectors.toList());
     }
@@ -265,10 +265,11 @@ public class QuizService {
 
     @Transactional
     public void deleteTemplate(UUID id, User user) {
-        Quiz quiz = quizRepository.findById(id).orElseThrow(() -> new RuntimeException("Không tìm thấy bản mẫu!"));
+        Quiz quiz = quizRepository.findById(id).orElseThrow(() -> new RuntimeException("Không tìm thấy bản mẫu trắc nghiệm!"));
         if (!quiz.getCreatedBy().getId().equals(user.getId())) throw new RuntimeException("Unauthorized");
-        groupQuizRepository.deleteByQuiz_Id(id);
-        quizRepository.delete(quiz);
+        // Soft delete: bảo toàn quiz_attempts/responses, chỉ ẩn template khỏi danh sách
+        quiz.softDelete();
+        quizRepository.save(quiz);
     }
 
     @Transactional

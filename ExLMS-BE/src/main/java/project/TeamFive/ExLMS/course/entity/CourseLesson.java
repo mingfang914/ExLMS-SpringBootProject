@@ -2,16 +2,18 @@ package project.TeamFive.ExLMS.course.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import project.TeamFive.ExLMS.entity.BaseEntity;
+import org.hibernate.annotations.SQLDelete;
+import project.TeamFive.ExLMS.entity.SoftDeletableEntity;
 
 @Entity
 @Table(name = "course_lessons")
+@SQLDelete(sql = "UPDATE course_lessons SET deleted_at = NOW() WHERE id = ?")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CourseLesson extends BaseEntity {
+public class CourseLesson extends SoftDeletableEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chapter_id", nullable = false)
