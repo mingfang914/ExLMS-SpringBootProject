@@ -582,7 +582,9 @@
     },
     "submission_content": "Submission Content",
     "max_possible": "Max Possible Score",
-    "both": "Both"
+    "both": "Both",
+    "file": "File submission",
+    "text": "Text submission"
   },
   "assignment_form": {
     "title_new": "Create New Assignment",
@@ -693,9 +695,8 @@
     "shuffle_questions_label": "Shuffle question order",
     "visibility_label": "Result Visibility",
     "visibility": {
-      "immediate": "Immediately after submission",
-      "after_deadline": "After deadline",
-      "manual": "Manual (Instructor opens)"
+      "open": "Published (Everyone can view details)",
+      "close": "Unpublished (Hidden from members)"
     },
     "add_question": "Add Question",
     "question_content_label": "Question Content *",
@@ -706,6 +707,7 @@
     "placeholder_answer": "Answer {{count}}",
     "enter_question_placeholder": "Enter question content...",
     "add_answer": "Add Answer",
+    "mark_correct": "Mark as correct answer",
     "explanation_label": "Explanation (shown after submission)",
     "types": {
       "single": "Single Choice",

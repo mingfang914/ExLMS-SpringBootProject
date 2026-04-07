@@ -472,6 +472,109 @@ body * {
   box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
 }
 
+/* ──────────────────────────────────────────────────────────────────
+   CKEDITOR CUSTOM THEMING (Premium Dark/Light)
+   ──────────────────────────────────────────────────────────────── */
+:root {
+  --cke-bg:          var(--color-surface);
+  --cke-toolbar-bg:  var(--color-surface-2);
+  --cke-border:      var(--color-border);
+  --cke-text:        var(--color-text);
+  --cke-placeholder: var(--color-text-muted);
+}
+
+.ck-reset_all {
+  --ck-color-base-border: var(--cke-border) !important;
+  --ck-color-base-background: var(--cke-toolbar-bg) !important;
+  --ck-color-toolbar-background: var(--cke-toolbar-bg) !important;
+  --ck-color-text: var(--cke-text) !important;
+}
+
+.ck.ck-editor__main > .ck-editor__editable {
+  background: var(--cke-bg) !important;
+  color: var(--cke-text) !important;
+  border-color: var(--cke-border) !important;
+  transition: all var(--transition-base);
+  font-family: var(--font-body) !important;
+  font-size: 0.9375rem !important;
+  padding: 1rem 1.5rem !important;
+}
+
+.ck.ck-editor__main > .ck-editor__editable.ck-focused {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
+}
+
+.ck.ck-toolbar {
+  background: var(--cke-toolbar-bg) !important;
+  border-color: var(--cke-border) !important;
+  border-bottom: none !important;
+  padding: 0.5rem !important;
+}
+
+.ck.ck-toolbar .ck-toolbar__items {
+  gap: 4px;
+}
+
+.ck.ck-button {
+  border-radius: var(--radius-sm) !important;
+  color: var(--cke-text) !important;
+  cursor: pointer !important;
+}
+
+.ck.ck-button:hover, 
+.ck.ck-button.ck-on {
+  background: var(--color-surface-3) !important;
+  color: var(--color-primary-lt) !important;
+}
+
+.ck.ck-dropdown .ck-button.ck-dropdown__button {
+  background: var(--color-surface-3) !important;
+  border: 1px solid var(--color-border) !important;
+}
+
+.ck.ck-list {
+  background: var(--color-surface-2) !important;
+}
+
+.ck.ck-list__item .ck-button {
+  border-radius: 0 !important;
+}
+
+.ck.ck-placeholder {
+  color: var(--cke-placeholder) !important;
+}
+
+/* Auth Page specific contrast fixes */
+[data-theme="dark"] .auth-card {
+  background: rgba(13, 17, 23, 0.85);
+  border: 1px solid #30363D;
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.7);
+}
+
+[data-theme="light"] .auth-card {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 32px 80px rgba(31, 38, 135, 0.08);
+}
+
+.auth-input .MuiOutlinedInput-root {
+  background-color: var(--color-surface) !important;
+  color: var(--color-text) !important;
+}
+
+.auth-input .MuiOutlinedInput-notchedOutline {
+  border-color: var(--color-border) !important;
+}
+
+.auth-input:hover .MuiOutlinedInput-notchedOutline {
+  border-color: var(--color-border-lt) !important;
+}
+
+.auth-input.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: var(--color-primary) !important;
+}
+
 /* Reduce motion */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

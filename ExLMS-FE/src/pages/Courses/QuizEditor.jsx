@@ -263,13 +263,19 @@ const QuizEditor = () => {
                   : q.answers
                 ).map((a, aIdx) => (
                   <Box key={aIdx} sx={{ display: 'flex', gap: 1.5, mb: 1.5, alignItems: 'center' }}>
-                    <Tooltip title="Correct Answer">
+                    <Tooltip title={t('quizzes.mark_correct')}>
                         <Button
                         variant={a.isCorrect ? 'contained' : 'outlined'}
                         color={a.isCorrect ? 'success' : 'inherit'}
-                        size="small" sx={{ minWidth: 44, height: 40, borderRadius: '8px' }}
-                        onClick={() => setCorrectAnswer(qIdx, aIdx, q.questionType === 'SINGLE_CHOICE')}
-                        >✓</Button>
+                        size="small" 
+                        sx={{ 
+                            minWidth: 44, height: 40, 
+                            borderRadius: (q.questionType === 'SINGLE_CHOICE' || q.questionType === 'TRUE_FALSE') ? '50%' : '8px' 
+                        }}
+                        onClick={() => setCorrectAnswer(qIdx, aIdx, q.questionType === 'SINGLE_CHOICE' || q.questionType === 'TRUE_FALSE')}
+                        >
+                          {a.isCorrect ? '✓' : ''}
+                        </Button>
                     </Tooltip>
                     <TextField
                       size="small" fullWidth

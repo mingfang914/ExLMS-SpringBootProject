@@ -360,7 +360,7 @@ const AssignmentDetail = () => {
                     </label>
                     {assignment.allowedFileTypes && (
                       <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5, display: 'block' }}>
-                        {t('assignment_detail.allowed_types')}: {assignment.allowedFileTypes}
+                        {t('assignment_detail.allowed_types', { types: assignment.allowedFileTypes })}
                       </Typography>
                     )}
                   </Box>
@@ -483,17 +483,33 @@ const AssignmentDetail = () => {
                       <Typography variant="body2" fontWeight="bold">{gradingSubmission.fileName}</Typography>
                       <Typography variant="caption" color="textSecondary">{gradingSubmission.fileSize ? `${(gradingSubmission.fileSize / 1024).toFixed(1)} KB` : ''}</Typography>
                     </Box>
-                    <Button variant="outlined" size="small" component="a" href={gradingSubmission.fileUrl} target="_blank">
+                    <Button 
+                      variant="outlined" 
+                      size="small" 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const previewEl = document.getElementById('submission-preview-container');
+                        if (previewEl) previewEl.scrollIntoView({ behavior: 'smooth' });
+                        else window.open(gradingSubmission.fileUrl, '_blank');
+                      }}
+                    >
                       {t('assignment_detail.actions.preview_file')}
                     </Button>
-                    <Button variant="contained" size="small" component="a" href={gradingSubmission.fileUrl} download>
+                    <Button 
+                      variant="text" 
+                      size="small" 
+                      component="a" 
+                      href={gradingSubmission.fileUrl} 
+                      download={gradingSubmission.fileName}
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       {t('assignment_detail.actions.download_file')}
                     </Button>
                   </Paper>
                   
                   {/* Embedded Preview for common file types (PDF, Images) */}
                   {gradingSubmission.fileName?.toLowerCase().match(/\.(pdf|jpg|jpeg|png|gif)$/) && (
-                    <Box sx={{ mt: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2, overflow: 'hidden' }}>
+                    <Box id="submission-preview-container" sx={{ mt: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2, overflow: 'hidden' }}>
                       {gradingSubmission.fileName.toLowerCase().endsWith('.pdf') ? (
                         <iframe src={`${gradingSubmission.fileUrl}#toolbar=0`} width="100%" height="500px" title="PDF Preview" />
                       ) : (

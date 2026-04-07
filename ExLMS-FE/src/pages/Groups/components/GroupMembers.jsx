@@ -269,7 +269,7 @@ const GroupMembers = ({ groupId, groupRole }) => {
 
       {/* Menu Options */}
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
-        {currentUserRole === 'OWNER' && selectedMember?.role === 'MEMBER' && (
+        {currentUserRole === 'OWNER' && selectedMember?.role === 'MEMBER' && selectedMember?.platformRole !== 'STUDENT' && (
           <MenuItem onClick={handlePromote}>Promote to Editor</MenuItem>
         )}
         {currentUserRole === 'OWNER' && selectedMember?.role === 'EDITOR' && (
@@ -278,7 +278,7 @@ const GroupMembers = ({ groupId, groupRole }) => {
         {(currentUserRole === 'OWNER' || (currentUserRole === 'EDITOR' && selectedMember?.role === 'MEMBER')) && (
           <MenuItem onClick={handleKick} sx={{ color: 'error.main' }}>Remove Member</MenuItem>
         )}
-        {currentUserRole === 'OWNER' && (
+        {currentUserRole === 'OWNER' && selectedMember?.platformRole !== 'STUDENT' && (
           <MenuItem onClick={handleTransferOwnership} sx={{ color: 'error.main', fontWeight: 'bold' }}>
             Transfer Ownership
           </MenuItem>

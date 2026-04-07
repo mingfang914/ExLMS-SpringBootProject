@@ -5,7 +5,7 @@ import {
 } from '@mui/material'
 import {
   CheckCircle as CheckIcon, Cancel as ErrorIcon,
-  HelpOutline as QuestionIcon, ArrowBack, ExitToApp,
+  HelpOutline, ArrowBack, ExitToApp,
   EmojiEvents as TrophyIcon, Replay as RetryIcon
 } from '@mui/icons-material'
 import { useParams, useNavigate } from 'react-router-dom'
@@ -37,6 +37,31 @@ const QuizResult = () => {
 
   if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}><CircularProgress /></Box>
   if (!result) return <Box sx={{ p: 4 }}><Alert severity="error">Không tìm thấy kết quả.</Alert></Box>
+
+  if (result.resultVisibility === 'HIDDEN') {
+    return (
+      <Box sx={{ maxWidth: 800, mx: 'auto', p: { xs: 2, md: 4 }, textAlign: 'center', mt: 8 }}>
+        <Paper className="premium-glass" sx={{ p: 6, borderRadius: '40px', background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(79, 70, 229, 0.05))', border: '1px solid rgba(99, 102, 241, 0.2)' }}>
+          <Box sx={{ width: 100, height: 100, borderRadius: '50%', bgcolor: 'rgba(99, 102, 241, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 4 }}>
+            <HelpOutline sx={{ fontSize: 50, color: '#6366F1' }} />
+          </Box>
+          <Typography variant="h3" fontWeight={900} gutterBottom sx={{ fontFamily: 'var(--font-heading)', color: 'var(--color-text)' }}>
+            Kết quả chưa được công bố
+          </Typography>
+          <Typography variant="h6" color="var(--color-text-sec)" sx={{ mb: 6, fontWeight: 500 }}>
+            Vui lòng quay lại sau khi giảng viên thiết lập công bố kết quả của bài kiểm tra này.
+          </Typography>
+          <Button 
+            variant="contained" size="large"
+            onClick={() => navigate(courseId === 'placeholder-quiz' ? `/groups/${groupId}` : `/groups/${groupId}/courses/${courseId}/view`)} 
+            sx={{ borderRadius: '16px', px: 6, py: 2, fontWeight: 800, background: 'linear-gradient(135deg, #6366F1, #4F46E5)' }}
+          >
+            Quay lại
+          </Button>
+        </Paper>
+      </Box>
+    )
+  }
 
   const isPassed = result.score >= (result.passingScore || 50)
 

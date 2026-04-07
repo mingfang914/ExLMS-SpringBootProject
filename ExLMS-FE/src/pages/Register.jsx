@@ -22,50 +22,50 @@ import { useTranslation } from 'react-i18next'
 // ── Icons ─────────────────────────────────────────────────────────
 const UserIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
   </svg>
 )
 const EmailIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-    <polyline points="22,6 12,13 2,6"/>
+    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+    <polyline points="22,6 12,13 2,6" />
   </svg>
 )
 const LockIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
   </svg>
 )
 const EyeIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
   </svg>
 )
 const EyeOffIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
-    <line x1="1" y1="1" x2="23" y2="23"/>
+    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+    <line x1="1" y1="1" x2="23" y2="23" />
   </svg>
 )
 const ArrowRightIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+    <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
   </svg>
 )
 const StudentIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>
+    <path d="M22 10v6M2 10l10-5 10 5-10 5z" /><path d="M6 12v5c3 3 9 3 12 0v-5" />
   </svg>
 )
 const InstructorIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" /><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
   </svg>
 )
 
 const fadeUp = {
-  hidden:  { opacity: 0, y: 24 },
+  hidden: { opacity: 0, y: 24 },
   visible: (i = 0) => ({ opacity: 1, y: 0, transition: { delay: i * 0.06, duration: 0.45, ease: [0.22, 1, 0.36, 1] } }),
 }
 
@@ -76,15 +76,15 @@ const FieldLabel = ({ children }) => (
 )
 
 const Register = () => {
-  const [fullName,         setFullName]         = useState('')
-  const [email,            setEmail]            = useState('')
-  const [password,         setPassword]         = useState('')
-  const [confirmPassword,  setConfirmPassword]  = useState('')
-  const [desiredRole,      setDesiredRole]      = useState('STUDENT')
-  const [showPwd,          setShowPwd]          = useState(false)
-  const [showConfirmPwd,   setShowConfirmPwd]   = useState(false)
-  const [error,            setError]            = useState(null)
-  const [loading,          setLoading]          = useState(false)
+  const [fullName, setFullName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [desiredRole, setDesiredRole] = useState('STUDENT')
+  const [showPwd, setShowPwd] = useState(false)
+  const [showConfirmPwd, setShowConfirmPwd] = useState(false)
+  const [error, setError] = useState(null)
+  const [loading, setLoading] = useState(false)
 
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -115,7 +115,6 @@ const Register = () => {
 
   const inputSx = {
     '& .MuiOutlinedInput-root': {
-      bgcolor: 'rgba(33,38,45,0.6)',
       borderRadius: '10px',
     },
   }
@@ -144,11 +143,12 @@ const Register = () => {
       <Box
         sx={{
           position: 'fixed', inset: 0,
-          backgroundImage: `
-            linear-gradient(rgba(48,54,61,0.12) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(48,54,61,0.12) 1px, transparent 1px)
+          backgroundImage: (theme) => `
+            linear-gradient(var(--color-border) 0.5px, transparent 0.5px),
+            linear-gradient(90deg, var(--color-border) 0.5px, transparent 0.5px)
           `,
           backgroundSize: '48px 48px',
+          opacity: 0.1,
           zIndex: 0, pointerEvents: 'none',
         }}
       />
@@ -162,14 +162,13 @@ const Register = () => {
         style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 480 }}
       >
         <Box
+          className="auth-card"
           sx={{
-            background: 'rgba(13,17,23,0.9)',
             backdropFilter: 'blur(24px)',
             WebkitBackdropFilter: 'blur(24px)',
-            border: '1px solid var(--color-border)',
             borderRadius: '20px',
             p: { xs: 3, sm: 4 },
-            boxShadow: '0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(99,102,241,0.08)',
+            boxShadow: '0 32px 80px rgba(0,0,0,0.6)',
           }}
         >
           {/* Logo */}
@@ -178,14 +177,14 @@ const Register = () => {
               <Box
                 sx={{
                   width: 40, height: 40, borderRadius: '11px',
-                  background: 'linear-gradient(135deg, #6366F1, #22D3EE)',
+                  background: 'linear-gradient(135deg, var(--color-primary), var(--color-accent))',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  boxShadow: '0 6px 18px rgba(99,102,241,0.4)',
+                  boxShadow: '0 6px 18px rgba(99,102,241,0.3)',
                 }}
               >
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
                 </svg>
               </Box>
               <Box>
@@ -219,9 +218,9 @@ const Register = () => {
                   mb: 2.5,
                   bgcolor: 'rgba(239,68,68,0.1)',
                   border: '1px solid rgba(239,68,68,0.25)',
-                  color: '#FCA5A5',
+                  color: 'var(--color-error)',
                   borderRadius: '10px',
-                  '& .MuiAlert-icon': { color: '#EF4444' },
+                  '& .MuiAlert-icon': { color: 'var(--color-error)' },
                 }}
               >
                 {error}
@@ -254,10 +253,10 @@ const Register = () => {
                     transition: 'all 0.2s',
                     '&.Mui-selected': {
                       bgcolor: 'rgba(99,102,241,0.12)',
-                      borderColor: 'rgba(99,102,241,0.4) !important',
-                      color: '#818CF8',
+                      borderColor: 'var(--color-primary) !important',
+                      color: 'var(--color-primary)',
                       fontWeight: 600,
-                      boxShadow: '0 0 0 1px rgba(99,102,241,0.2)',
+                      boxShadow: '0 0 0 1px rgba(99,102,241,0.1)',
                     },
                     '&:hover': { bgcolor: 'rgba(99,102,241,0.06)' },
                   },
@@ -282,6 +281,7 @@ const Register = () => {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   InputProps={{ startAdornment: <InputAdornment position="start" sx={{ color: 'var(--color-text-muted)' }}><UserIcon /></InputAdornment> }}
+                  className="auth-input"
                   sx={inputSx}
                 />
               </Box>
@@ -297,6 +297,7 @@ const Register = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   InputProps={{ startAdornment: <InputAdornment position="start" sx={{ color: 'var(--color-text-muted)' }}><EmailIcon /></InputAdornment> }}
+                  className="auth-input"
                   sx={inputSx}
                 />
               </Box>
@@ -323,6 +324,7 @@ const Register = () => {
                       </InputAdornment>
                     ),
                   }}
+                  className="auth-input"
                   sx={inputSx}
                 />
               </Box>
@@ -351,6 +353,7 @@ const Register = () => {
                       </InputAdornment>
                     ),
                   }}
+                  className="auth-input"
                   sx={inputSx}
                 />
               </Box>
@@ -369,10 +372,10 @@ const Register = () => {
                   borderRadius: '10px',
                   fontSize: '0.9375rem',
                   fontWeight: 700,
-                  background: 'linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)',
+                  background: 'var(--color-primary)',
                   cursor: 'pointer',
                   '&:hover': {
-                    background: 'linear-gradient(135deg, #818CF8 0%, #6366F1 100%)',
+                    background: 'var(--color-primary-lt)',
                     transform: 'translateY(-1px)',
                     boxShadow: '0 8px 24px rgba(99,102,241,0.4)',
                   },
@@ -387,7 +390,7 @@ const Register = () => {
           </Box>
 
           <motion.div custom={8} variants={fadeUp} initial="hidden" animate="visible">
-            <Divider sx={{ borderColor: 'var(--color-border)', my: 0.5 }}>
+            <Divider sx={{ borderColor: 'var(--color-border)', my: 1.5 }}>
               <Typography sx={{ px: 1.5, fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
                 {t('auth.already_has_account')}
               </Typography>
@@ -399,7 +402,7 @@ const Register = () => {
               fullWidth
               variant="outlined"
               sx={{
-                mt: 2,
+                mt: 1.5,
                 height: 44,
                 borderRadius: '10px',
                 fontSize: '0.875rem',

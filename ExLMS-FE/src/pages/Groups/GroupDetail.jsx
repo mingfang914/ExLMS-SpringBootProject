@@ -713,11 +713,16 @@ const GroupDetail = () => {
                             fullWidth 
                             variant="contained" 
                             component={RouterLink}
-                            to={`/groups/${id}/courses/placeholder-quiz/quiz/${quiz.id}/take`} 
-                            disabled={quiz.status === 'CLOSED' && (group.currentUserRole === 'MEMBER' || !group.currentUserRole)}
+                            to={quiz.status === 'CLOSED' 
+                              ? (group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR' 
+                                  ? `/groups/${id}/courses/placeholder-quiz/quiz/${quiz.id}/stats`
+                                  : `/groups/${id}/courses/placeholder-quiz/quiz/${quiz.id}/attempts/latest`) // Sẽ tạo route/logic cho học sinh sau
+                              : `/groups/${id}/courses/placeholder-quiz/quiz/${quiz.id}/take`
+                            } 
+                            disabled={quiz.status === 'CLOSED' && (group.currentUserRole === 'MEMBER' || !group.currentUserRole) && quiz.userAttemptCount === 0}
                             sx={{ borderRadius: '12px', fontWeight: 700, background: 'rgba(16, 185, 129, 0.2)', color: '#10B981', '&:hover': { background: '#10B981', color: '#FFF' } }}
                           >
-                            {quiz.status === 'CLOSED' ? 'Đã đóng' : 'Bắt đầu làm bài'}
+                            {quiz.status === 'CLOSED' ? 'Xem' : 'Bắt đầu làm bài'}
                           </Button>
                           {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
                             <>
