@@ -85,6 +85,8 @@ services:
       - MAIL_PASSWORD=${MAIL_PASSWORD}
       - MAIL_FROM=${MAIL_FROM}
       - APP_FRONTEND_URL=${APP_FRONTEND_URL}
+      - SPRING_DATA_REDIS_HOST=lms-redis
+      - SPRING_DATA_REDIS_PORT=6379
     depends_on:
       lms-mysql:
         condition: service_healthy
@@ -163,7 +165,7 @@ services:
     restart: always
     environment:
       - PORT=1234
-      - CORE_BACKEND_URL=http://lms-backend:8081/v1
+      - CORE_BACKEND_INTERNAL_URL=${CORE_BACKEND_INTERNAL_URL}
       - REDIS_HOST=lms-redis
       - REDIS_PORT=6379
     ports:

@@ -1,16 +1,25 @@
-import 'dotenv/config';
-import { Server } from '@hocuspocus/server';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
+import { Hocuspocus } from '@hocuspocus/server';
 import { Redis } from '@hocuspocus/extension-redis';
 import { Logger } from '@hocuspocus/extension-logger';
 import { Database } from '@hocuspocus/extension-database';
 import axios from 'axios';
 
-const PORT = process.env.COLLAB_SERVICE_PORT;
-const CORE_BACKEND_URL = process.env.CORE_BACKEND_INTERNAL_URL;
-const REDIS_HOST = process.env.REDIS_HOST;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load .env from workspace root (one level up from this service)
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
+dotenv.config(); // fallback to local .env
+
+const PORT = process.env.COLLAB_SERVICE_PORT || process.env.PORT || '1234';
+const CORE_BACKEND_URL = process.env.CORE_BACKEND_INTERNAL_URL || process.env.CORE_BACKEND_URL || 'http://lms-backend:8081/api/v1';
+const REDIS_HOST = process.env.REDIS_HOST || 'localhost';
 const REDIS_PORT = parseInt(process.env.REDIS_PORT || '6379');
 
-const server = new Server({
+const server = new Hocuspocus({
   name: 'exlms-collab',
 
   extensions: [
@@ -79,13 +88,19 @@ const server = new Server({
         user: { id: collab.userId },
       };
     } catch (error: any) {
-      console.error('Authentication failed', error.message);
-      throw new Error('Authentication failed');
+      const status = error.response?.status;
+      const message = error.response?.data?.message || error.message;
+      console.error(`[onAuthenticate] Auth failed for doc "${documentName}":`, {
+        status,
+        message,
+        url: `${CORE_BACKEND_URL}/collabs/${documentName}`
+      });
+      throw new Error(`Authentication failed: ${message}`);
     }
   },
 });
 
 // Khởi chạy server trên cổng chỉ định
 server.listen(Number(PORT)).then(() => {
-  console.log(`🚀 ExLMS Collab Microservice (v3.x) listening on port ${PORT}`);
+  console.log(`🚀 ExLMS Collab Microservice (v2.x) listening on port ${PORT}`);
 });

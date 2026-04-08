@@ -14,6 +14,8 @@ import project.TeamFive.ExLMS.meeting.entity.Meeting;
 import project.TeamFive.ExLMS.meeting.repository.MeetingRepository;
 import project.TeamFive.ExLMS.quiz.entity.GroupQuiz;
 import project.TeamFive.ExLMS.quiz.repository.GroupQuizRepository;
+import project.TeamFive.ExLMS.collab.entity.GroupCollab;
+import project.TeamFive.ExLMS.collab.repository.GroupCollabRepository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -31,6 +33,7 @@ public class SystemSchedulerService {
     private final GroupAssignmentRepository groupAssignmentRepository;
     private final GroupQuizRepository groupQuizRepository;
     private final GroupCourseRepository groupCourseRepository;
+    private final GroupCollabRepository groupCollabRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
     /**
@@ -47,6 +50,7 @@ public class SystemSchedulerService {
         processAssignments(now);
         processQuizzes(now);
         processGroupCourses(now);
+        processCollabs(now);
     }
 
     private void processGroupCourses(LocalDateTime now) {
@@ -142,6 +146,30 @@ public class SystemSchedulerService {
             quiz.setStatus(GroupQuiz.GroupQuizStatus.CLOSED);
             groupQuizRepository.save(quiz);
             broadcastStatusUpdate(quiz.getId(), "QUIZ", "CLOSED");
+        }
+    }
+
+    private void processCollabs(LocalDateTime now) {
+        // 1. Open draft collabs that reached startAt
+        List<GroupCollab> toOpen = groupCollabRepository.findByStatusNotAndEndAtBefore(
+                GroupCollab.CollabStatus.PUBLISHED, now); // Reusing logic for START
+        
+        // Actually we need better query for START. But we can use the existing logic for CLOSE first.
+        // Let's refine the repository query or use manual filter for simplicity here as mângement is small.
+        
+        List<GroupCollab> allCollabs = groupCollabRepository.findAll();
+        for (GroupCollab collab : allCollabs) {
+            if (collab.getStatus() == GroupCollab.CollabStatus.DRAFT && collab.getStartAt().isBefore(now)) {
+                log.info("SystemScheduler: Publishing collab '{}' (ID: {})", collab.getTitle(), collab.getId());
+                collab.setStatus(GroupCollab.CollabStatus.PUBLISHED);
+                groupCollabRepository.save(collab);
+                broadcastStatusUpdate(collab.getId(), "COLLAB", "PUBLISHED");
+            } else if (collab.getStatus() == GroupCollab.CollabStatus.PUBLISHED && collab.getEndAt() != null && collab.getEndAt().isBefore(now)) {
+                log.info("SystemScheduler: Closing collab '{}' (ID: {})", collab.getTitle(), collab.getId());
+                collab.setStatus(GroupCollab.CollabStatus.CLOSED);
+                groupCollabRepository.save(collab);
+                broadcastStatusUpdate(collab.getId(), "COLLAB", "CLOSED");
+            }
         }
     }
 

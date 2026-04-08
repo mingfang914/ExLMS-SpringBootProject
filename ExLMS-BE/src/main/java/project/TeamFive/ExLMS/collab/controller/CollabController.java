@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/v1")
+@RequestMapping("/api/v1")
 @RequiredArgsConstructor
 public class CollabController {
 

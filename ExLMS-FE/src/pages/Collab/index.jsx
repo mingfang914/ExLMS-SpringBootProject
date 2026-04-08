@@ -9,12 +9,14 @@ import {
 } from '@mui/material';
 import { 
   ArrowLeft, Plus, Calendar, Clock, Lock, 
-  Globe, Layout, Trash2, Edit3, CheckCircle
+  Globe, Layout, Trash2, Edit3, CheckCircle, MoreVertical
 } from 'lucide-react';
 import collabService from '../../services/collabService';
 import CollabEditor from '../../components/Collab/CollabEditor';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Client } from '@stomp/stompjs';
+import SockJS from 'sockjs-client';
 
 const GroupCollab = () => {
   const { groupId } = useParams();
@@ -29,8 +31,10 @@ const GroupCollab = () => {
     title: '',
     description: '',
     startAt: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
-    endAt: ''
+    endAt: '',
+    status: 'DRAFT'
   });
+  const [editingId, setEditingId] = useState(null);
 
   const fetchData = async () => {
     try {
@@ -46,17 +50,73 @@ const GroupCollab = () => {
 
   useEffect(() => {
     fetchData();
+
+    // Setup STOMP for realtime status updates
+    const sock = new SockJS('/api/ws');
+    const client = new Client({
+      webSocketFactory: () => sock,
+      onConnect: () => {
+        client.subscribe('/topic/resource-status', (msg) => {
+          const payload = JSON.parse(msg.body);
+          if (payload.type === 'STATUS_CHANGED' && payload.data.type === 'COLLAB') {
+            // Update local state if it's a collab status change
+            setCollabs(current => current.map(c => 
+              c.id === payload.data.id ? { ...c, status: payload.data.status } : c
+            ));
+            
+            // If active collab is closed, update it
+            setActiveCollab(current => {
+              if (current && current.id === payload.data.id) {
+                return { ...current, status: payload.data.status };
+              }
+              return current;
+            });
+          }
+        });
+      }
+    });
+    client.activate();
+
+    return () => client.deactivate();
   }, [groupId]);
 
-  const handleCreate = async () => {
+  const handleCreateOrUpdate = async () => {
     try {
-      await collabService.createCollab(groupId, formData);
+      if (editingId) {
+        await collabService.updateCollab(editingId, formData);
+      } else {
+        await collabService.createCollab(groupId, formData);
+      }
       setOpenDialog(false);
-      setFormData({ title: '', description: '', startAt: format(new Date(), "yyyy-MM-dd'T'HH:mm"), endAt: '' });
+      resetForm();
       fetchData();
     } catch (err) {
       alert(err.response?.data?.message || 'Có lỗi xảy ra');
     }
+  };
+
+  const resetForm = () => {
+    setFormData({ 
+        title: '', 
+        description: '', 
+        startAt: format(new Date(), "yyyy-MM-dd'T'HH:mm"), 
+        endAt: '',
+        status: 'DRAFT'
+    });
+    setEditingId(null);
+  };
+
+  const handleEdit = (collab, e) => {
+    e.stopPropagation();
+    setEditingId(collab.id);
+    setFormData({
+      title: collab.title,
+      description: collab.description,
+      startAt: format(new Date(collab.startAt), "yyyy-MM-dd'T'HH:mm"),
+      endAt: collab.endAt ? format(new Date(collab.endAt), "yyyy-MM-dd'T'HH:mm") : '',
+      status: collab.status
+    });
+    setOpenDialog(true);
   };
 
   const getStatusColor = (status) => {
@@ -105,6 +165,7 @@ const GroupCollab = () => {
               collabId={activeCollab.id} 
               user={user} 
               providerUrl={import.meta.env.VITE_COLLAB_SERVICE_URL || 'ws://localhost:1234'} 
+              isReadOnly={activeCollab.status === 'CLOSED'}
             />
           </Box>
         </motion.div>
@@ -146,9 +207,16 @@ const GroupCollab = () => {
                 >
                   <Box className="card-status-indicator" sx={{ bgcolor: getStatusColor(c.status) + '.main' }} />
                   <Stack spacing={2}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                         <Typography variant="h6" fontWeight="bold">{c.title}</Typography>
-                        <Chip size="small" label={c.status} color={getStatusColor(c.status)} />
+                        <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
+                            <Chip size="small" label={c.status} color={getStatusColor(c.status)} />
+                            {user.role !== 'STUDENT' && c.status !== 'CLOSED' && (
+                                <IconButton size="small" onClick={(e) => handleEdit(c, e)}>
+                                    <Edit3 size={14} />
+                                </IconButton>
+                            )}
+                        </Box>
                     </Box>
                     <Typography variant="body2" color="text.secondary" className="text-truncate-2">
                         {c.description || 'Không có mô tả'}
@@ -182,9 +250,9 @@ const GroupCollab = () => {
         </>
       )}
 
-      {/* Create Dialog */}
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Tạo phiên Collaboration mới</DialogTitle>
+      {/* Create/Edit Dialog */}
+      <Dialog open={openDialog} onClose={() => { setOpenDialog(false); resetForm(); }} maxWidth="sm" fullWidth>
+        <DialogTitle>{editingId ? 'Chỉnh sửa phiên làm việc' : 'Tạo phiên Collaboration mới'}</DialogTitle>
         <DialogContent sx={{ pt: 2 }}>
           <Stack spacing={3} sx={{ mt: 1 }}>
             <TextField
@@ -205,7 +273,11 @@ const GroupCollab = () => {
               label="Thời gian bắt đầu"
               type="datetime-local"
               fullWidth
+              disabled={!!editingId}
               InputLabelProps={{ shrink: true }}
+              inputProps={{ 
+                min: format(new Date(), "yyyy-MM-dd'T'HH:mm") 
+              }}
               value={formData.startAt}
               onChange={(e) => setFormData({ ...formData, startAt: e.target.value })}
             />
@@ -214,14 +286,32 @@ const GroupCollab = () => {
               type="datetime-local"
               fullWidth
               InputLabelProps={{ shrink: true }}
+              inputProps={{ 
+                min: formData.startAt || format(new Date(), "yyyy-MM-dd'T'HH:mm") 
+              }}
               value={formData.endAt}
               onChange={(e) => setFormData({ ...formData, endAt: e.target.value })}
             />
+            
+            <TextField
+                select
+                label="Trạng thái"
+                fullWidth
+                SelectProps={{ native: true }}
+                value={formData.status}
+                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+            >
+                <option value="DRAFT">Draft</option>
+                <option value="PUBLISHED">Published</option>
+                {editingId && <option value="CLOSED">Closed (Manual)</option>}
+            </TextField>
           </Stack>
         </DialogContent>
         <DialogActions sx={{ p: 3 }}>
-          <Button onClick={() => setOpenDialog(false)}>Hủy</Button>
-          <Button variant="contained" onClick={handleCreate} disabled={!formData.title}>Tạo</Button>
+          <Button onClick={() => { setOpenDialog(false); resetForm(); }}>Hủy</Button>
+          <Button variant="contained" onClick={handleCreateOrUpdate} disabled={!formData.title}>
+            {editingId ? 'Cập nhật' : 'Tạo'}
+          </Button>
         </DialogActions>
       </Dialog>
     </Container>
