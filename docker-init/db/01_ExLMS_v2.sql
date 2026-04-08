@@ -209,6 +209,7 @@ CREATE TABLE `assignments` (
   `created_by` binary(16) NOT NULL,
   `title` varchar(200) NOT NULL,
   `description` text,
+  `cover_image_url` varchar(255) DEFAULT NULL,
   `max_score` int NOT NULL DEFAULT '100',
   `submission_type` enum('FILE','TEXT','MIXED') NOT NULL DEFAULT 'FILE',
   `allowed_file_types` varchar(255) DEFAULT NULL,
@@ -226,6 +227,7 @@ CREATE TABLE `quizzes` (
   `created_by` binary(16) DEFAULT NULL,
   `title` varchar(200) NOT NULL,
   `description` text,
+  `cover_image_url` varchar(255) DEFAULT NULL,
   `time_limit_sec` int DEFAULT NULL,
   `max_attempts` int NOT NULL DEFAULT '1',
   `passing_score` int NOT NULL DEFAULT '50',
@@ -437,6 +439,7 @@ CREATE TABLE `meetings` (
   `created_by` binary(16) NOT NULL,
   `title` varchar(200) NOT NULL,
   `description` text,
+  `cover_image_url` varchar(255) DEFAULT NULL,
   `platform` varchar(50) DEFAULT NULL,
   `join_url` text,
   `passcode` varchar(50) DEFAULT NULL,
@@ -479,6 +482,7 @@ CREATE TABLE `calendar_events` (
   `source_entity_type` varchar(50) DEFAULT NULL,
   `is_personal` tinyint(1) NOT NULL DEFAULT '0',
   `group_id` binary(16) DEFAULT NULL,
+  `reminder_at` datetime DEFAULT NULL,
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -495,7 +499,11 @@ CREATE TABLE `forum_posts` (
   `title` varchar(200) NOT NULL,
   `content` longtext NOT NULL,
   `status` enum('DRAFT','PUBLISHED','HIDDEN','DELETED') NOT NULL DEFAULT 'PUBLISHED',
+  `view_count` int NOT NULL DEFAULT '0',
   `upvote_count` int NOT NULL DEFAULT '0',
+  `is_pinned` tinyint(1) NOT NULL DEFAULT '0',
+  `is_closed` tinyint(1) NOT NULL DEFAULT '0',
+  `edited_at` datetime DEFAULT NULL,
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -507,13 +515,85 @@ CREATE TABLE `forum_comments` (
   `id` binary(16) NOT NULL,
   `post_id` binary(16) NOT NULL,
   `author_id` binary(16) NOT NULL,
+  `parent_id` binary(16) DEFAULT NULL,
   `content` text NOT NULL,
   `upvote_count` int NOT NULL DEFAULT '0',
+  `is_accepted` tinyint(1) NOT NULL DEFAULT '0',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_for_c_p` FOREIGN KEY (`post_id`) REFERENCES `forum_posts` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_for_c_u` FOREIGN KEY (`author_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+  CONSTRAINT `fk_for_c_u` FOREIGN KEY (`author_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_for_c_parent` FOREIGN KEY (`parent_id`) REFERENCES `forum_comments` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `forum_tags` (
+  `id` binary(16) NOT NULL,
+  `name` varchar(60) NOT NULL,
+  `slug` varchar(80) NOT NULL,
+  `description` text,
+  `color` varchar(7) NOT NULL DEFAULT '#6366F1',
+  `post_count` int NOT NULL DEFAULT '0',
+  `created_by` binary(16) DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_forum_tags_name` (`name`),
+  UNIQUE KEY `uq_forum_tags_slug` (`slug`),
+  CONSTRAINT `fk_forum_tags_u` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `forum_post_tags` (
+  `post_id` binary(16) NOT NULL,
+  `tag_id` binary(16) NOT NULL,
+  PRIMARY KEY (`post_id`,`tag_id`),
+  CONSTRAINT `fk_pt_post` FOREIGN KEY (`post_id`) REFERENCES `forum_posts` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_pt_tag` FOREIGN KEY (`tag_id`) REFERENCES `forum_tags` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `forum_votes` (
+  `id` binary(16) NOT NULL,
+  `user_id` binary(16) NOT NULL,
+  `target_id` binary(16) NOT NULL,
+  `target_type` enum('FORUM_POST','FORUM_COMMENT') NOT NULL,
+  `vote_type` enum('UPVOTE','DOWNVOTE') NOT NULL DEFAULT 'UPVOTE',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_forum_votes_user_target` (`user_id`,`target_id`),
+  CONSTRAINT `fk_fv_u` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `forum_saved_posts` (
+  `user_id` binary(16) NOT NULL,
+  `post_id` binary(16) NOT NULL,
+  `saved_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`user_id`,`post_id`),
+  CONSTRAINT `fk_fsp_u` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_fsp_p` FOREIGN KEY (`post_id`) REFERENCES `forum_posts` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `forum_tag_followers` (
+  `user_id` binary(16) NOT NULL,
+  `tag_id` binary(16) NOT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`user_id`,`tag_id`),
+  CONSTRAINT `fk_ftf_u` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_ftf_t` FOREIGN KEY (`tag_id`) REFERENCES `forum_tags` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `forum_attachments` (
+  `id` binary(16) NOT NULL,
+  `post_id` binary(16) NOT NULL,
+  `filename` varchar(255) NOT NULL,
+  `object_key` varchar(36) NOT NULL,
+  `file_size` int NOT NULL,
+  `mime_type` varchar(100) NOT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_forum_att_key` (`object_key`),
+  CONSTRAINT `fk_fa_p` FOREIGN KEY (`post_id`) REFERENCES `forum_posts` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `group_feed_posts` (
@@ -588,6 +668,7 @@ CREATE TABLE `group_collabs` (
   `group_id` binary(16) NOT NULL,
   `title` varchar(255) NOT NULL,
   `description` text,
+  `cover_image_url` varchar(255) DEFAULT NULL,
   `document_data` longtext,
   `start_at` datetime NOT NULL,
   `end_at` datetime DEFAULT NULL,
@@ -610,5 +691,41 @@ CREATE TABLE `collab_participants` (
   CONSTRAINT `fk_cp_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+
+-- --------------------------------------------------------
+-- VIEWS
+-- --------------------------------------------------------
+
+CREATE OR REPLACE VIEW v_group_members_detail AS
+SELECT 
+    bin_to_uuid16(gm.user_id) AS user_id,
+    bin_to_uuid16(gm.group_id) AS group_id,
+    gm.role,
+    gm.status,
+    gm.joined_at,
+    u.full_name,
+    u.avatar_key,
+    u.email,
+    u.role AS platform_role
+FROM group_members gm
+JOIN users u ON gm.user_id = u.id;
+
+-- --------------------------------------------------------
+-- VIEWS
+-- --------------------------------------------------------
+
+CREATE OR REPLACE VIEW v_group_members_detail AS
+SELECT 
+    bin_to_uuid16(gm.user_id) AS user_id,
+    bin_to_uuid16(gm.group_id) AS group_id,
+    gm.role,
+    gm.status,
+    gm.joined_at,
+    u.full_name,
+    u.avatar_key,
+    u.email,
+    u.role AS platform_role
+FROM group_members gm
+JOIN users u ON gm.user_id = u.id;
 
 COMMIT;
