@@ -66,10 +66,12 @@ jobs:
             GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
             
             # 5. LiveKit & Meeting Service
+            LIVEKIT_URL=${{ secrets.LIVEKIT_URL }}
             LIVEKIT_API_KEY=${{ secrets.LIVEKIT_API_KEY }}
             LIVEKIT_API_SECRET=${{ secrets.LIVEKIT_API_SECRET }}
-            VITE_LIVEKIT_SERVICE_URL=${{ secrets.VITE_LIVEKIT_SERVICE_URL }}
-            VITE_LIVEKIT_SERVER_URL=${{ secrets.VITE_LIVEKIT_SERVICE_URL }}
+            MEETING_SERVICE_URL=${{ secrets.MEETING_SERVICE_URL }}
+            VITE_LIVEKIT_URL=${{ secrets.VITE_LIVEKIT_URL }}
+            VITE_MEETING_SERVICE_URL=${{ secrets.VITE_MEETING_SERVICE_URL }}
             
             # 6. Mail (Password Reset)
             MAIL_HOST=${{ secrets.MAIL_HOST }}
@@ -78,11 +80,18 @@ jobs:
             MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
             MAIL_FROM=${{ secrets.MAIL_FROM }}
             
-            # 7. App URLs
+            # 7. Collaboration Service
+            COLLAB_SERVICE_PORT=${{ secrets.COLLAB_SERVICE_PORT }}
+            VITE_COLLAB_SERVICE_URL=${{ secrets.VITE_COLLAB_SERVICE_URL }}
+            CORE_BACKEND_INTERNAL_URL=${{ secrets.CORE_BACKEND_INTERNAL_URL }}
+            REDIS_HOST=${{ secrets.REDIS_HOST }}
+            REDIS_PORT=${{ secrets.REDIS_PORT }}
+            
+            # 8. App URLs
             APP_FRONTEND_URL=${{ secrets.APP_FRONTEND_URL }}
             APP_BACKEND_URL=${{ secrets.APP_BACKEND_URL }}
             
-            # Vite Build Args (cần cho build frontend)
+            # Vite Build Args
             VITE_GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
             EOF
             

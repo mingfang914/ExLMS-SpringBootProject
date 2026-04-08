@@ -15,6 +15,8 @@ public class CollabRequestDTO {
 
     private String description;
 
+    private String coverImageUrl;
+
     @NotNull(message = "Thời gian bắt đầu là bắt buộc")
     @FutureOrPresent(message = "Thời gian bắt đầu phải từ thời điểm hiện tại trở đi")
     private LocalDateTime startAt;

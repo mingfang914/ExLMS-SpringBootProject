@@ -194,7 +194,7 @@ const GroupCollab = () => {
                   elevation={0}
                   className="premium-card"
                   sx={{ 
-                    p: 3, 
+                    p: 0, 
                     borderRadius: 4, 
                     cursor: 'pointer',
                     position: 'relative',
@@ -206,13 +206,20 @@ const GroupCollab = () => {
                   onClick={() => setActiveCollab(c)}
                 >
                   <Box className="card-status-indicator" sx={{ bgcolor: getStatusColor(c.status) + '.main' }} />
-                  <Stack spacing={2}>
+                  <Box sx={{
+                    height: 120,
+                    backgroundImage: `url(${c.coverImageUrl || '/api/files/download/Assets/CollabDefaultCover.png'})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                  }} />
+                  <Stack spacing={2} sx={{ p: 3 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                         <Typography variant="h6" fontWeight="bold">{c.title}</Typography>
                         <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
                             <Chip size="small" label={c.status} color={getStatusColor(c.status)} />
                             {user.role !== 'STUDENT' && c.status !== 'CLOSED' && (
                                 <IconButton size="small" onClick={(e) => handleEdit(c, e)}>
+
                                     <Edit3 size={14} />
                                 </IconButton>
                             )}

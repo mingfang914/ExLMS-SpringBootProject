@@ -88,6 +88,7 @@ public class MeetingService {
                 .createdBy(creator)
                 .title(request.getTitle())
                 .description(request.getDescription())
+                .coverImageUrl(request.getCoverImageUrl())
                 .platform("livekit")
                 .joinUrl(joinUrl)
                 .startAt(request.getStartAt() != null ? request.getStartAt() : LocalDateTime.now())

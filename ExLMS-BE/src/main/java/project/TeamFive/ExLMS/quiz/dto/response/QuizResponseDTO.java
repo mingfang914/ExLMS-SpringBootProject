@@ -20,7 +20,7 @@ public class QuizResponseDTO {
     private UUID templateId;     // This is the template ID (Quiz ID)
     private String title;
     private String description;
-    private UUID chapterId;
+    private String coverImageUrl;
     private Integer timeLimitSec;
     private int maxAttempts;
     private int passingScore;

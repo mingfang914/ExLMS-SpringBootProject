@@ -14,25 +14,27 @@ public class CollabResponseDTO {
     private UUID groupId;
     private String title;
     private String description;
+    private String coverImageUrl;
     private String documentData;
     private LocalDateTime startAt;
     private LocalDateTime endAt;
-    private GroupCollab.CollabStatus status;
+    private String status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    public static CollabResponseDTO fromEntity(GroupCollab collab) {
+    public static CollabResponseDTO fromEntity(project.TeamFive.ExLMS.collab.entity.GroupCollab entity) {
         return CollabResponseDTO.builder()
-                .id(collab.getId())
-                .groupId(collab.getGroup().getId())
-                .title(collab.getTitle())
-                .description(collab.getDescription())
-                .documentData(collab.getDocumentData())
-                .startAt(collab.getStartAt())
-                .endAt(collab.getEndAt())
-                .status(collab.getStatus())
-                .createdAt(collab.getCreatedAt())
-                .updatedAt(collab.getUpdatedAt())
+                .id(entity.getId())
+                .groupId(entity.getGroup().getId())
+                .title(entity.getTitle())
+                .description(entity.getDescription())
+                .coverImageUrl(entity.getCoverImageUrl() != null ? entity.getCoverImageUrl() : "/api/files/download/Assets/CollabDefaultCover.png")
+                .documentData(entity.getDocumentData())
+                .startAt(entity.getStartAt())
+                .endAt(entity.getEndAt())
+                .status(entity.getStatus().name())
+                .createdAt(entity.getCreatedAt())
+                .updatedAt(entity.getUpdatedAt())
                 .build();
     }
 }
