@@ -28,7 +28,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            cd /home/ubuntu/exlms-spring
+            cd /home/ubuntu/exlms-spring && docker compose down --remove-orphans
             
             # Tạo file .env cho build-time và runtime
             cat <<EOF > .env
@@ -71,7 +71,6 @@ jobs:
             EOF
             
             # Khởi chạy build và deploy trực tiếp trên server
-            docker compose down --remove-orphans
             docker compose up --build -d
             
             # Dọn dẹp các bản build/layer cũ bị thừa
