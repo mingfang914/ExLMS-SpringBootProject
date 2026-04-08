@@ -60,6 +60,7 @@ jobs:
             MINIO_URL=${{ secrets.MINIO_URL }}
             MINIO_ROOT_USER=${{ secrets.MINIO_ROOT_USER }}
             MINIO_ROOT_PASSWORD=${{ secrets.MINIO_ROOT_PASSWORD }}
+            MINIO_PUBLIC_URL=${{ secrets.MINIO_PUBLIC_URL }}
             
             # 4. Google OAuth
             GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
