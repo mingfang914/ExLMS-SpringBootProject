@@ -31,6 +31,7 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
+      
   # 2. MinIO (File Storage)
   lms-minio:
     image: quay.io/minio/minio
@@ -99,6 +100,7 @@ services:
       dockerfile: Dockerfile
       args:
         - VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}
+        - VITE_COLLAB_SERVICE_URL=${VITE_COLLAB_SERVICE_URL}
     image: mingfang914/exlms-frontend:latest
     container_name: lms-frontend
     restart: always
