@@ -1,9 +1,9 @@
 port: 7800
 rtc:
-  port_range_start: 7880
-  port_range_end: 7890
-  node_ip: 127.0.0.1 # Đây là tên trường đúng cho phiên bản 2.x để chỉ định IP quảng bá
+  port_range_start: 50000
+  port_range_end: 60000
+  node_ip: 161.118.215.197
 keys:
-  devkey: secret
+  livekitadmin: livekitadmin
 logging:
   level: info
