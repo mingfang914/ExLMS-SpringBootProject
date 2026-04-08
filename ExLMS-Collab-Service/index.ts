@@ -100,7 +100,7 @@ const server = new Hocuspocus({
   },
 });
 
-// Khởi chạy server trên cổng chỉ định
-server.listen(Number(PORT)).then(() => {
+// Khởi chạy server trên cổng chỉ định, lắng nghe trên 0.0.0.0 để Docker/Nginx có thể truy cập
+server.listen(Number(PORT), '0.0.0.0').then(() => {
   console.log(`🚀 ExLMS Collab Microservice (v2.x) listening on port ${PORT}`);
 });
