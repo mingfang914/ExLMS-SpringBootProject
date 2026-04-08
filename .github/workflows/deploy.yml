@@ -11,7 +11,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Stop and Cleanup Existing Containers
+      - name: Stop and Fix Permissions
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -21,8 +21,10 @@ jobs:
             if [ -d "/home/ubuntu/exlms-spring" ]; then
               cd /home/ubuntu/exlms-spring
               docker compose down --remove-orphans || true
-              # Đảm bảo các mount points đã được giải phóng hoàn toàn
-              sleep 5
+              cd ..
+              # Cấp quyền cho user để action có thể xóa thư mục (rm: true)
+              sudo chown -R ${{ secrets.SERVER_USER }}:${{ secrets.SERVER_USER }} /home/ubuntu/exlms-spring || true
+              sudo chmod -R 755 /home/ubuntu/exlms-spring || true
             fi
 
       - name: Copy Code to Server
@@ -85,6 +87,7 @@ jobs:
             EOF
             
             # Khởi chạy build và deploy trực tiếp trên server
+            docker compose down --remove-orphans
             docker compose up --build -d
             
             # Dọn dẹp các bản build/layer cũ bị thừa
