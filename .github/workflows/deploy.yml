@@ -29,6 +29,7 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             cd /home/ubuntu/exlms-spring && docker compose down --remove-orphans
+            sudo rm -rf /home/***/exlms-spring
             
             # Tạo file .env cho build-time và runtime
             cat <<EOF > .env
