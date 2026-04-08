@@ -1,12 +1,26 @@
-import React from 'react'
-import { Box, CssBaseline } from '@mui/material'
+import React, { useState, useEffect } from 'react'
+import { Box, CssBaseline, IconButton } from '@mui/material'
+import { useLocation } from 'react-router-dom'
+import { Menu as MenuIcon, ChevronLeft as ChevronLeftIcon } from '@mui/icons-material'
 import Header from './Header'
 import Sidebar from './Sidebar'
 import PageTransition from '../Common/PageTransition'
 
-const DRAWER_WIDTH = 256
-
 const Layout = ({ children }) => {
+  const location = useLocation()
+  const [collapsed, setCollapsed] = useState(false)
+
+  // Auto-collapse if user enters a meeting room
+  useEffect(() => {
+    if (location.pathname.includes('/meetings/') && location.pathname.includes('/room')) {
+      setCollapsed(true)
+    } else {
+      setCollapsed(false)
+    }
+  }, [location.pathname])
+
+  const DRAWER_WIDTH = collapsed ? 72 : 256
+
   return (
     <Box
       sx={{
@@ -19,7 +33,7 @@ const Layout = ({ children }) => {
     >
       <CssBaseline />
       <Header />
-      <Sidebar />
+      <Sidebar collapsed={collapsed} toggleCollapse={() => setCollapsed(!collapsed)} width={DRAWER_WIDTH} />
 
       {/* Main content area */}
       <Box
@@ -29,6 +43,7 @@ const Layout = ({ children }) => {
           minWidth: 0,
           width: { sm: `calc(100% - ${DRAWER_WIDTH}px)` },
           mt: '64px', // header height
+          transition: 'width 0.3s ease',
           bgcolor: 'var(--color-bg)',
           // Subtle mesh grid background
           backgroundImage: `

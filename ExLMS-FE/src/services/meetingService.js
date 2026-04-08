@@ -70,6 +70,16 @@ const meetingService = {
   getPolls: async (id) => {
     const response = await api.get(`${API_URL}/${id}/polls`);
     return response.data;
+  },
+
+  uploadRecording: async (id, file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    await api.post(`${API_URL}/${id}/recording`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
   }
 };
 

@@ -348,6 +348,7 @@ const GroupDetail = () => {
             {group.isJoined && <Tab icon={<AssignmentIcon />} iconPosition="start" label={t('group_detail.tabs.assignments')} />}
             {group.isJoined && <Tab icon={<QuizIcon />} iconPosition="start" label="Kiểm tra" />}
             {group.isJoined && <Tab icon={<MeetingIcon />} iconPosition="start" label={t('group_detail.tabs.meetings')} />}
+            {group.isJoined && <Tab icon={<ShareIcon />} iconPosition="start" label="Làm việc nhóm" />}
             {group.isJoined && <Tab icon={<ForumIcon />} iconPosition="start" label={t('group_detail.tabs.feed')} />}
             {group.isJoined && <Tab icon={<PeopleIcon />} iconPosition="start" label={t('group_detail.tabs.members')} />}
           </Tabs>
@@ -856,8 +857,38 @@ const GroupDetail = () => {
           </Box>
         )}
 
-        {/* Placeholder for other tabs */}
         {activeTab === 5 && (
+          <Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+              <Typography variant="h5">Collaboration Spaces</Typography>
+              <Button 
+                variant="contained" 
+                component={RouterLink}
+                to={`/groups/${id}/collabs`}
+                startIcon={<ShareIcon />}
+              >
+                Vào không gian làm việc
+              </Button>
+            </Box>
+            <Paper sx={{ p: 10, textAlign: 'center', borderRadius: 4, background: 'rgba(99, 102, 241, 0.05)', border: '1px dashed #6366F1' }}>
+                <ShareIcon sx={{ fontSize: 60, color: '#6366F1', mb: 2, opacity: 0.7 }} />
+                <Typography variant="h6" fontWeight="bold">Soạn thảo tài liệu thời gian thực</Typography>
+                <Typography color="text.secondary" sx={{ mb: 3 }}>
+                    Cùng nhau tạo ghi chú, lên kế hoạch và thảo luận trực tiếp trên cùng một tài liệu Tiptap.
+                </Typography>
+                <Button 
+                    variant="contained" 
+                    component={RouterLink}
+                    to={`/groups/${id}/collabs`}
+                    size="large"
+                >
+                    Khám phá ngay
+                </Button>
+            </Paper>
+          </Box>
+        )}
+
+        {activeTab === 6 && (
           <GroupFeed 
             groupId={id} 
             currentUserRole={group.currentUserRole}
@@ -867,7 +898,7 @@ const GroupDetail = () => {
           />
         )}
 
-        {activeTab === 6 && (
+        {activeTab === 7 && (
           <Paper sx={{ p: 3 }}>
             <GroupMembers groupId={id} groupRole={group.currentUserRole} />
           </Paper>

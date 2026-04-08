@@ -579,4 +579,36 @@ CREATE TRIGGER `trg_gm_count_delete` AFTER DELETE ON `group_members` FOR EACH RO
 END$$
 DELIMITER ;
 
+-- --------------------------------------------------------
+-- COLLABORATION (Tiptap)
+-- --------------------------------------------------------
+
+CREATE TABLE `group_collabs` (
+  `id` binary(16) NOT NULL,
+  `group_id` binary(16) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `description` text,
+  `document_data` longtext,
+  `start_at` datetime NOT NULL,
+  `end_at` datetime DEFAULT NULL,
+  `status` enum('DRAFT','PUBLISHED','CLOSED') NOT NULL DEFAULT 'DRAFT',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_collab_g` FOREIGN KEY (`group_id`) REFERENCES `study_groups` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `collab_participants` (
+  `id` binary(16) NOT NULL,
+  `collab_id` binary(16) NOT NULL,
+  `user_id` binary(16) NOT NULL,
+  `joined_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `last_active_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_collab_part` (`collab_id`,`user_id`),
+  CONSTRAINT `fk_cp_collab` FOREIGN KEY (`collab_id`) REFERENCES `group_collabs` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_cp_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
 COMMIT;

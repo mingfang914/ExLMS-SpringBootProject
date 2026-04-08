@@ -24,6 +24,8 @@ import project.TeamFive.ExLMS.meeting.dto.request.QuestionRequest;
 import project.TeamFive.ExLMS.meeting.dto.response.*;
 import project.TeamFive.ExLMS.meeting.entity.*;
 import project.TeamFive.ExLMS.meeting.repository.*;
+import project.TeamFive.ExLMS.service.FileService;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -47,6 +49,7 @@ public class MeetingService {
     private final SimpMessagingTemplate messagingTemplate;
     private final ApplicationEventPublisher eventPublisher;
     private final project.TeamFive.ExLMS.notification.service.NotificationService notificationService;
+    private final FileService fileService;
 
     private void broadcast(UUID meetingId, String type, Object data) {
         String destination = "/topic/meeting/" + meetingId;
@@ -201,6 +204,24 @@ public class MeetingService {
         meeting.setStatus(Meeting.MeetingStatus.CLOSED);
         meetingRepository.save(meeting);
         broadcast(id, "MEETING_ENDED", null);
+    }
+
+    @Transactional
+    public void uploadRecording(UUID id, MultipartFile file, User instructor) {
+        if (instructor == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Vui lòng đăng nhập");
+        }
+        Meeting meeting = meetingRepository.findById(id).orElseThrow(() -> new RuntimeException("Meeting not found"));
+        requireInstructorRole(meeting.getGroup(), instructor);
+
+        try {
+            String fileKey = fileService.uploadFile(file);
+            meeting.setRecordingKey(fileKey);
+            meetingRepository.save(meeting);
+            broadcast(id, "RECORDING_AVAILABLE", MeetingResponseDTO.fromEntity(meeting));
+        } catch (Exception e) {
+            throw new RuntimeException("Không thể lưu bản ghi hình: " + e.getMessage());
+        }
     }
 
     @Transactional

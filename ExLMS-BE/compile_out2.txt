@@ -1,0 +1,115 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------------< project.TeamFive:ExLMS >-----------------------
+[INFO] Building ExLMS 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ ExLMS ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ ExLMS ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 229 source files with javac [debug parameters release 21] to target\classes
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by lombok.permit.Permit
+WARNING: Please consider reporting this to the maintainers of class lombok.permit.Permit
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+[INFO] -------------------------------------------------------------
+[WARNING] COMPILATION WARNING : 
+[INFO] -------------------------------------------------------------
+[WARNING] /E:/Learning/ExLMS-Spring/ExLMS-BE/src/main/java/project/TeamFive/ExLMS/collab/entity/GroupCollab.java:[45,26] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[INFO] 1 warning
+[INFO] -------------------------------------------------------------
+[INFO] -------------------------------------------------------------
+[ERROR] COMPILATION ERROR : 
+[INFO] -------------------------------------------------------------
+[ERROR] /E:/Learning/ExLMS-Spring/ExLMS-BE/src/main/java/project/TeamFive/ExLMS/collab/service/CollabService.java:[15,43] cannot find symbol
+  symbol:   class Group
+  location: package project.TeamFive.ExLMS.group.entity
+[ERROR] /E:/Learning/ExLMS-Spring/ExLMS-BE/src/main/java/project/TeamFive/ExLMS/collab/service/CollabService.java:[18,47] cannot find symbol
+  symbol:   class GroupRepository
+  location: package project.TeamFive.ExLMS.group.repository
+[ERROR] /E:/Learning/ExLMS-Spring/ExLMS-BE/src/main/java/project/TeamFive/ExLMS/collab/entity/GroupCollab.java:[7,43] cannot find symbol
+  symbol:   class Group
+  location: package project.TeamFive.ExLMS.group.entity
+[ERROR] /E:/Learning/ExLMS-Spring/ExLMS-BE/src/main/java/project/TeamFive/ExLMS/collab/entity/GroupCollab.java:[26,13] cannot find symbol
+  symbol:   class Group
+  location: class project.TeamFive.ExLMS.collab.entity.GroupCollab
+[ERROR] /E:/Learning/ExLMS-Spring/ExLMS-BE/src/main/java/project/TeamFive/ExLMS/collab/entity/GroupCollab.java:[26,19] cannot find symbol
+  symbol:   class Group
+  location: class project.TeamFive.ExLMS.collab.entity.GroupCollab
+[ERROR] /E:/Learning/ExLMS-Spring/ExLMS-BE/src/main/java/project/TeamFive/ExLMS/collab/entity/GroupCollab.java:[14,1] cannot find symbol
+  symbol:   class Group
+  location: class project.TeamFive.ExLMS.collab.entity.GroupCollab
+[ERROR] /E:/Learning/ExLMS-Spring/ExLMS-BE/src/main/java/project/TeamFive/ExLMS/collab/entity/GroupCollab.java:[17,1] cannot find symbol
+  symbol:   class Group
+  location: class project.TeamFive.ExLMS.collab.entity.GroupCollab
+[ERROR] /E:/Learning/ExLMS-Spring/ExLMS-BE/src/main/java/project/TeamFive/ExLMS/collab/entity/GroupCollab.java:[15,1] cannot find symbol
+  symbol:   class Group
+  location: class project.TeamFive.ExLMS.collab.entity.GroupCollab.GroupCollabBuilder
+[ERROR] /E:/Learning/ExLMS-Spring/ExLMS-BE/src/main/java/project/TeamFive/ExLMS/collab/service/CollabService.java:[32,19] cannot find symbol
+  symbol:   class GroupRepository
+  location: class project.TeamFive.ExLMS.collab.service.CollabService
+[ERROR] /E:/Learning/ExLMS-Spring/ExLMS-BE/src/main/java/project/TeamFive/ExLMS/collab/service/CollabService.java:[35,40] cannot find symbol
+  symbol:   class Group
+  location: class project.TeamFive.ExLMS.collab.service.CollabService
+[ERROR] /E:/Learning/ExLMS-Spring/ExLMS-BE/src/main/java/project/TeamFive/ExLMS/collab/service/CollabService.java:[44,36] cannot find symbol
+  symbol:   class Group
+  location: class project.TeamFive.ExLMS.collab.service.CollabService
+[ERROR] /E:/Learning/ExLMS-Spring/ExLMS-BE/src/main/java/project/TeamFive/ExLMS/collab/service/CollabService.java:[27,1] cannot find symbol
+  symbol:   class GroupRepository
+  location: class project.TeamFive.ExLMS.collab.service.CollabService
+[INFO] 12 errors 
+[INFO] -------------------------------------------------------------
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  14.015 s
+[INFO] Finished at: 2026-04-08T12:10:59+07:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.14.1:compile (default-compile) on project ExLMS: Compilation failure: Compilation failure: 
+[ERROR] /E:/Learning/ExLMS-Spring/ExLMS-BE/src/main/java/project/TeamFive/ExLMS/collab/service/CollabService.java:[15,43] cannot find symbol
+[ERROR]   symbol:   class Group
+[ERROR]   location: package project.TeamFive.ExLMS.group.entity
+[ERROR] /E:/Learning/ExLMS-Spring/ExLMS-BE/src/main/java/project/TeamFive/ExLMS/collab/service/CollabService.java:[18,47] cannot find symbol
+[ERROR]   symbol:   class GroupRepository
+[ERROR]   location: package project.TeamFive.ExLMS.group.repository
+[ERROR] /E:/Learning/ExLMS-Spring/ExLMS-BE/src/main/java/project/TeamFive/ExLMS/collab/entity/GroupCollab.java:[7,43] cannot find symbol
+[ERROR]   symbol:   class Group
+[ERROR]   location: package project.TeamFive.ExLMS.group.entity
+[ERROR] /E:/Learning/ExLMS-Spring/ExLMS-BE/src/main/java/project/TeamFive/ExLMS/collab/entity/GroupCollab.java:[26,13] cannot find symbol
+[ERROR]   symbol:   class Group
+[ERROR]   location: class project.TeamFive.ExLMS.collab.entity.GroupCollab
+[ERROR] /E:/Learning/ExLMS-Spring/ExLMS-BE/src/main/java/project/TeamFive/ExLMS/collab/entity/GroupCollab.java:[26,19] cannot find symbol
+[ERROR]   symbol:   class Group
+[ERROR]   location: class project.TeamFive.ExLMS.collab.entity.GroupCollab
+[ERROR] /E:/Learning/ExLMS-Spring/ExLMS-BE/src/main/java/project/TeamFive/ExLMS/collab/entity/GroupCollab.java:[14,1] cannot find symbol
+[ERROR]   symbol:   class Group
+[ERROR]   location: class project.TeamFive.ExLMS.collab.entity.GroupCollab
+[ERROR] /E:/Learning/ExLMS-Spring/ExLMS-BE/src/main/java/project/TeamFive/ExLMS/collab/entity/GroupCollab.java:[17,1] cannot find symbol
+[ERROR]   symbol:   class Group
+[ERROR]   location: class project.TeamFive.ExLMS.collab.entity.GroupCollab
+[ERROR] /E:/Learning/ExLMS-Spring/ExLMS-BE/src/main/java/project/TeamFive/ExLMS/collab/entity/GroupCollab.java:[15,1] cannot find symbol
+[ERROR]   symbol:   class Group
+[ERROR]   location: class project.TeamFive.ExLMS.collab.entity.GroupCollab.GroupCollabBuilder
+[ERROR] /E:/Learning/ExLMS-Spring/ExLMS-BE/src/main/java/project/TeamFive/ExLMS/collab/service/CollabService.java:[32,19] cannot find symbol
+[ERROR]   symbol:   class GroupRepository
+[ERROR]   location: class project.TeamFive.ExLMS.collab.service.CollabService
+[ERROR] /E:/Learning/ExLMS-Spring/ExLMS-BE/src/main/java/project/TeamFive/ExLMS/collab/service/CollabService.java:[35,40] cannot find symbol
+[ERROR]   symbol:   class Group
+[ERROR]   location: class project.TeamFive.ExLMS.collab.service.CollabService
+[ERROR] /E:/Learning/ExLMS-Spring/ExLMS-BE/src/main/java/project/TeamFive/ExLMS/collab/service/CollabService.java:[44,36] cannot find symbol
+[ERROR]   symbol:   class Group
+[ERROR]   location: class project.TeamFive.ExLMS.collab.service.CollabService
+[ERROR] /E:/Learning/ExLMS-Spring/ExLMS-BE/src/main/java/project/TeamFive/ExLMS/collab/service/CollabService.java:[27,1] cannot find symbol
+[ERROR]   symbol:   class GroupRepository
+[ERROR]   location: class project.TeamFive.ExLMS.collab.service.CollabService
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

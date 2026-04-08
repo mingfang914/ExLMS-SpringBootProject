@@ -11,7 +11,8 @@ import {
   Tooltip,
   Divider,
   Avatar,
-  Chip
+  Chip,
+  IconButton
 } from '@mui/material'
 import { Link, useLocation } from 'react-router-dom'
 import { useSelector } from 'react-redux'
@@ -85,9 +86,6 @@ const icons = {
   ),
 }
 
-const drawerWidth = 256
-
-
 const menuItems = [
   { key: 'dashboard',    icon: icons.dashboard,     path: '/',              section: 'main' },
   { key: 'groups',       icon: icons.groups,        path: '/groups',        section: 'main' },
@@ -102,7 +100,7 @@ const menuItems = [
   { key: 'notifications',icon: icons.notifications,  path: '/notifications', section: 'community' },
 ]
 
-const Sidebar = () => {
+const Sidebar = ({ collapsed, toggleCollapse, width }) => {
   const location = useLocation()
   const { user } = useSelector((state) => state.auth)
   const unreadCount = useSelector((s) => s.notifications?.unreadCount ?? 0)
@@ -134,10 +132,11 @@ const Sidebar = () => {
     <Drawer
       variant="permanent"
       sx={{
-        width: drawerWidth,
+        width: width,
         flexShrink: 0,
         [`& .MuiDrawer-paper`]: {
-          width: drawerWidth,
+          width: width,
+          transition: 'width 0.3s ease',
           boxSizing: 'border-box',
           borderRight: 'none',
           overflow: 'hidden',
@@ -180,18 +179,29 @@ const Sidebar = () => {
               <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
             </svg>
           </Box>
-          <Box>
-            <Typography
-              className="brand-text"
-              sx={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '1.1rem', lineHeight: 1.1 }}
-            >
-              ExLMS
-            </Typography>
-            <Typography sx={{ fontSize: '0.625rem', color: 'var(--color-text-muted)', letterSpacing: '0.06em', textTransform: 'uppercase', lineHeight: 1 }}>
-              Learning Platform
-            </Typography>
-          </Box>
-        </motion.div>
+            {!collapsed && (
+            <Box>
+              <Typography
+                className="brand-text"
+                sx={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '1.1rem', lineHeight: 1.1 }}
+              >
+                ExLMS
+              </Typography>
+              <Typography sx={{ fontSize: '0.625rem', color: 'var(--color-text-muted)', letterSpacing: '0.06em', textTransform: 'uppercase', lineHeight: 1 }}>
+                Learning Platform
+              </Typography>
+            </Box>
+            )}
+            
+          </motion.div>
+
+        {/* Toggle Button */}
+        <IconButton onClick={toggleCollapse} sx={{ ml: 'auto', display: { xs: 'none', md: 'block' } }}>
+           <Box sx={{ transform: collapsed ? 'rotate(180deg)' : 'none', transition: '0.3s' }}>
+              {icons.chevronRight}
+           </Box>
+        </IconButton>
+
       </Box>
 
       {/* ── User mini card ─────────────────── */}
@@ -225,38 +235,44 @@ const Sidebar = () => {
         >
           {(user?.name || user?.fullName || user?.email || 'U')[0].toUpperCase()}
         </Avatar>
-        <Box sx={{ minWidth: 0, flex: 1 }}>
-          <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.2 }} className="truncate">
-            {user?.name || user?.fullName || user?.email?.split('@')[0] || 'Student'}
-          </Typography>
-          <Typography sx={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)', lineHeight: 1.2 }} className="truncate">
-            {user?.role === 'ADMIN' 
-              ? t('common.administrator') 
-              : (user?.role === 'INSTRUCTOR' ? t('common.instructor') : t('common.student'))}
-          </Typography>
-        </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <span className="pulse-dot" style={{ width: 6, height: 6 }} />
-        </Box>
+        {!collapsed && (
+          <>
+            <Box sx={{ minWidth: 0, flex: 1 }}>
+              <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.2 }} className="truncate">
+                {user?.name || user?.fullName || user?.email?.split('@')[0] || 'Student'}
+              </Typography>
+              <Typography sx={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)', lineHeight: 1.2 }} className="truncate">
+                {user?.role === 'ADMIN' 
+                  ? t('common.administrator') 
+                  : (user?.role === 'INSTRUCTOR' ? t('common.instructor') : t('common.student'))}
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <span className="pulse-dot" style={{ width: 6, height: 6 }} />
+            </Box>
+          </>
+        )}
       </Box>
 
       {/* ── Navigation sections ────────────── */}
       <Box sx={{ overflow: 'auto', flex: 1, px: 1.5, pt: 1, pb: 2 }}>
         {Object.values(sections).map((section, si) => (
           <Box key={si} sx={{ mb: 1.5 }}>
-            <Typography
-              sx={{
-                fontSize: '0.625rem',
-                fontWeight: 700,
-                letterSpacing: '0.1em',
-                color: 'var(--color-text-muted)',
-                px: 1.5,
-                py: 1,
-                display: 'block',
-              }}
-            >
-              {section.label}
-            </Typography>
+            {!collapsed && (
+              <Typography
+                sx={{
+                  fontSize: '0.625rem',
+                  fontWeight: 700,
+                  letterSpacing: '0.1em',
+                  color: 'var(--color-text-muted)',
+                  px: 1.5,
+                  py: 1,
+                  display: 'block',
+                }}
+              >
+                {section.label}
+              </Typography>
+            )}
             <List disablePadding sx={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
               {section.items.map((item) => {
                 const active = isActive(item.path)
@@ -285,24 +301,30 @@ const Sidebar = () => {
                           transition: 'all 0.15s ease',
                         }}
                       >
-                        <ListItemIcon
-                          sx={{
-                            minWidth: 'unset',
-                            color: active ? 'var(--color-primary-lt)' : 'var(--color-text-muted)',
-                            transition: 'color 0.15s',
-                          }}
-                        >
-                          {item.icon}
-                        </ListItemIcon>
-                        <ListItemText
-                          primary={t(`nav.${item.key}`)}
-                          primaryTypographyProps={{
-                            fontSize: '0.875rem',
-                            fontWeight: active ? 600 : 400,
-                            lineHeight: 1,
-                          }}
-                        />
-                        {badge > 0 && (
+                        <Tooltip title={collapsed ? t(`nav.${item.key}`) : ''} placement="right">
+                          <ListItemIcon
+                            sx={{
+                              minWidth: 'unset',
+                              color: active ? 'var(--color-primary-lt)' : 'var(--color-text-muted)',
+                              transition: 'color 0.15s',
+                              justifyContent: collapsed ? 'center' : 'flex-start',
+                              margin: collapsed ? '0 auto' : '0'
+                            }}
+                          >
+                            {item.icon}
+                          </ListItemIcon>
+                        </Tooltip>
+                        {!collapsed && (
+                          <ListItemText
+                            primary={t(`nav.${item.key}`)}
+                            primaryTypographyProps={{
+                              fontSize: '0.875rem',
+                              fontWeight: active ? 600 : 400,
+                              lineHeight: 1,
+                            }}
+                          />
+                        )}
+                        {!collapsed && badge > 0 && (
                           <Chip
                             label={badge > 99 ? '99+' : badge}
                             size="small"
@@ -316,7 +338,7 @@ const Sidebar = () => {
                             }}
                           />
                         )}
-                        {active && (
+                        {!collapsed && active && (
                           <Box sx={{ color: 'rgba(99,102,241,0.5)', display: 'flex', alignItems: 'center' }}>
                             {icons.chevronRight}
                           </Box>
@@ -332,25 +354,27 @@ const Sidebar = () => {
       </Box>
 
       {/* ── Footer ─────────────────────────── */}
-      <Box
-        sx={{
-          px: 2,
-          py: 2,
-          borderTop: '1px solid rgba(48,54,61,0.8)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 1,
-        }}
-      >
-        <Typography sx={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)' }}>
-          ExLMS v1.0
-        </Typography>
-        <Box sx={{ width: 3, height: 3, borderRadius: '50%', bgcolor: 'var(--color-border-lt)' }} />
-        <Typography sx={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)' }}>
-          © 2026
-        </Typography>
-      </Box>
+      {!collapsed && (
+        <Box
+          sx={{
+            px: 2,
+            py: 2,
+            borderTop: '1px solid rgba(48,54,61,0.8)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 1,
+          }}
+        >
+          <Typography sx={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)' }}>
+            ExLMS v1.0
+          </Typography>
+          <Box sx={{ width: 3, height: 3, borderRadius: '50%', bgcolor: 'var(--color-border-lt)' }} />
+          <Typography sx={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)' }}>
+            © 2026
+          </Typography>
+        </Box>
+      )}
     </Drawer>
   )
 }

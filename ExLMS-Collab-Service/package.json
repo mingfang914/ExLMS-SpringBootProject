@@ -1,0 +1,32 @@
+{
+  "name": "exlms-collab-service",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node --loader ts-node/esm index.ts",
+    "dev": "nodemon --loader ts-node/esm index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@hocuspocus/extension-database": "^3.4.4",
+    "@hocuspocus/extension-logger": "^3.4.4",
+    "@hocuspocus/extension-redis": "^3.4.4",
+    "@hocuspocus/extension-webhook": "^3.4.4",
+    "@hocuspocus/server": "^3.4.4",
+    "axios": "^1.14.0",
+    "dotenv": "^17.4.1",
+    "redis": "^4.6.15",
+    "yjs": "^13.6.30"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.39",
+    "nodemon": "^3.1.14",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}

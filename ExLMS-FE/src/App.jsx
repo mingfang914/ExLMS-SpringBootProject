@@ -19,6 +19,7 @@ import QuizStats from './pages/Courses/QuizStats'
 import QuizLatestAttempt from './pages/Courses/QuizLatestAttempt'
 import MeetingRoom from './pages/Meetings/MeetingRoom'
 import MeetingDetail from './pages/Meetings/MeetingDetail'
+import GroupCollab from './pages/Collab'
 import ForumList from './pages/Forum/ForumList'
 import ForumPostDetail from './pages/Forum/ForumPostDetail'
 import CreateForumPost from './pages/Forum/CreateForumPost'
@@ -98,6 +99,7 @@ function App() {
           <Route path="/groups/:groupId/courses/:courseId/quiz/:quizId/attempts/latest" element={<QuizLatestAttempt />} />
           <Route path="/groups/:groupId/courses/:id" element={<CourseDetail />} />
           <Route path="/groups/:groupId/meetings/:id" element={<MeetingDetail />} />
+          <Route path="/groups/:groupId/collabs" element={<GroupCollab />} />
           <Route path="/groups/:groupId/assignments" element={<AssignmentList />} />
           <Route path="/groups/:groupId/assignments/:id" element={<AssignmentDetail />} />
           <Route path="/forum" element={<ForumList />} />

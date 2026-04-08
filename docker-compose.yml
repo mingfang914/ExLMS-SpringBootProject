@@ -19,6 +19,18 @@ services:
       retries: 5
       start_period: 30s
 
+  # 1.1 Redis (RAM Storage for Sessions and Collab)
+  lms-redis:
+    image: redis:7-alpine
+    container_name: lms-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
   # 2. MinIO (File Storage)
   lms-minio:
     image: quay.io/minio/minio
@@ -138,6 +150,25 @@ services:
     environment:
       - "LIVEKIT_KEYS=${LIVEKIT_API_KEY}: ${LIVEKIT_API_SECRET}"
 
+
+  # 8. Collaboration Microservice (Hocuspocus)
+  lms-collab-service:
+    build:
+      context: ./ExLMS-Collab-Service
+      dockerfile: Dockerfile
+    image: mingfang914/exlms-collab-service:latest
+    container_name: lms-collab-service
+    restart: always
+    environment:
+      - PORT=1234
+      - CORE_BACKEND_URL=http://lms-backend:8081/v1
+      - REDIS_HOST=lms-redis
+      - REDIS_PORT=6379
+    ports:
+      - "1234:1234"
+    depends_on:
+      - lms-redis
+      - lms-backend
 
 volumes:
   mysql_data:

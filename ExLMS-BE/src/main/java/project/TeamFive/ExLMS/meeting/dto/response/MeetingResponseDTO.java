@@ -25,7 +25,8 @@ public class MeetingResponseDTO {
     private int durationMinutes;
     private Meeting.MeetingStatus status;
     private String currentUserRole;
-
+    private String recordingKey;
+    private String recordingUrl;
     public static MeetingResponseDTO fromEntity(Meeting meeting) {
         MeetingResponseDTO dto = new MeetingResponseDTO();
         dto.setId(meeting.getId());
@@ -40,6 +41,10 @@ public class MeetingResponseDTO {
             dto.setDurationMinutes((int) java.time.Duration.between(meeting.getStartAt(), meeting.getEndAt()).toMinutes());
         }
         dto.setStatus(meeting.getStatus());
+        dto.setRecordingKey(meeting.getRecordingKey());
+        if (meeting.getRecordingKey() != null) {
+            dto.setRecordingUrl("/api/files/download/" + meeting.getRecordingKey() + "?fileName=Recording.webm"); // Use inline endpoint logic from earlier!
+        }
         return dto;
     }
 }
