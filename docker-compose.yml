@@ -103,6 +103,8 @@ services:
       args:
         - VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}
         - VITE_COLLAB_SERVICE_URL=${VITE_COLLAB_SERVICE_URL}
+        - VITE_MEETING_SERVICE_URL=${VITE_MEETING_SERVICE_URL}
+        - VITE_LIVEKIT_URL=${VITE_LIVEKIT_URL}
     image: mingfang914/exlms-frontend:latest
     container_name: lms-frontend
     restart: always

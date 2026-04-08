@@ -94,6 +94,9 @@ jobs:
             
             # Vite Build Args
             VITE_GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+            VITE_COLLAB_SERVICE_URL=${{ secrets.VITE_COLLAB_SERVICE_URL }}
+            VITE_LIVEKIT_URL=${{ secrets.VITE_LIVEKIT_URL }}
+            VITE_MEETING_SERVICE_URL=${{ secrets.VITE_MEETING_SERVICE_URL }}
             EOF
             
             # Khởi chạy build và deploy trực tiếp trên server
