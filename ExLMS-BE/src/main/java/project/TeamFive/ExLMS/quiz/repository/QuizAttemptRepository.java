@@ -11,12 +11,19 @@ import java.util.UUID;
 @Repository
 public interface QuizAttemptRepository extends JpaRepository<QuizAttempt, UUID> {
     List<QuizAttempt> findByQuiz_IdAndUser_Id(UUID quizId, UUID userId);
-    /** Count ALL attempts (for reference) */
-    long countByQuiz_IdAndUser_Id(UUID quizId, UUID userId);
-    /** Count only SUBMITTED attempts — used for max-attempts check */
-    long countByQuiz_IdAndUser_IdAndSubmittedAtIsNotNull(UUID quizId, UUID userId);
-    Optional<QuizAttempt> findTopByQuiz_IdAndUser_IdOrderByAttemptNumberDesc(UUID quizId, UUID userId);
-    List<QuizAttempt> findByQuizId(UUID quizId);
     
+    /** Count only SUBMITTED attempts for a specific deployment — used for max-attempts check */
+    long countByDeploymentIdAndDeploymentTypeAndUser_IdAndSubmittedAtIsNotNull(byte[] deploymentId, QuizAttempt.DeploymentType deploymentType, UUID userId);
+    
+    /** Count ALL attempts for a specific deployment */
+    long countByDeploymentIdAndDeploymentTypeAndUser_Id(byte[] deploymentId, QuizAttempt.DeploymentType deploymentType, UUID userId);
+
+    Optional<QuizAttempt> findTopByDeploymentIdAndDeploymentTypeAndUser_IdOrderByAttemptNumberDesc(byte[] deploymentId, QuizAttempt.DeploymentType deploymentType, UUID userId);
+
     List<QuizAttempt> findByDeploymentIdAndDeploymentType(byte[] deploymentId, QuizAttempt.DeploymentType deploymentType);
+    
+    List<QuizAttempt> findByDeploymentIdAndDeploymentTypeAndUser_Id(byte[] deploymentId, QuizAttempt.DeploymentType deploymentType, UUID userId);
+    
+    /** Find all attempts for a template across all deployments */
+    List<QuizAttempt> findByQuiz_Id(UUID quizId);
 }

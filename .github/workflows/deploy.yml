@@ -11,6 +11,22 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Stop and Fix Permissions
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            if [ -d "/home/ubuntu/exlms-spring" ]; then
+              cd /home/ubuntu/exlms-spring
+              docker compose down --remove-orphans || true
+              cd ..
+              # Cấp quyền cho user để action có thể xóa thư mục (rm: true)
+              sudo chown -R ${{ secrets.SERVER_USER }}:${{ secrets.SERVER_USER }} /home/ubuntu/exlms-spring || true
+              sudo chmod -R 755 /home/ubuntu/exlms-spring || true
+            fi
+
       - name: Copy Code to Server
         uses: appleboy/scp-action@master
         with:
@@ -19,7 +35,7 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           source: "."
           target: "/home/ubuntu/exlms-spring"
-          rm: true # Làm sạch thư mục target trước khi chép code mới
+          rm: true
 
       - name: Deploy to Server via SSH
         uses: appleboy/ssh-action@master

@@ -34,7 +34,7 @@ public class CreateQuizRequest {
     @Builder.Default
     private boolean shuffleQuestions = false;
     @Builder.Default
-    private GroupQuiz.ResultVisibility resultVisibility = GroupQuiz.ResultVisibility.IMMEDIATE;
+    private GroupQuiz.ResultVisibility resultVisibility = GroupQuiz.ResultVisibility.CLOSE;
     private LocalDateTime openAt;
     private LocalDateTime closeAt;
     private String status;

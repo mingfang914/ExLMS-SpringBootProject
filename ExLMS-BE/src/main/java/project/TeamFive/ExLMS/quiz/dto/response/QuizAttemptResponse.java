@@ -24,6 +24,7 @@ public class QuizAttemptResponse {
     private LocalDateTime startedAt;
     private LocalDateTime submittedAt;
     private String userName; // To display who made the attempt
+    private String resultVisibility; // OPEN or CLOSE
     private List<QuestionResultResponse> responses; // Đổi tên từ results -> responses
 
     @Data

@@ -34,6 +34,8 @@ public class QuizResponseDTO {
     private GroupQuiz.GroupQuizStatus status;
     
     private List<QuestionResponse> questions;
+    private boolean hasAttempts;
+    private int userAttemptCount;
 
     @Data
     @Builder

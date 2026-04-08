@@ -42,10 +42,10 @@ public class GroupQuiz extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "result_visibility", nullable = false)
     @Builder.Default
-    private ResultVisibility resultVisibility = ResultVisibility.IMMEDIATE;
+    private ResultVisibility resultVisibility = ResultVisibility.CLOSE;
 
     public enum ResultVisibility {
-        IMMEDIATE, AFTER_DEADLINE, OPENED
+        OPEN, CLOSE
     }
 
     public enum GroupQuizStatus {

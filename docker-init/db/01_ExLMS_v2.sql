@@ -305,7 +305,7 @@ CREATE TABLE `group_quizzes` (
   `open_at` datetime DEFAULT NULL,
   `close_at` datetime DEFAULT NULL,
   `status` enum('DRAFT', 'PUBLISHED','CLOSED') NOT NULL DEFAULT 'DRAFT',
-  `result_visibility` enum('IMMEDIATE','AFTER_DEADLINE','OPENED') NOT NULL DEFAULT 'IMMEDIATE',
+  `result_visibility` enum('OPEN','CLOSE') NOT NULL DEFAULT 'CLOSE',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),

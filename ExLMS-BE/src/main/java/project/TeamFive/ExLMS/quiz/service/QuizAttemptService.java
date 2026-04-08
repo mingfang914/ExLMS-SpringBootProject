@@ -8,6 +8,9 @@ import project.TeamFive.ExLMS.quiz.dto.response.QuizAttemptResponse;
 import project.TeamFive.ExLMS.quiz.entity.*;
 import project.TeamFive.ExLMS.quiz.repository.*;
 import project.TeamFive.ExLMS.user.entity.User;
+import project.TeamFive.ExLMS.group.entity.GroupMember;
+import project.TeamFive.ExLMS.group.repository.GroupMemberRepository;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -31,6 +34,7 @@ public class QuizAttemptService {
     private final GroupQuizRepository groupQuizRepository;
     private final QuizQuestionRepository questionRepository;
     private final QuizAnswerRepository answerRepository;
+    private final GroupMemberRepository groupMemberRepository;
 
     private byte[] uuidToBytes(UUID uuid) {
         if (uuid == null) return null;
@@ -38,6 +42,12 @@ public class QuizAttemptService {
         bb.putLong(uuid.getMostSignificantBits());
         bb.putLong(uuid.getLeastSignificantBits());
         return bb.array();
+    }
+
+    private UUID bytesToUuid(byte[] bytes) {
+        if (bytes == null || bytes.length != 16) return null;
+        ByteBuffer bb = ByteBuffer.wrap(bytes);
+        return new UUID(bb.getLong(), bb.getLong());
     }
 
     @Transactional
@@ -62,13 +72,14 @@ public class QuizAttemptService {
             deploymentType = QuizAttempt.DeploymentType.COURSE_QUIZ;
         }
 
-        // Check max attempts
-        long count = attemptRepository.countByQuiz_IdAndUser_IdAndSubmittedAtIsNotNull(quiz.getId(), user.getId());
+        // Check max attempts per DEPLOYMENT
+        byte[] depIdBytes = uuidToBytes(deploymentId);
+        long count = attemptRepository.countByDeploymentIdAndDeploymentTypeAndUser_IdAndSubmittedAtIsNotNull(depIdBytes, deploymentType, user.getId());
         if (quiz.getMaxAttempts() > 0 && count >= quiz.getMaxAttempts()) {
-            throw new RuntimeException("Bạn đã hết số lần làm bài cho trắc nghiệm này!");
+            throw new RuntimeException("Bạn đã hết số lần làm bài cho đợt kiểm tra này!");
         }
 
-        int currentAttempt = (int) attemptRepository.countByQuiz_IdAndUser_Id(quiz.getId(), user.getId()) + 1;
+        int currentAttempt = (int) attemptRepository.countByDeploymentIdAndDeploymentTypeAndUser_Id(depIdBytes, deploymentType, user.getId()) + 1;
 
         QuizAttempt attempt = QuizAttempt.builder()
                 .deploymentId(uuidToBytes(deploymentId))
@@ -200,26 +211,41 @@ public class QuizAttemptService {
 
     @Transactional(readOnly = true)
     public List<QuizAttemptResponse> getMyAttempts(UUID quizDeploymentId, User user) {
-        // Since we don't have unique quizDeploymentId in attempt table easily without byte comparison,
-        // we'll fetch by quizId which is usually enough for "My Attempts" in a specific quiz.
-        // Actually we can get the quiz from deployment first.
-        
-        GroupQuiz gq = groupQuizRepository.findById(quizDeploymentId).orElse(null);
-        UUID quizId = (gq != null) ? gq.getQuiz().getId() : quizDeploymentId;
-
-        return attemptRepository.findByQuiz_IdAndUser_Id(quizId, user.getId()).stream()
+        byte[] depIdBytes = uuidToBytes(quizDeploymentId);
+        // By default we check GROUP_QUIZ deployments
+        return attemptRepository.findByDeploymentIdAndDeploymentTypeAndUser_Id(depIdBytes, QuizAttempt.DeploymentType.GROUP_QUIZ, user.getId()).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public List<QuizAttemptResponse> getAttemptsByDeployment(UUID deploymentId, String type) {
-        // Find by deploymentId (as byte[])
         byte[] depIdBytes = uuidToBytes(deploymentId);
         QuizAttempt.DeploymentType depType = QuizAttempt.DeploymentType.valueOf(type);
         
+        // Context for bulk mapping
+        String rv = "CLOSE";
+        boolean isInstructor = false;
+        
+        if (depType == QuizAttempt.DeploymentType.GROUP_QUIZ) {
+            GroupQuiz gq = groupQuizRepository.findById(deploymentId).orElse(null);
+            if (gq != null) {
+                rv = gq.getResultVisibility() != null ? gq.getResultVisibility().name() : "CLOSE";
+                org.springframework.security.core.Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+                if (auth != null && auth.getPrincipal() instanceof User user) {
+                    GroupMember member = groupMemberRepository.findByGroup_IdAndUser_Id(gq.getGroup().getId(), user.getId()).orElse(null);
+                    if (member != null && ("OWNER".equals(member.getRole()) || "EDITOR".equals(member.getRole()))) {
+                        isInstructor = true;
+                    }
+                }
+            }
+        }
+
+        final String finalRv = rv;
+        final boolean finalIsInstructor = isInstructor;
+        
         return attemptRepository.findByDeploymentIdAndDeploymentType(depIdBytes, depType).stream()
-                .map(this::mapToResponse)
+                .map(a -> mapToResponse(a, finalRv, finalIsInstructor))
                 .collect(Collectors.toList());
     }
 
@@ -238,13 +264,21 @@ public class QuizAttemptService {
         Map<String, Long> distribution = new TreeMap<>();
         Map<UUID, QuizStatsResponse.QuestionStats> questionStatsMap = new HashMap<>();
 
+        // Lấy toàn bộ Responses của deployment này trong 1 lần query (JOIN FETCH Question)
+        List<QuizResponse> allResponses = responseRepository.findByDeploymentIdAndType(depIdBytes, QuizAttempt.DeploymentType.GROUP_QUIZ);
+        
+        // Map để gom nhóm responses theo attempt
+        Map<UUID, List<QuizResponse>> responsesByAttempt = allResponses.stream()
+                .collect(Collectors.groupingBy(r -> r.getAttempt().getId()));
+
         for (QuizAttempt a : attempts) {
             int score = a.getScore() != null ? a.getScore() : 0;
             String bucket = (score / 10 * 10) + "-" + (score / 10 * 10 + 9);
             distribution.put(bucket, distribution.getOrDefault(bucket, 0L) + 1);
 
-            List<QuizResponse> responses = responseRepository.findByAttempt_Id(a.getId());
+            List<QuizResponse> responses = responsesByAttempt.getOrDefault(a.getId(), new ArrayList<>());
             for (QuizResponse r : responses) {
+                // JPA JOIN FETCH đã nạp question, không tốn thêm query
                 UUID qId = r.getQuestion().getId();
                 QuizStatsResponse.QuestionStats qs = questionStatsMap.computeIfAbsent(qId, id -> 
                     QuizStatsResponse.QuestionStats.builder()
@@ -276,19 +310,52 @@ public class QuizAttemptService {
     }
 
     private QuizAttemptResponse mapToResponse(QuizAttempt attempt) {
+        // Find context for visibility
+        String rv = "CLOSE";
+        boolean isInstructor = false;
+        
+        if (attempt.getDeploymentType() == QuizAttempt.DeploymentType.GROUP_QUIZ && attempt.getDeploymentId() != null) {
+            UUID gqId = bytesToUuid(attempt.getDeploymentId());
+            GroupQuiz gq = groupQuizRepository.findById(gqId).orElse(null);
+            if (gq != null) {
+                rv = gq.getResultVisibility() != null ? gq.getResultVisibility().name() : "CLOSE";
+                org.springframework.security.core.Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+                if (auth != null && auth.getPrincipal() instanceof User user) {
+                    GroupMember member = groupMemberRepository.findByGroup_IdAndUser_Id(gq.getGroup().getId(), user.getId()).orElse(null);
+                    if (member != null && ("OWNER".equals(member.getRole()) || "EDITOR".equals(member.getRole()))) {
+                        isInstructor = true;
+                    }
+                }
+            }
+        }
+        return mapToResponse(attempt, rv, isInstructor);
+    }
+
+    private QuizAttemptResponse mapToResponse(QuizAttempt attempt, String rv, boolean isInstructor) {
         List<QuizResponse> responses = responseRepository.findByAttempt_Id(attempt.getId());
         
+        Integer finalScore = attempt.getScore();
+        Boolean finalPassed = attempt.getPassed();
+
+        if ("CLOSE".equals(rv) && !isInstructor) {
+            rv = "HIDDEN";
+            responses.clear();
+            finalScore = null;
+            finalPassed = null;
+        }
+
         return QuizAttemptResponse.builder()
                 .id(attempt.getId())
                 .quizId(attempt.getQuiz().getId())
                 .userId(attempt.getUser().getId())
-                .score(attempt.getScore())
+                .score(finalScore)
                 .attemptNumber(attempt.getAttemptNumber())
-                .passed(attempt.getPassed())
+                .passed(finalPassed)
                 .passingScore(attempt.getQuiz().getPassingScore())
                 .startedAt(attempt.getStartedAt())
                 .submittedAt(attempt.getSubmittedAt())
                 .userName(attempt.getUser().getFullName())
+                .resultVisibility(rv)
                 .responses(responses.stream().map(r -> QuizAttemptResponse.QuestionResultResponse.builder()
                         .questionId(r.getQuestion().getId())
                         .questionContent(r.getQuestion().getContent())

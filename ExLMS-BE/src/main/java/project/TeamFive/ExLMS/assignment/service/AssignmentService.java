@@ -155,7 +155,7 @@ public class AssignmentService {
         boolean isInstructor = "OWNER".equals(member.getRole()) || "EDITOR".equals(member.getRole());
 
         return groupAssignmentRepository.findByGroup_Id(groupId).stream()
-                .filter(ga -> isInstructor || (ga.getStatus() != GroupAssignment.GroupAssignmentStatus.DRAFT && ga.getStatus() != GroupAssignment.GroupAssignmentStatus.CLOSED))
+                .filter(ga -> isInstructor || (ga.getStatus() != GroupAssignment.GroupAssignmentStatus.DRAFT))
                 .map(ga -> mapToResponseDTO(ga.getAssignment(), ga))
                 .collect(Collectors.toList());
     }

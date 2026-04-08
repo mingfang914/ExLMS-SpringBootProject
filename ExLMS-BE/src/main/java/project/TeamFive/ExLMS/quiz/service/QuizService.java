@@ -14,6 +14,7 @@ import project.TeamFive.ExLMS.quiz.entity.QuizAnswer;
 import project.TeamFive.ExLMS.quiz.entity.QuizQuestion;
 import project.TeamFive.ExLMS.quiz.repository.GroupQuizRepository;
 import project.TeamFive.ExLMS.quiz.repository.QuizAnswerRepository;
+import project.TeamFive.ExLMS.quiz.repository.QuizAttemptRepository;
 import project.TeamFive.ExLMS.quiz.repository.QuizQuestionRepository;
 import project.TeamFive.ExLMS.quiz.repository.QuizRepository;
 import project.TeamFive.ExLMS.user.entity.User;
@@ -35,6 +36,7 @@ public class QuizService {
     private final GroupQuizRepository groupQuizRepository;
     private final StudyGroupRepository studyGroupRepository;
     private final project.TeamFive.ExLMS.group.repository.GroupMemberRepository groupMemberRepository;
+    private final QuizAttemptRepository attemptRepository;
     private final NotificationService notificationService;
 
     @Transactional
@@ -54,7 +56,7 @@ public class QuizService {
             saveQuestionsAndAnswers(quiz, request.getQuestions());
         }
 
-        return mapToResponseDTO(quiz, null);
+        return mapToResponseDTO(quiz, null, user);
     }
 
     @Transactional
@@ -73,9 +75,20 @@ public class QuizService {
         quiz.setPassingScore(request.getPassingScore());
 
         quiz = quizRepository.save(quiz);
-
+        
         // Update Questions
         if (request.getQuestions() != null) {
+            // Kiểm tra xem đã có học sinh làm bài chưa
+            // Nếu đã có lượt làm bài, không cho phép xóa/thay đổi câu hỏi vì sẽ vi phạm FK trong quiz_responses
+            boolean hasAttempts = !attemptRepository.findByQuiz_Id(id).isEmpty();
+
+            if (hasAttempts) {
+                // Nếu metadata thay đổi (title/desc) thì vẫn cho phép, 
+                // nhưng nếu thay đổi cấu trúc câu hỏi thì phải chặn.
+                // Ở đây ta đơn giản hóa: nếu đã có bài làm thì không cho sửa nội dung câu hỏi/đáp án.
+                throw new RuntimeException("Không thể thay đổi câu hỏi/đáp án khi đã có học sinh nộp bài làm!");
+            }
+
             if (quiz.getQuestions() != null) {
                 quiz.getQuestions().clear();
                 quizRepository.saveAndFlush(quiz);
@@ -83,13 +96,13 @@ public class QuizService {
             saveQuestionsAndAnswers(quiz, request.getQuestions());
         }
 
-        return mapToResponseDTO(quiz, null);
+        return mapToResponseDTO(quiz, null, user);
     }
 
     @Transactional(readOnly = true)
     public List<QuizResponseDTO> getTemplatesByCreator(User user) {
         return quizRepository.findByCreatedByAndDeletedAtIsNull(user).stream()
-                .map(q -> mapToResponseDTO(q, null))
+                .map(q -> mapToResponseDTO(q, null, user))
                 .collect(Collectors.toList());
     }
 
@@ -97,7 +110,12 @@ public class QuizService {
     public QuizResponseDTO getTemplateById(UUID id) {
         Quiz quiz = quizRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bản mẫu trắc nghiệm!"));
-        return mapToResponseDTO(quiz, null);
+        User currentUser = null;
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getPrincipal() instanceof User) {
+            currentUser = (User) auth.getPrincipal();
+        }
+        return mapToResponseDTO(quiz, null, currentUser);
     }
 
     @Transactional
@@ -134,7 +152,7 @@ public class QuizService {
                 .openAt(openAt)
                 .closeAt(closeAt)
                 .shuffleQuestions(config.isShuffleQuestions())
-                .resultVisibility(config.getResultVisibility() != null ? config.getResultVisibility() : GroupQuiz.ResultVisibility.IMMEDIATE)
+                .resultVisibility(config.getResultVisibility() != null ? config.getResultVisibility() : GroupQuiz.ResultVisibility.CLOSE)
                 .status(targetStatus)
                 .build();
 
@@ -150,7 +168,7 @@ public class QuizService {
             "/quizzes/" + savedDeployment.getId()
         );
 
-        return mapToResponseDTO(template, savedDeployment);
+        return mapToResponseDTO(template, savedDeployment, user);
     }
 
     @Transactional(readOnly = true)
@@ -161,16 +179,28 @@ public class QuizService {
         boolean isInstructor = "OWNER".equals(member.getRole()) || "EDITOR".equals(member.getRole());
 
         return groupQuizRepository.findByGroup_Id(groupId).stream()
-                .filter(gq -> isInstructor || (gq.getStatus() != GroupQuiz.GroupQuizStatus.DRAFT && gq.getStatus() != GroupQuiz.GroupQuizStatus.CLOSED))
-                .map(gq -> mapToResponseDTO(gq.getQuiz(), gq))
+                .filter(gq -> isInstructor || (gq.getStatus() != GroupQuiz.GroupQuizStatus.DRAFT))
+                .map(gq -> mapToResponseDTO(gq.getQuiz(), gq, user))
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public QuizResponseDTO getQuizDeploymentById(UUID deploymentId) {
         GroupQuiz deployment = groupQuizRepository.findById(deploymentId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy đợt kiểm tra này!"));
-        return mapToResponseDTO(deployment.getQuiz(), deployment);
+                .orElse(null);
+        
+        User currentUser = null;
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getPrincipal() instanceof User) {
+            currentUser = (User) auth.getPrincipal();
+        }
+
+        if (deployment != null) {
+            return mapToResponseDTO(deployment.getQuiz(), deployment, currentUser);
+        }
+        
+        Quiz template = quizRepository.findById(deploymentId).orElseThrow(() -> new RuntimeException("Quiz Template not found"));
+        return mapToResponseDTO(template, null, currentUser);
     }
 
     private QuizQuestion.QuestionType safeQuestionType(String type) {
@@ -195,7 +225,19 @@ public class QuizService {
                     .build();
             qq = questionRepository.save(qq);
 
-            if (qr.getAnswers() != null) {
+            if (qr.getQuestionType() != null && qr.getQuestionType().equals("TRUE_FALSE")) {
+                // Đối với câu hỏi Đúng/Sai, nếu client không truyền đủ 2 đáp án, ta tự tạo "Đúng" và "Sai"
+                // Hoặc nếu client truyền 1 đáp án mang tính "Đúng" hay "Sai", ta sẽ tạo bộ 2 cái.
+                boolean isTrueCorrect = false;
+                if (qr.getAnswers() != null && !qr.getAnswers().isEmpty()) {
+                    // Giả sử answer đầu tiên là Đúng, thứ 2 là Sai, hoặc dựa trên field correct
+                    isTrueCorrect = qr.getAnswers().stream().anyMatch(a -> a.isCorrect() && ("Đúng".equalsIgnoreCase(a.getContent()) || "True".equalsIgnoreCase(a.getContent()) || a.getContent() == null));
+                }
+
+                // Luôn tạo 2 đáp án chuẩn: Đúng và Sai
+                answerRepository.save(QuizAnswer.builder().question(qq).content("Đúng").correct(isTrueCorrect).orderIndex(0).build());
+                answerRepository.save(QuizAnswer.builder().question(qq).content("Sai").correct(!isTrueCorrect).orderIndex(1).build());
+            } else if (qr.getAnswers() != null) {
                 for (int j = 0; j < qr.getAnswers().size(); j++) {
                     CreateQuizRequest.AnswerRequest ar = qr.getAnswers().get(j);
                     QuizAnswer qa = QuizAnswer.builder()
@@ -210,8 +252,25 @@ public class QuizService {
         }
     }
 
-    private QuizResponseDTO mapToResponseDTO(Quiz quiz, GroupQuiz deployment) {
+    private byte[] uuidToBytes(UUID uuid) {
+        if (uuid == null) return null;
+        java.nio.ByteBuffer bb = java.nio.ByteBuffer.wrap(new byte[16]);
+        bb.putLong(uuid.getMostSignificantBits());
+        bb.putLong(uuid.getLeastSignificantBits());
+        return bb.array();
+    }
+
+    private QuizResponseDTO mapToResponseDTO(Quiz quiz, GroupQuiz deployment, User user) {
         List<QuizQuestion> questionsList = questionRepository.findByQuizId(quiz.getId());
+        
+        int userAttemptCount = 0;
+        if (deployment != null && user != null) {
+            userAttemptCount = (int) attemptRepository.countByDeploymentIdAndDeploymentTypeAndUser_Id(
+                uuidToBytes(deployment.getId()), 
+                project.TeamFive.ExLMS.quiz.entity.QuizAttempt.DeploymentType.GROUP_QUIZ, 
+                user.getId()
+            );
+        }
         
         boolean shouldShuffle = (deployment != null && deployment.isShuffleQuestions());
         
@@ -249,7 +308,9 @@ public class QuizService {
                 .maxAttempts(quiz.getMaxAttempts())
                 .passingScore(quiz.getPassingScore())
                 .questionCount(questionsList.size())
-                .questions(questionResponses);
+                .questions(questionResponses)
+                .userAttemptCount(userAttemptCount)
+                .hasAttempts(!attemptRepository.findByQuiz_Id(quiz.getId()).isEmpty());
 
         if (deployment != null) {
             builder.id(deployment.getId());
@@ -282,7 +343,7 @@ public class QuizService {
     @Transactional
     public QuizResponseDTO updateQuizDeployment(UUID deploymentId, CreateQuizRequest request, User user) {
         GroupQuiz deployment = groupQuizRepository.findById(deploymentId).orElseThrow(() -> new RuntimeException("Deployment not found"));
-        if (deployment.getStatus() == GroupQuiz.GroupQuizStatus.CLOSED) throw new RuntimeException("Locked closed quiz");
+        // Lời nhắc: Chúng ta cho phép sửa kể cả khi CLOSED để thay đổi Visibility kết quả.
 
         if (request.getOpenAt() != null && !request.getOpenAt().isEqual(deployment.getOpenAt())) {
              throw new RuntimeException("Cannot change start time after creation");
@@ -313,7 +374,7 @@ public class QuizService {
             notificationService.broadcastResourceStatus(savedDeployment.getId(), "Bài kiểm tra", savedDeployment.getStatus().name());
         }
 
-        return mapToResponseDTO(deployment.getQuiz(), savedDeployment);
+        return mapToResponseDTO(savedDeployment.getQuiz(), savedDeployment, user);
     }
 
     private void validateDates(java.time.LocalDateTime start, java.time.LocalDateTime end, boolean isNew) {

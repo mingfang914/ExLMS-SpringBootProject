@@ -13,6 +13,9 @@ import project.TeamFive.ExLMS.group.dto.response.GroupFeedPostResponse;
 import project.TeamFive.ExLMS.group.entity.*;
 import project.TeamFive.ExLMS.group.repository.*;
 import project.TeamFive.ExLMS.user.entity.User;
+import project.TeamFive.ExLMS.course.repository.CourseRepository;
+import project.TeamFive.ExLMS.assignment.repository.AssignmentRepository;
+import project.TeamFive.ExLMS.meeting.repository.MeetingRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -28,6 +31,9 @@ public class GroupFeedService {
     private final GroupFeedReactionRepository feedReactionRepository;
     private final StudyGroupRepository groupRepository;
     private final GroupMemberRepository groupMemberRepository;
+    private final CourseRepository courseRepository;
+    private final AssignmentRepository assignmentRepository;
+    private final MeetingRepository meetingRepository;
 
     private void requireGroupMember(StudyGroup group, User user) {
         if (!groupMemberRepository.existsByGroupAndUser(group, user)) {
@@ -269,6 +275,25 @@ public class GroupFeedService {
                 .map(GroupMember::getRole)
                 .orElse("member");
 
+        String linkedTitle = null;
+        if (post.getLinkedEntityId() != null && post.getLinkedEntityType() != null) {
+            try {
+                switch (post.getLinkedEntityType()) {
+                    case COURSE:
+                        linkedTitle = courseRepository.findById(post.getLinkedEntityId()).map(project.TeamFive.ExLMS.course.entity.Course::getTitle).orElse(null);
+                        break;
+                    case ASSIGNMENT:
+                        linkedTitle = assignmentRepository.findById(post.getLinkedEntityId()).map(project.TeamFive.ExLMS.assignment.entity.Assignment::getTitle).orElse(null);
+                        break;
+                    case MEETING:
+                        linkedTitle = meetingRepository.findById(post.getLinkedEntityId()).map(project.TeamFive.ExLMS.meeting.entity.Meeting::getTitle).orElse(null);
+                        break;
+                }
+            } catch (Exception e) {
+                linkedTitle = "Không tìm thấy nội dung";
+            }
+        }
+
         return GroupFeedPostResponse.builder()
                 .id(post.getId())
                 .groupId(post.getGroup().getId())
@@ -279,6 +304,7 @@ public class GroupFeedService {
                 .content(post.getContent())
                 .linkedEntityId(post.getLinkedEntityId())
                 .linkedEntityType(post.getLinkedEntityType())
+                .linkedEntityTitle(linkedTitle)
                 .pinned(post.isPinned())
                 .reactionCount(post.getReactionCount())
                 .commentCount(post.getCommentCount())
