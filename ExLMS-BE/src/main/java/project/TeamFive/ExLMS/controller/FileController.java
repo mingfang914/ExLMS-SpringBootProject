@@ -29,7 +29,7 @@ public class FileController {
         return ResponseEntity.ok(url);
     }
 
-    @GetMapping("/download/{fileKey}")
+    @GetMapping("/download/{*fileKey}")
     public ResponseEntity<org.springframework.core.io.Resource> downloadFile(
             @PathVariable String fileKey,
             @RequestParam(required = false) String fileName) {

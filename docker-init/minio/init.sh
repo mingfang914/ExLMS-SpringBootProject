@@ -14,6 +14,6 @@ sleep 10;
 /usr/bin/mc anonymous set download myminio/exlms-resources
 
 # Recursively copy all items from the attached /assets folder into the resource bucket
-/usr/bin/mc cp -r /assets/ myminio/exlms-files/
+/usr/bin/mc cp -r /assets/ myminio/exlms-files/Assets/
 
 echo "MinIO Auto-initialization completed successfully."

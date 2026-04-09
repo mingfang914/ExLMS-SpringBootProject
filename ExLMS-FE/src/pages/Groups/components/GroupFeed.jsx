@@ -47,6 +47,7 @@ import CKEditorWrapper from '../../../components/Common/CKEditorWrapper'
 import groupFeedService from '../../../services/groupFeedService'
 import { formatDistanceToNow } from 'date-fns'
 import { vi, enUS } from 'date-fns/locale'
+import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -342,6 +343,7 @@ const GroupFeed = ({ groupId, currentUserRole, groupCourses = [], groupAssignmen
 
 const PostItem = ({ post, currentUser, currentUserRole, onDelete, onTogglePin, onToggleReaction, groupId, formatDate, setPosts, posts }) => {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const [comments, setComments] = useState([])
   const [showComments, setShowComments] = useState(false)
   const [newComment, setNewComment] = useState('')
@@ -524,6 +526,13 @@ const PostItem = ({ post, currentUser, currentUserRole, onDelete, onTogglePin, o
 
         {post.linkedEntityId && (
           <Box 
+            onClick={() => {
+              const id = post.linkedEntityId;
+              const type = post.linkedEntityType;
+              if (type === 'COURSE') navigate(`/groups/${groupId}/courses/${id}`);
+              else if (type === 'ASSIGNMENT') navigate(`/groups/${groupId}/assignments/${id}`);
+              else if (type === 'MEETING') navigate(`/groups/${groupId}/meetings`);
+            }}
             sx={{ 
               p: 1.5, 
               mb: 2, 
@@ -534,14 +543,19 @@ const PostItem = ({ post, currentUser, currentUserRole, onDelete, onTogglePin, o
               display: 'flex',
               alignItems: 'center',
               gap: 2,
+              transition: 'all 0.2s',
               cursor: 'pointer',
-              '&:hover': { bgcolor: 'action.selected' }
+              '&:hover': { 
+                bgcolor: 'action.selected',
+                borderColor: 'primary.main',
+                transform: 'translateY(-2px)'
+              }
             }}
           >
             <Avatar sx={{ bgcolor: 'primary.light', width: 36, height: 36 }}>{getEntityIcon(post.linkedEntityType)}</Avatar>
             <Box sx={{ flexGrow: 1 }}>
-              <Typography variant="caption" color="primary" fontWeight="bold">{getEntityLabel(post.linkedEntityType)}</Typography>
-              <Typography variant="body2" fontWeight="medium">Thực thể liên kết nội bộ (Nhấp để xem chi tiết)</Typography>
+              <Typography variant="caption" color="primary" fontWeight="bold">{getEntityLabel(post.linkedEntityType)}: {post.linkedEntityTitle || '...'}</Typography>
+              <Typography variant="body2" fontWeight="medium">{t('forum.linked_entity')}</Typography>
             </Box>
           </Box>
         )}

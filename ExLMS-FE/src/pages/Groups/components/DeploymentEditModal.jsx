@@ -49,7 +49,7 @@ const DeploymentEditModal = ({ open, onClose, type, resource, onUpdateSuccess })
           openAt: resource.openAt ? resource.openAt.slice(0, 16) : '',
           closeAt: resource.closeAt ? resource.closeAt.slice(0, 16) : '',
           shuffleQuestions: resource.shuffleQuestions || false,
-          resultVisibility: resource.resultVisibility || 'IMMEDIATE',
+          resultVisibility: resource.resultVisibility || 'CLOSE',
           status: resource.status || 'PUBLISHED'
         })
       }
@@ -152,9 +152,8 @@ const DeploymentEditModal = ({ open, onClose, type, resource, onUpdateSuccess })
                   label="Hiển thị kết quả"
                   onChange={(e) => setConfig({...config, resultVisibility: e.target.value})}
                 >
-                  <MenuItem value="IMMEDIATE">Sau khi làm bài</MenuItem>
-                  <MenuItem value="AFTER_DEADLINE">Sau khi hết hạn</MenuItem>
-                  <MenuItem value="OPENED">Mở thủ công</MenuItem>
+                  <MenuItem value="OPEN">Công bố (Mọi người có thể xem chi tiết)</MenuItem>
+                  <MenuItem value="CLOSE">Chưa công bố (Ẩn với thành viên)</MenuItem>
                 </Select>
               </FormControl>
               <FormControlLabel

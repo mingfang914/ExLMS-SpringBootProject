@@ -5,6 +5,7 @@ import {
   Grid,
   Card,
   CardContent,
+  CardMedia,
   Button,
   IconButton,
   Tooltip,
@@ -132,7 +133,7 @@ const QuizInventory = () => {
                         border: '1px solid var(--color-border)',
                         transition: 'all 0.3s ease',
                         position: 'relative',
-                        overflow: 'visible',
+                        overflow: 'hidden',
                         '&:hover': {
                           transform: 'translateY(-10px)',
                           boxShadow: 'var(--glass-shadow)',
@@ -141,23 +142,32 @@ const QuizInventory = () => {
                         }
                       }}
                     >
-                      <Avatar 
-                        className="quiz-badge"
-                        sx={{ 
-                          width: 56, height: 56, 
-                          background: 'linear-gradient(135deg, #10B981, #059669)',
-                          position: 'absolute',
-                          top: -20,
-                          left: 20,
-                          transition: 'all 0.3s ease',
-                          boxShadow: '0 8px 16px rgba(16, 185, 129, 0.3)',
-                          border: '4px solid var(--color-bg)'
-                        }}
-                      >
-                        <QuizIcon />
-                      </Avatar>
+                      <Box sx={{ position: 'relative', height: 160 }}>
+                        <CardMedia
+                          component="img"
+                          height="160"
+                          image={quiz.coverImageUrl || '/api/files/download/Assets/QuizDefaultCover.png'}
+                          sx={{ objectFit: 'cover' }}
+                        />
+                        <Avatar 
+                          className="quiz-badge"
+                          sx={{ 
+                            width: 48, height: 48, 
+                            background: 'linear-gradient(135deg, #10B981, #059669)',
+                            position: 'absolute',
+                            bottom: -24,
+                            left: 20,
+                            transition: 'all 0.3s ease',
+                            boxShadow: '0 8px 16px rgba(16, 185, 129, 0.3)',
+                            border: '4px solid var(--color-surface)',
+                            zIndex: 1
+                          }}
+                        >
+                          <QuizIcon />
+                        </Avatar>
+                      </Box>
 
-                      <CardContent sx={{ pt: 6, p: 4 }}>
+                      <CardContent sx={{ pt: 4, p: 4 }}>
                         <Typography variant="h6" sx={{ fontWeight: 800, mb: 1, color: 'var(--color-text)' }}>
                           {quiz.title}
                         </Typography>

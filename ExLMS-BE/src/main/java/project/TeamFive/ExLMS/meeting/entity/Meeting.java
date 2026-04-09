@@ -31,6 +31,9 @@ public class Meeting extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "cover_image_url")
+    private String coverImageUrl;
+
     @Column(length = 50)
     private String platform;
 

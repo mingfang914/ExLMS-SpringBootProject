@@ -34,6 +34,7 @@ public class AssignmentService {
         Assignment assignment = Assignment.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
+                .coverImageUrl(request.getCoverImageUrl() != null ? request.getCoverImageUrl() : "http://localhost:9000/exlms-files/Assets/AssignmentDefaultCover.jpg")
                 .maxScore(request.getMaxScore() != null ? request.getMaxScore() : 100)
                 .submissionType(safeSubmissionType(request.getSubmissionType()))
                 .allowedFileTypes(request.getAllowedFileTypes())
@@ -155,7 +156,7 @@ public class AssignmentService {
         boolean isInstructor = "OWNER".equals(member.getRole()) || "EDITOR".equals(member.getRole());
 
         return groupAssignmentRepository.findByGroup_Id(groupId).stream()
-                .filter(ga -> isInstructor || (ga.getStatus() != GroupAssignment.GroupAssignmentStatus.DRAFT && ga.getStatus() != GroupAssignment.GroupAssignmentStatus.CLOSED))
+                .filter(ga -> isInstructor || (ga.getStatus() != GroupAssignment.GroupAssignmentStatus.DRAFT))
                 .map(ga -> mapToResponseDTO(ga.getAssignment(), ga))
                 .collect(Collectors.toList());
     }
@@ -270,6 +271,7 @@ public class AssignmentService {
                 .templateId(assignment.getId())
                 .title(assignment.getTitle())
                 .description(project.TeamFive.ExLMS.util.UrlUtils.normalizeCkeUrls(assignment.getDescription()))
+                .coverImageUrl(assignment.getCoverImageUrl() != null ? assignment.getCoverImageUrl() : "http://localhost:9000/exlms-files/Assets/AssignmentDefaultCover.jpg")
                 .maxScore(assignment.getMaxScore())
                 .submissionType(assignment.getSubmissionType())
                 .allowedFileTypes(assignment.getAllowedFileTypes())

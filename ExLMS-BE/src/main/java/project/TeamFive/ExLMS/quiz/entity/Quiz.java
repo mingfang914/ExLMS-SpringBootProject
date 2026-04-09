@@ -27,6 +27,9 @@ public class Quiz extends SoftDeletableEntity {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "cover_image_url")
+    private String coverImageUrl;
+
     @Column(name = "time_limit_sec")
     private Integer timeLimitSec;
 

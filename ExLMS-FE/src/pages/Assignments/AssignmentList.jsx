@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Box, Typography, Button, Card, CardContent, Chip,
-  Grid, CircularProgress, Alert, Divider, IconButton, Tooltip
+  Grid, CircularProgress, Alert, Divider, IconButton, Tooltip, Avatar, CardMedia
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -133,11 +133,19 @@ const AssignmentList = ({ courseId, isInstructor: isInstructorProp }) => {
               >
                 <CardContent sx={{ p: 0 }}>
                   <Grid container>
-                    <Grid item xs={12} md={8} sx={{ p: 3 }}>
+                    <Grid item xs={12} sm={3} md={2}>
+                      <CardMedia
+                        component="img"
+                        sx={{ 
+                            height: { xs: 150, sm: '100%' }, 
+                            width: '100%',
+                            objectFit: 'cover'
+                        }}
+                        image={asgn.coverImageUrl || '/api/files/download/Assets/AssignmentDefaultCover.jpg'}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={9} md={6} sx={{ p: 3 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                        <Avatar sx={{ bgcolor: 'rgba(99, 102, 241, 0.1)', color: 'primary.main', width: 56, height: 56, borderRadius: 3 }}>
-                          <AssignmentIcon fontSize="large" />
-                        </Avatar>
                         <Box>
                           <Typography variant="h6" fontWeight={800} sx={{ lineHeight: 1.2 }}>
                             {asgn.title}

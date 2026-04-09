@@ -103,9 +103,13 @@ public class FileService {
                     .object(objectKey)
                     .expiry(2, TimeUnit.HOURS);
 
+            String disposition = "inline";
             if (filename != null && !filename.isEmpty()) {
-                builder.extraQueryParams(Map.of("response-content-disposition", "attachment; filename=\"" + filename + "\""));
+                disposition = "inline; filename=\"" + filename + "\"";
+                // Or use specific param for download if needed, 
+                // but generally we want users to view first.
             }
+            builder.extraQueryParams(Map.of("response-content-disposition", disposition));
 
             String url = minioClient.getPresignedObjectUrl(builder.build());
             if (url != null && minioPublicUrl != null && !minioPublicUrl.isEmpty() && !minioUrl.equals(minioPublicUrl)) {

@@ -54,82 +54,115 @@ const AssignmentDetail = () => {
   return (
     <Box sx={{ maxWidth: 900, mx: 'auto', p: 4 }}>
       <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Button startIcon={<BackIcon />} onClick={() => navigate(-1)} sx={{ color: 'var(--color-text-muted)' }}>
-          Quay lại kho
+        <Button 
+          startIcon={<BackIcon />} 
+          onClick={() => navigate(-1)} 
+          sx={{ color: 'var(--color-text-muted)', '&:hover': { color: 'var(--color-text)' } }}
+        >
+          {t('common.back')}
         </Button>
         <Button
           variant="contained"
           startIcon={<EditIcon />}
           onClick={() => navigate(`/inventory/assignments/edit/${id}`)}
           sx={{
-            borderRadius: '12px', fontWeight: 700,
-            background: 'linear-gradient(135deg, #FCD34D 0%, #F59E0B 100%)',
+            borderRadius: '12px', px: 3, py: 1.2, fontWeight: 700,
+            background: 'var(--color-warning)',
             color: '#000',
-            '&:hover': { background: '#F59E0B' }
+            '&:hover': { background: 'var(--color-warning-lt)', transform: 'translateY(-1px)', boxShadow: '0 6px 20px rgba(245,158,11,0.3)' },
+            transition: 'all 0.2s'
           }}
         >
-          Chỉnh sửa thiết kế
+          {t('common.edit')}
         </Button>
       </Box>
 
       {/* Main Info Card */}
-      <Paper sx={{ p: 4, mb: 4, borderRadius: 5, background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
-        <Box sx={{ display: 'flex', gap: 3, mb: 4 }}>
-          <Avatar sx={{ width: 80, height: 80, background: 'rgba(252, 211, 77, 0.1)', color: '#FCD34D', borderRadius: 4 }}>
+      <Paper sx={{ 
+        p: { xs: 3, sm: 5 }, mb: 4, borderRadius: 5, 
+        bgcolor: 'var(--color-surface)',
+        border: '1px solid var(--color-border)',
+        boxShadow: 'var(--shadow-lg)'
+      }}>
+        <Box sx={{ display: 'flex', gap: 3, mb: 4, flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'center', sm: 'flex-start' } }}>
+          <Avatar sx={{ width: 80, height: 80, background: 'rgba(252, 211, 77, 0.1)', color: 'var(--color-warning)', borderRadius: 4 }}>
             <AssignmentIcon sx={{ fontSize: 40 }} />
           </Avatar>
-          <Box sx={{ flex: 1 }}>
-            <Typography variant="h3" fontWeight={900} sx={{ color: '#FFF', mb: 1, lineHeight: 1.2 }}>
+          <Box sx={{ flex: 1, textAlign: { xs: 'center', sm: 'left' } }}>
+            <Typography variant="h3" sx={{ fontFamily: 'var(--font-heading)', fontWeight: 900, color: 'var(--color-text)', mb: 1, lineHeight: 1.2, fontSize: { xs: '2rem', md: '2.5rem' } }}>
               {assignment.title}
             </Typography>
-            <Stack direction="row" spacing={1}>
-              <Chip label={assignment.submissionType} size="small" sx={{ background: 'rgba(252, 211, 77, 0.2)', color: '#FCD34D', fontWeight: 800 }} />
-              <Chip label={`${assignment.maxScore} PTS`} size="small" icon={<ScoreIcon />} sx={{ fontWeight: 800 }} />
+            <Stack direction="row" spacing={1} justifyContent={{ xs: 'center', sm: 'flex-start' }}>
+              <Chip 
+                label={t('assignment_detail.' + (assignment.submissionType?.toLowerCase() || 'both'))} 
+                size="small" 
+                sx={{ bgcolor: 'rgba(252, 211, 77, 0.15)', color: 'var(--color-warning)', fontWeight: 800, borderRadius: '6px' }} 
+              />
+              <Chip 
+                label={`${assignment.maxScore} PTS`} 
+                size="small" 
+                icon={<ScoreIcon sx={{ fontSize: '14px !important' }} />} 
+                sx={{ fontWeight: 800, borderRadius: '6px', bgcolor: 'var(--color-surface-hover)', border: '1px solid var(--color-border)' }} 
+              />
             </Stack>
           </Box>
         </Box>
 
-        <Divider sx={{ mb: 4, borderColor: 'rgba(255,255,255,0.05)' }} />
+        <Divider sx={{ mb: 4, borderColor: 'var(--color-border)' }} />
 
-        <Typography variant="h6" sx={{ color: '#FFF', mb: 2, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
-          <DocIcon sx={{ color: '#6366F1' }} />
-          Nội dung chi tiết
+        <Typography variant="h6" sx={{ color: 'var(--color-text)', mb: 2.5, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Box sx={{ width: 32, height: 32, borderRadius: 1, bgcolor: 'rgba(99,102,241,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <DocIcon sx={{ color: 'var(--color-primary)', fontSize: 18 }} />
+          </Box>
+          {t('assignment_detail.instructions')}
         </Typography>
         <Box
           sx={{
-            color: 'var(--color-text-muted)',
+            color: 'var(--color-text-sec)',
             lineHeight: 1.8,
             fontSize: '1.05rem',
             '& p': { mb: 2 },
-            '& img': { maxWidth: '100%', borderRadius: 2 }
+            '& img': { maxWidth: '100%', borderRadius: 3, boxShadow: 'var(--shadow-md)', my: 2 }
           }}
-          dangerouslySetInnerHTML={{ __html: assignment.description || "Chưa có nội dung mô tả." }}
+          dangerouslySetInnerHTML={{ __html: assignment.description || t('common.no_data') }}
         />
       </Paper>
 
       {/* Constraints Grid */}
       <Grid container spacing={3}>
         <Grid item xs={12} sm={6}>
-          <Paper sx={{ p: 3, borderRadius: 4, height: '100%', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
-            <Typography variant="subtitle1" sx={{ color: '#FFF', fontWeight: 800, mb: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <FileIcon sx={{ color: '#60A5FA' }} />
-              Quy định nộp bài
+          <Paper sx={{ 
+            p: 3.5, borderRadius: 4, height: '100%', 
+            bgcolor: 'var(--color-surface)', 
+            border: '1px solid var(--color-border)',
+            boxShadow: 'var(--shadow-sm)'
+          }}>
+            <Typography variant="subtitle1" sx={{ color: 'var(--color-text)', fontWeight: 800, mb: 3, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <Box sx={{ width: 28, height: 28, borderRadius: 1, bgcolor: 'rgba(96,165,250,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <FileIcon sx={{ color: '#60A5FA', fontSize: 16 }} />
+              </Box>
+              {t('assignment_detail.submission_content')}
             </Typography>
-            <Stack spacing={2}>
+            <Stack spacing={2.5}>
               <Box>
-                <Typography variant="caption" color="var(--color-text-muted)">Loại tệp cho phép</Typography>
-                <Typography variant="body1" fontWeight={700} color="#FFF">
-                  {assignment.allowedFileTypes || 'Tất cả'}
+                <Typography variant="caption" sx={{ color: 'var(--color-text-muted)', fontWeight: 600, display: 'block', mb: 0.5 }}>
+                  {t('assignment_form.file_types_label')}
+                </Typography>
+                <Typography variant="body1" sx={{ fontWeight: 700, color: 'var(--color-text)' }}>
+                  {assignment.allowedFileTypes || t('quizzes.no_limit')}
                 </Typography>
               </Box>
               <Box>
-                <Typography variant="caption" color="var(--color-text-muted)">Dung lượng tối đa</Typography>
-                <Typography variant="body1" fontWeight={700} color="#FFF">{assignment.maxFileSizeMb} MB</Typography>
+                <Typography variant="caption" sx={{ color: 'var(--color-text-muted)', fontWeight: 600, display: 'block', mb: 0.5 }}>
+                  {t('assignment_form.max_file_size_label')}
+                </Typography>
+                <Typography variant="body1" sx={{ fontWeight: 700, color: 'var(--color-text)' }}>
+                  {assignment.maxFileSizeMb} MB
+                </Typography>
               </Box>
             </Stack>
           </Paper>
         </Grid>
-
       </Grid>
     </Box>
   );

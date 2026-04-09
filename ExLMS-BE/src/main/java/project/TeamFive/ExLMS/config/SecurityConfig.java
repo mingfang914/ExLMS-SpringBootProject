@@ -34,6 +34,7 @@ public class SecurityConfig {
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers("/api/auth/**", "/api/cke/resources/**",
                                                                 "/api/files/download/**",
+                                                                "/api/v1/collabs/internal/**",
                                                                 "/api/ws/**", "/ws/**", "/error")
                                                 .permitAll()
                                                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
@@ -59,7 +60,8 @@ public class SecurityConfig {
                                                 .requestMatchers(org.springframework.http.HttpMethod.POST,
                                                                 "/api/v1/meetings/*/attend",
                                                                 "/api/v1/meetings/*/questions",
-                                                                "/api/v1/meetings/polls/*/vote")
+                                                                "/api/v1/meetings/polls/*/vote",
+                                                                "/api/v1/collabs/*/track")
                                                 .authenticated()
 
                                                 // Student group interactions (Join/Leave)
@@ -125,6 +127,7 @@ public class SecurityConfig {
                                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                                 .authenticationProvider(authenticationProvider)
                                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                                .headers(headers -> headers.frameOptions(frame -> frame.disable()))
                                 .exceptionHandling(ex -> ex
                                                 .authenticationEntryPoint((request, response, authException) -> {
                                                         response.setStatus(
@@ -144,6 +147,7 @@ public class SecurityConfig {
                 CorsConfiguration configuration = new CorsConfiguration();
                 configuration.setAllowedOriginPatterns(
                                 List.of("http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:3001",
+                                                "http://localhost:3030", "http://127.0.0.1:3030", "http://localhost:8082",
                                                 "http://161.118.215.197:3000", "https://projectmf.id.vn",
                                                 "https://www.projectmf.id.vn"));
                 configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));

@@ -30,10 +30,10 @@ const ArrowLeftIcon = () => (
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
-  visible: (i = 0) => ({ 
-    opacity: 1, 
-    y: 0, 
-    transition: { delay: i * 0.07, duration: 0.45, ease: [0.22, 1, 0.36, 1] } 
+  visible: (i = 0) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.07, duration: 0.45, ease: [0.22, 1, 0.36, 1] }
   }),
 }
 
@@ -67,7 +67,7 @@ const ForgotPassword = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: '#02040A',
+        background: 'var(--color-bg)',
         position: 'relative',
         overflow: 'hidden',
         px: 2,
@@ -78,15 +78,18 @@ const ForgotPassword = () => {
         <ThemeToggle />
       </Box>
 
+      <Box className="auth-bg" />
+
       <Box
         sx={{
           position: 'fixed',
           top: 0, left: 0, right: 0, bottom: 0,
-          backgroundImage: `
-            linear-gradient(rgba(48,54,61,0.15) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(48,54,61,0.15) 1px, transparent 1px)
+          backgroundImage: (theme) => `
+            linear-gradient(var(--color-border) 0.5px, transparent 0.5px),
+            linear-gradient(90deg, var(--color-border) 0.5px, transparent 0.5px)
           `,
           backgroundSize: '48px 48px',
+          opacity: 0.1,
           zIndex: 0,
           pointerEvents: 'none',
         }}
@@ -100,11 +103,10 @@ const ForgotPassword = () => {
         style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 440 }}
       >
         <Box
+          className="auth-card"
           sx={{
-            background: 'rgba(13,17,23,0.9)',
             backdropFilter: 'blur(24px)',
             WebkitBackdropFilter: 'blur(24px)',
-            border: '1px solid #30363D',
             borderRadius: '20px',
             p: { xs: 3, sm: 4 },
             boxShadow: '0 32px 80px rgba(0,0,0,0.6)',
@@ -115,9 +117,9 @@ const ForgotPassword = () => {
               <Box
                 sx={{
                   width: 40, height: 40, borderRadius: '11px',
-                  background: 'linear-gradient(135deg, #6366F1, #22D3EE)',
+                  background: 'linear-gradient(135deg, var(--color-primary), var(--color-accent))',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  boxShadow: '0 6px 18px rgba(99,102,241,0.4)',
+                  boxShadow: '0 6px 18px rgba(99,102,241,0.3)',
                 }}
               >
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -125,27 +127,27 @@ const ForgotPassword = () => {
                   <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
                 </svg>
               </Box>
-              <Typography sx={{ fontWeight: 800, fontSize: '1.25rem', color: '#F0F6FC' }}>ExLMS</Typography>
+              <Typography sx={{ fontWeight: 800, fontSize: '1.25rem', color: 'var(--color-text)' }}>ExLMS</Typography>
             </Box>
           </motion.div>
 
           <motion.div custom={1} variants={fadeUp} initial="hidden" animate="visible">
-            <Typography sx={{ fontWeight: 800, fontSize: '1.625rem', color: '#F0F6FC', mb: 0.5 }}>
+            <Typography sx={{ fontWeight: 800, fontSize: '1.625rem', color: 'var(--color-text)', mb: 0.5 }}>
               Khôi phục mật khẩu
             </Typography>
-            <Typography sx={{ fontSize: '0.875rem', color: '#8B949E', mb: 3 }}>
+            <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text-sec)', mb: 3 }}>
               Nhập email của bạn để nhận liên kết khôi phục mật khẩu.
             </Typography>
           </motion.div>
 
           {error && (
-            <Alert severity="error" sx={{ mb: 2.5, bgcolor: 'rgba(239,68,68,0.1)', color: '#FCA5A5', borderRadius: '10px' }}>
+            <Alert severity="error" sx={{ mb: 2.5, bgcolor: 'rgba(239,68,68,0.1)', color: 'var(--color-error)', borderRadius: '10px' }}>
               {error}
             </Alert>
           )}
 
           {success && (
-            <Alert severity="success" sx={{ mb: 2.5, bgcolor: 'rgba(16,185,129,0.1)', color: '#6EE7B7', borderRadius: '10px' }}>
+            <Alert severity="success" sx={{ mb: 2.5, bgcolor: 'rgba(16,185,129,0.1)', color: 'var(--color-success)', borderRadius: '10px' }}>
               {success}
             </Alert>
           )}
@@ -153,7 +155,7 @@ const ForgotPassword = () => {
           {!success && (
             <Box component="form" onSubmit={handleSubmit}>
               <motion.div custom={2} variants={fadeUp} initial="hidden" animate="visible">
-                <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600, color: '#8B949E', mb: 0.75 }}>Email</Typography>
+                <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text-sec)', mb: 0.75 }}>Email</Typography>
                 <TextField
                   fullWidth
                   required
@@ -162,16 +164,17 @@ const ForgotPassword = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   InputProps={{
-                    startAdornment: <InputAdornment position="start" sx={{ color: '#6E7681' }}><EmailIcon /></InputAdornment>,
+                    startAdornment: <InputAdornment position="start" sx={{ color: 'var(--color-text-muted)' }}><EmailIcon /></InputAdornment>,
                   }}
-                  sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'rgba(33,38,45,0.6)', borderRadius: '10px', color: '#F0F6FC' } }}
+                  className="auth-input"
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
                 />
                 <Button
                   type="submit"
                   fullWidth
                   variant="contained"
                   disabled={isSubmitting}
-                  sx={{ mt: 3, mb: 2, height: 48, borderRadius: '10px', fontWeight: 700, background: 'linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)' }}
+                  sx={{ mt: 3, mb: 2, height: 48, borderRadius: '10px', fontWeight: 700, background: 'var(--color-primary)', '&:hover': { background: 'var(--color-primary-lt)' } }}
                 >
                   {isSubmitting ? <CircularProgress size={20} color="inherit" /> : 'Gửi liên kết'}
                 </Button>
@@ -186,7 +189,7 @@ const ForgotPassword = () => {
               fullWidth
               variant="text"
               startIcon={<ArrowLeftIcon />}
-              sx={{ color: '#8B949E', '&:hover': { color: '#F0F6FC' } }}
+              sx={{ color: 'var(--color-text-muted)', '&:hover': { color: 'var(--color-text)' } }}
             >
               Quay lại đăng nhập
             </Button>

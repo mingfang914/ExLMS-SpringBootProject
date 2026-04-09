@@ -11,6 +11,22 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Stop and Fix Permissions
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            if [ -d "/home/ubuntu/exlms-spring" ]; then
+              cd /home/ubuntu/exlms-spring
+              docker compose down --remove-orphans || true
+              cd ..
+              # Cấp quyền cho user để action có thể xóa thư mục (rm: true)
+              sudo chown -R ${{ secrets.SERVER_USER }}:${{ secrets.SERVER_USER }} /home/ubuntu/exlms-spring || true
+              sudo chmod -R 755 /home/ubuntu/exlms-spring || true
+            fi
+
       - name: Copy Code to Server
         uses: appleboy/scp-action@master
         with:
@@ -19,7 +35,7 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           source: "."
           target: "/home/ubuntu/exlms-spring"
-          rm: true # Làm sạch thư mục target trước khi chép code mới
+          rm: true
 
       - name: Deploy to Server via SSH
         uses: appleboy/ssh-action@master
@@ -44,16 +60,19 @@ jobs:
             MINIO_URL=${{ secrets.MINIO_URL }}
             MINIO_ROOT_USER=${{ secrets.MINIO_ROOT_USER }}
             MINIO_ROOT_PASSWORD=${{ secrets.MINIO_ROOT_PASSWORD }}
+            MINIO_PUBLIC_URL=${{ secrets.MINIO_PUBLIC_URL }}
             
             # 4. Google OAuth
             GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
             GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
             
             # 5. LiveKit & Meeting Service
+            LIVEKIT_URL=${{ secrets.LIVEKIT_URL }}
             LIVEKIT_API_KEY=${{ secrets.LIVEKIT_API_KEY }}
             LIVEKIT_API_SECRET=${{ secrets.LIVEKIT_API_SECRET }}
-            VITE_LIVEKIT_SERVICE_URL=${{ secrets.VITE_LIVEKIT_SERVICE_URL }}
-            VITE_LIVEKIT_SERVER_URL=${{ secrets.VITE_LIVEKIT_SERVICE_URL }}
+            MEETING_SERVICE_URL=${{ secrets.MEETING_SERVICE_URL }}
+            VITE_LIVEKIT_URL=${{ secrets.VITE_LIVEKIT_URL }}
+            VITE_MEETING_SERVICE_URL=${{ secrets.VITE_MEETING_SERVICE_URL }}
             
             # 6. Mail (Password Reset)
             MAIL_HOST=${{ secrets.MAIL_HOST }}
@@ -62,12 +81,22 @@ jobs:
             MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
             MAIL_FROM=${{ secrets.MAIL_FROM }}
             
-            # 7. App URLs
+            # 7. Collaboration Service
+            COLLAB_SERVICE_PORT=${{ secrets.COLLAB_SERVICE_PORT }}
+            VITE_COLLAB_SERVICE_URL=${{ secrets.VITE_COLLAB_SERVICE_URL }}
+            CORE_BACKEND_INTERNAL_URL=${{ secrets.CORE_BACKEND_INTERNAL_URL }}
+            REDIS_HOST=${{ secrets.REDIS_HOST }}
+            REDIS_PORT=${{ secrets.REDIS_PORT }}
+            
+            # 8. App URLs
             APP_FRONTEND_URL=${{ secrets.APP_FRONTEND_URL }}
             APP_BACKEND_URL=${{ secrets.APP_BACKEND_URL }}
             
-            # Vite Build Args (cần cho build frontend)
+            # Vite Build Args
             VITE_GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+            VITE_COLLAB_SERVICE_URL=${{ secrets.VITE_COLLAB_SERVICE_URL }}
+            VITE_LIVEKIT_URL=${{ secrets.VITE_LIVEKIT_URL }}
+            VITE_MEETING_SERVICE_URL=${{ secrets.VITE_MEETING_SERVICE_URL }}
             EOF
             
             # Khởi chạy build và deploy trực tiếp trên server

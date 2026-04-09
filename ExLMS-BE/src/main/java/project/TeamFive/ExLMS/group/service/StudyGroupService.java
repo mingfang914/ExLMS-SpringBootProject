@@ -440,13 +440,12 @@ public class StudyGroupService {
 
     // ==================== MEMBER MANAGEMENT (Owner / Editor) ====================
 
-    // 1. Thăng/giáng cấp thành viên (Owner only)
     @Transactional
     public String changeMemberRole(UUID groupId, UUID targetUserId, String newRole) {
         if (!newRole.equals("EDITOR") && !newRole.equals("MEMBER")) {
             throw new RuntimeException("Quyền mới không hợp lệ! Chỉ nhận EDITOR hoặc MEMBER.");
         }
-
+        
         StudyGroup group = studyGroupRepository.findById(groupId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy nhóm!"));
 
@@ -466,6 +465,14 @@ public class StudyGroupService {
 
         if ("OWNER".equals(targetMember.getRole())) {
             throw new RuntimeException("Không thể giáng cấp Chủ nhóm!");
+        }
+
+        // --- MỚI: Kiểm tra thực thể Global Role (Student không được làm Editor) ---
+        if ("EDITOR".equals(newRole)) {
+            String platformRole = targetMember.getUser().getRole().name();
+            if ("STUDENT".equals(platformRole)) {
+                throw new RuntimeException("Ràng buộc hệ thống: Không thể nâng cấp Sinh viên lên làm Biên tập viên nhóm. Chỉ Giảng viên mới được cấp quyền này!");
+            }
         }
 
         targetMember.setRole(newRole);
@@ -537,6 +544,11 @@ public class StudyGroupService {
         GroupMember targetMember = groupMemberRepository
                 .findByGroup_IdAndUser_Id(groupId, newOwnerId)
                 .orElseThrow(() -> new RuntimeException("Người được chỉ định không phải là thành viên nhóm!"));
+
+        // --- MỚI: Kiểm tra thực thể Global Role (Student không được làm Owner) ---
+        if ("STUDENT".equals(targetMember.getUser().getRole().name())) {
+            throw new RuntimeException("Ràng buộc hệ thống: Không thể chuyển quyền Chủ nhóm cho Sinh viên. Chỉ Giảng viên mới được đảm nhiệm vai trò này!");
+        }
 
         // 1. Thăng target lên Owner
         targetMember.setRole("OWNER");

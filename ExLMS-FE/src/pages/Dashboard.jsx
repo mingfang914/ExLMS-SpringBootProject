@@ -12,33 +12,24 @@ import {
   Chip,
   Avatar,
   Divider,
+  IconButton
 } from '@mui/material'
 import { useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, Legend
 } from 'recharts'
-import { alpha } from '@mui/material/styles'
+import { alpha, useTheme } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
-import { useTheme } from '@mui/material/styles'
+import dashboardService from '../services/dashboardService'
 
 // ───────────────────────────────────────────────────────────────────
-// Data
+// Constants
 // ───────────────────────────────────────────────────────────────────
-const chartData = [
-  { name: 'Mon', hours: 2.0 },
-  { name: 'Tue', hours: 3.5 },
-  { name: 'Wed', hours: 1.0 },
-  { name: 'Thu', hours: 4.2 },
-  { name: 'Fri', hours: 2.8 },
-  { name: 'Sat', hours: 5.0 },
-  { name: 'Sun', hours: 3.3 },
-]
+const PIE_COLORS = ['#6366F1', '#22D3EE', '#F59E0B', '#10B981', '#F43F5E', '#A855F7']
 
-// ───────────────────────────────────────────────────────────────────
-// SVG Icons (20 × 20)
-// ───────────────────────────────────────────────────────────────────
 const Icons = {
   groups: (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -65,24 +56,19 @@ const Icons = {
       <line x1="3" y1="10" x2="21" y2="10" />
     </svg>
   ),
-  arrowRight: (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
+  chevronLeft: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="15 18 9 12 15 6" />
     </svg>
   ),
-  trendUp: (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" /><polyline points="17 6 23 6 23 12" />
+  chevronRight: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="9 18 15 12 9 6" />
     </svg>
   ),
   play: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">
       <polygon points="5 3 19 12 5 21 5 3" />
-    </svg>
-  ),
-  clock: (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
     </svg>
   ),
   notification: (
@@ -91,86 +77,105 @@ const Icons = {
       <path d="M13.73 21a2 2 0 0 1-3.46 0" />
     </svg>
   ),
+  education: (
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 10v6M2 10l10-5 10 5-10 5z" /><path d="M6 12v5c3 3 9 3 12 0v-5" />
+    </svg>
+  )
 }
 
-// ───────────────────────────────────────────────────────────────────
-// Animation Variants
-// ───────────────────────────────────────────────────────────────────
-const container = {
+const NEWS_SLIDES = [
+  {
+    id: 1,
+    title: "Tối ưu hóa thời gian học tập với ExLMS",
+    desc: "Khám phá cách sử dụng bộ công cụ Calendar và Task Management để nhân đôi hiệu suất học tập mỗi ngày.",
+    color: "linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)",
+    tag: "Education",
+    icon: Icons.education
+  },
+  {
+    id: 2,
+    title: "7 bí quyết để học nhóm hiệu quả",
+    desc: "Xây dựng văn hóa cộng tác trong nhóm học tập chính là chìa khóa để giải quyết những dự án phức tạp một cách nhanh chóng.",
+    color: "linear-gradient(135deg, #0891B2 0%, #06B6D4 100%)",
+    tag: "Tips",
+    icon: Icons.groups
+  },
+  {
+    id: 3,
+    title: "Xu hướng Hybrid Learning năm 2024",
+    desc: "Cùng điểm qua những công nghệ giáo dục đang làm thay đổi cách thức chúng ta tiếp cận tri thức trong kỷ nguyên số.",
+    color: "linear-gradient(135deg, #059669 0%, #10B981 100%)",
+    tag: "Trends",
+    icon: Icons.courses
+  }
+]
+
+const containerArr = {
   hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.08 } },
+  visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
 }
-const item = {
+const itemArr = {
   hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] } },
+  visible: { opacity: 1, y: 0 },
 }
 
 // ───────────────────────────────────────────────────────────────────
 // Sub-components
 // ───────────────────────────────────────────────────────────────────
 const StatCard = ({ label, value, icon, colorClass, loading, trend }) => (
-  <div className={`stat-card stat-card--${colorClass}`}>
-    {loading ? (
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-        <Skeleton variant="rounded" width={44} height={44} sx={{ borderRadius: '10px', bgcolor: 'rgba(33,38,45,0.8)' }} />
-        <Box sx={{ flex: 1 }}>
-          <Skeleton width="70%" height={32} sx={{ bgcolor: 'rgba(33,38,45,0.8)' }} />
-          <Skeleton width="55%" height={20} sx={{ bgcolor: 'rgba(33,38,45,0.8)' }} />
-        </Box>
-      </Box>
-    ) : (
-      <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-        <Box>
-          <Typography
+  <Card
+    sx={{
+      position: 'relative',
+      overflow: 'hidden',
+      height: '100%',
+      bgcolor: 'var(--color-surface-2)',
+      border: '1px solid var(--color-border)',
+      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+      '&:hover': {
+        transform: 'translateY(-5px)',
+        borderColor: `var(--color-${colorClass})`,
+        boxShadow: `0 12px 24px rgba(0,0,0,0.1)`,
+      }
+    }}
+  >
+    <CardContent sx={{ p: 3 }}>
+      {loading ? (
+        <Skeleton variant="rectangular" height={80} />
+      ) : (
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <Box>
+            <Typography sx={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', fontWeight: 500, mb: 1 }}>{label}</Typography>
+            <Typography sx={{ color: 'var(--color-text)', fontSize: '2rem', fontWeight: 800, lineHeight: 1 }}>{value}</Typography>
+            {trend && (
+              <Box sx={{ mt: 1.5, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <Typography sx={{ color: 'var(--color-success)', fontSize: '0.75rem', fontWeight: 600 }}>{trend}</Typography>
+              </Box>
+            )}
+          </Box>
+          <Box
             sx={{
-              fontFamily: 'var(--font-heading)',
-              fontWeight: 800,
-              fontSize: '2rem',
-              lineHeight: 1,
-              color: 'var(--color-text)',
-              mb: 0.5,
+              p: 1.5,
+              borderRadius: '12px',
+              bgcolor: alpha(colorClass === 'indigo' ? '#6366F1' : colorClass === 'cyan' ? '#22D3EE' : colorClass === 'amber' ? '#F59E0B' : '#EF4444', 0.15),
+              color: colorClass === 'indigo' ? '#818CF8' : colorClass === 'cyan' ? '#22D3EE' : colorClass === 'amber' ? '#FBBF24' : '#F87171',
             }}
           >
-            {value}
-          </Typography>
-          <Typography sx={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>
-            {label}
-          </Typography>
-          {trend && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 1 }}>
-              <Box sx={{ color: 'var(--color-success)', display: 'flex', alignItems: 'center' }}>
-                {Icons.trendUp}
-              </Box>
-              <Typography sx={{ fontSize: '0.6875rem', color: 'var(--color-success)', fontWeight: 600 }}>
-                {trend}
-              </Typography>
-            </Box>
-          )}
+            {icon}
+          </Box>
         </Box>
-        <Box className={`icon-badge icon-badge--${colorClass}`}>
-          {icon}
-        </Box>
-      </Box>
-    )}
-  </div>
+      )}
+    </CardContent>
+  </Card>
 )
 
-// Custom chart tooltip
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
-      <Box
-        sx={{
-          bgcolor: 'var(--color-surface-3)',
-          border: '1px solid var(--color-border)',
-          borderRadius: '10px',
-          px: 2, py: 1.5,
-          boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
-        }}
-      >
+      <Box sx={{ bgcolor: 'var(--color-surface-3)', border: '1px solid var(--color-border)', borderRadius: '10px', p: 1.5, boxShadow: '0 10px 30px rgba(0,0,0,0.4)' }}>
         <Typography sx={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', mb: 0.5 }}>{label}</Typography>
-        <Typography sx={{ fontSize: '0.9375rem', fontWeight: 700, color: '#818CF8' }}>
-          {payload[0].value}h
+        <Typography sx={{ fontSize: '1rem', fontWeight: 800, color: 'var(--color-primary-lt)' }}>
+          {payload[0].value} Hoạt động
         </Typography>
       </Box>
     )
@@ -178,532 +183,292 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null
 }
 
+const NewsCarousel = () => {
+  const [index, setIndex] = useState(0)
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setIndex((prev) => (prev + 1) % NEWS_SLIDES.length)
+    }, 6000)
+    return () => clearInterval(timer)
+  }, [])
+
+  const slide = NEWS_SLIDES[index]
+
+  return (
+    <Card 
+      sx={{ 
+        position: 'relative', 
+        height: 180, 
+        background: slide.color, 
+        color: 'white', 
+        borderRadius: '16px', 
+        overflow: 'hidden',
+        border: 'none',
+        display: 'flex',
+        alignItems: 'center'
+      }}
+    >
+      <AnimatePresence mode="wait">
+        <motion.div
+           key={slide.id}
+           initial={{ x: 20, opacity: 0 }}
+           animate={{ x: 0, opacity: 1 }}
+           exit={{ x: -20, opacity: 0 }}
+           transition={{ duration: 0.4 }}
+           style={{ width: '100%', height: '100%', padding: '24px', display: 'flex', alignItems: 'center' }}
+        >
+           <Box sx={{ flex: 1 }}>
+              <Chip label={slide.tag} size="small" sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white', fontWeight: 700, mb: 1.5, border: 'none' }} />
+              <Typography variant="h5" sx={{ fontWeight: 800, mb: 1, letterSpacing: '-0.02em', fontSize: { xs: '1.125rem', sm: '1.5rem' } }}>
+                {slide.title}
+              </Typography>
+              <Typography sx={{ fontSize: '0.9375rem', opacity: 0.9, lineHeight: 1.5, display: { xs: 'none', sm: 'block' }, maxWidth: '80%' }} className="clamp-2">
+                {slide.desc}
+              </Typography>
+           </Box>
+           <Box sx={{ display: { xs: 'none', md: 'flex' }, ml: 3, opacity: 0.4 }}>
+              {slide.icon}
+           </Box>
+        </motion.div>
+      </AnimatePresence>
+
+      <Box sx={{ position: 'absolute', bottom: 16, right: 16, display: 'flex', gap: 1 }}>
+        <IconButton
+           size="small"
+           onClick={() => setIndex((prev) => (prev - 1 + NEWS_SLIDES.length) % NEWS_SLIDES.length)}
+           sx={{ bgcolor: 'rgba(255,255,255,0.1)', color: 'white', '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' } }}
+        >
+           {Icons.chevronLeft}
+        </IconButton>
+        <IconButton
+           size="small"
+           onClick={() => setIndex((prev) => (prev + 1) % NEWS_SLIDES.length)}
+           sx={{ bgcolor: 'rgba(255,255,255,0.1)', color: 'white', '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' } }}
+        >
+           {Icons.chevronRight}
+        </IconButton>
+      </Box>
+    </Card>
+  )
+}
+
 // ───────────────────────────────────────────────────────────────────
 // Main Component
 // ───────────────────────────────────────────────────────────────────
 const Dashboard = () => {
   const theme = useTheme()
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const { user } = useSelector((state) => state.auth)
   const [loading, setLoading] = useState(true)
   const [statsData, setStatsData] = useState(null)
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchData = async () => {
       try {
-        const { default: dashboardService } = await import('../services/dashboardService')
         const data = await dashboardService.getStats()
         setStatsData(data)
       } catch (err) {
-        console.error('Failed to load dashboard stats', err)
+        console.error('Error fetching dashboard stats', err)
       } finally {
         setLoading(false)
       }
     }
-    fetchStats()
+    fetchData()
   }, [])
 
-  const stats = [
-    { label: t('dashboard.stats.groups'), value: statsData?.joinedGroups ?? 0, icon: Icons.groups, colorClass: 'indigo', trend: `+2 ${t('dashboard.this_week')}` },
-    { label: t('dashboard.stats.courses'), value: statsData?.coursesInProgress ?? 0, icon: Icons.courses, colorClass: 'cyan', trend: null },
-    { label: t('dashboard.stats.assignments'), value: statsData?.pendingAssignments ?? 0, icon: Icons.assignments, colorClass: 'amber', trend: null },
-    { label: t('dashboard.stats.meetings'), value: statsData?.upcomingMeetings ?? 0, icon: Icons.meetings, colorClass: 'red', trend: null },
-  ]
-
-  const upcomingMeetings = [
-    { id: 1, title: 'Java Programming Workshop', time: `${t('common.today')} · 2:00 PM`, group: 'CS 2024', status: 'today' },
-    { id: 2, title: 'Weekly Team Sync', time: `${t('common.tomorrow')} · 10:00 AM`, group: 'Study Group A', status: 'soon' },
-    { id: 3, title: 'Database Design Review', time: `Thu · 3:00 PM`, group: 'DB Class', status: 'upcoming' },
-  ]
-
-  const recentActivities = [
-    { id: 1, type: 'assignment', text: t('dashboard.activities.new_assignment'), time: t('common.hrs_ago', { count: 2 }), icon: Icons.assignments },
-    { id: 2, type: 'course', text: t('dashboard.activities.course_updated'), time: t('common.hrs_ago', { count: 5 }), icon: Icons.courses },
-    { id: 3, type: 'notif', text: t('dashboard.activities.new_replies'), time: t('common.days_ago', { count: 1 }), icon: Icons.notification },
-  ]
-
   const username = user?.name || user?.fullName || user?.email?.split('@')[0] || t('common.student')
-  const greetingKey = getGreeting()
+  const h = new Date().getHours()
+  const greeting = h < 12 ? t('dashboard.greetings.morning') : h < 18 ? t('dashboard.greetings.afternoon') : t('dashboard.greetings.evening')
+
+  const stats = [
+    { label: t('dashboard.stats.groups'), value: statsData?.joinedGroups ?? 0, icon: Icons.groups, colorClass: 'indigo', trend: statsData?.joinedGroups > 0 ? `+${statsData.joinedGroups}` : null },
+    { label: t('dashboard.stats.courses'), value: statsData?.coursesInProgress ?? 0, icon: Icons.courses, colorClass: 'cyan' },
+    { label: t('dashboard.stats.assignments'), value: statsData?.pendingAssignments ?? 0, icon: Icons.assignments, colorClass: 'amber' },
+    { label: t('dashboard.stats.meetings'), value: statsData?.upcomingMeetings ?? 0, icon: Icons.meetings, colorClass: 'red' },
+  ]
+
+  // Filter for empty weekly data to decide chart display
+  const hasWeeklyData = statsData?.weeklyPerformance?.some(d => d.value > 0)
+  const hasCategoryData = statsData?.groupCategories?.length > 0
 
   return (
-    <Box
-      component={motion.div}
-      variants={container}
-      initial="hidden"
-      animate="visible"
-      sx={{ pb: 6 }}
-    >
-      {/* ── Hero Greeting ──────────────────────────────────────────── */}
-      <motion.div variants={item}>
-        <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 2 }}>
+    <Box component={motion.div} variants={containerArr} initial="hidden" animate="visible" sx={{ pb: 6 }}>
+      {/* ── Greeting Header ───────────────────────────────────────── */}
+      <motion.div variants={itemArr}>
+        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Box>
-            <Typography
-              sx={{
-                fontFamily: 'var(--font-heading)',
-                fontWeight: 800,
-                fontSize: { xs: '1.75rem', sm: '2.25rem' },
-                color: 'var(--color-text)',
-                letterSpacing: '-0.03em',
-                lineHeight: 1.15,
-                mb: 0.75,
-              }}
-            >
-              {t(`dashboard.greetings.${greetingKey}`)},{' '}
-              <Box component="span" className="gradient-text">{username.split(' ')[0]}</Box>
+            <Typography sx={{ fontSize: { xs: '1.75rem', sm: '2.5rem' }, fontWeight: 900, letterSpacing: '-0.04em', color: 'var(--color-text)' }}>
+              {greeting}, <Box component="span" sx={{ background: 'linear-gradient(90deg, #6366F1, #22D3EE)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{username.split(' ')[0]}</Box>
             </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <span className="pulse-dot" />
-              <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
-                {t('dashboard.hero_desc')}
-              </Typography>
-            </Box>
+            <Typography sx={{ color: 'var(--color-text-muted)', fontSize: '1rem', mt: 0.5 }}>{t('dashboard.hero_desc')}</Typography>
           </Box>
-
-          <Button
-            component={Link}
-            to="/calendar"
-            variant="outlined"
-            sx={{
-              borderColor: 'var(--color-border)',
-              color: 'var(--color-text-sec)',
-              borderRadius: '10px',
-              px: 2.5,
-              height: 40,
-              fontSize: '0.875rem',
-              '&:hover': { borderColor: 'var(--color-primary)', color: 'var(--color-text)', bgcolor: 'rgba(99,102,241,0.06)' },
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-            }}
-          >
-            {t('nav.calendar')}
-          </Button>
         </Box>
       </motion.div>
 
-      {/* ── Stat Cards ─────────────────────────────────────────────── */}
-      <Grid container spacing={2.5} sx={{ mb: 3 }}>
-        {stats.map((stat, i) => (
-          <Grid item xs={12} sm={6} md={3} key={i}>
-            <motion.div variants={item}>
-              <StatCard {...stat} loading={loading} />
+      {/* ── Education Highlights Carousel ────────────────────────── */}
+      <motion.div variants={itemArr} style={{ marginBottom: '32px' }}>
+         <NewsCarousel />
+      </motion.div>
+
+      {/* ── Top Stats ─────────────────────────────────────────────── */}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        {stats.map((s, idx) => (
+          <Grid item xs={12} sm={6} md={3} key={idx}>
+            <motion.div variants={itemArr} transition={{ delay: idx * 0.05 }}>
+              <StatCard {...s} loading={loading} />
             </motion.div>
           </Grid>
         ))}
       </Grid>
 
-      {/* ── Charts Row ─────────────────────────────────────────────── */}
-      <Grid container spacing={2.5} sx={{ mb: 2.5 }}>
-        {/* Learning Hours chart */}
-        <Grid item xs={12} md={8}>
-          <motion.div variants={item} style={{ height: '100%' }}>
-            <Card sx={{ height: '100%' }}>
-              <CardHeader
-                title={
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <Box>
-                      <Typography sx={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '1rem', color: 'var(--color-text)' }}>
-                        {t('dashboard.learning_hours')}
-                      </Typography>
-                      <Typography sx={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', mt: 0.25 }}>
-                        {t('dashboard.this_week')}
-                      </Typography>
-                    </Box>
-                    <Chip
-                      label={t('dashboard.total_learning_time', { count: 21.5 })}
-                      size="small"
-                      sx={{
-                        bgcolor: 'rgba(99,102,241,0.12)',
-                        color: '#818CF8',
-                        border: '1px solid rgba(99,102,241,0.25)',
-                        fontWeight: 600,
-                        fontSize: '0.75rem',
-                        height: 26,
-                      }}
-                    />
-                  </Box>
-                }
-                sx={{ pb: 0, px: 3, pt: 2.5 }}
+      {/* ── Middle Row ────────────────────────────────────────────── */}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        {/* Learning Chart */}
+        <Grid item xs={12} lg={8}>
+          <motion.div variants={itemArr}>
+            <Card sx={{ bgcolor: 'var(--color-surface-2)', border: '1px solid var(--color-border)', height: '100%' }}>
+              <CardHeader 
+                title={t('dashboard.learning_hours')} 
+                titleTypographyProps={{ fontSize: '1.125rem', fontWeight: 700 }}
+                action={<Chip label={t('dashboard.activity_last_7_days')} size="small" variant="outlined" />}
+                sx={{ px: 3, pt: 3 }}
               />
-              <CardContent sx={{ pt: 2, px: 2, pb: '16px !important', minHeight: 280 }}>
-                {loading ? (
-                  <Skeleton variant="rounded" width="100%" height={240} sx={{ bgcolor: 'rgba(33,38,45,0.6)' }} />
-                ) : (
-                  <ResponsiveContainer width="100%" height={240}>
-                    <AreaChart data={chartData} margin={{ top: 8, right: 8, left: -24, bottom: 0 }}>
-                      <defs>
-                        <linearGradient id="gradHours" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#6366F1" stopOpacity={0.3} />
-                          <stop offset="95%" stopColor="#6366F1" stopOpacity={0} />
-                        </linearGradient>
-                        <linearGradient id="gradStroke" x1="0" y1="0" x2="1" y2="0">
-                          <stop offset="0%" stopColor="#6366F1" />
-                          <stop offset="100%" stopColor="#22D3EE" />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(48,54,61,0.6)" />
-                      <XAxis
-                        dataKey="name"
-                        axisLine={false} tickLine={false}
-                        tick={{ fill: '#6E7681', fontSize: 12, fontFamily: 'Inter' }}
-                        dy={8}
-                      />
-                      <YAxis
-                        axisLine={false} tickLine={false}
-                        tick={{ fill: '#6E7681', fontSize: 12, fontFamily: 'Inter' }}
-                        tickFormatter={(v) => `${v}h`}
-                      />
-                      <RechartsTooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(99,102,241,0.3)', strokeWidth: 1 }} />
-                      <Area
-                        type="monotone"
-                        dataKey="hours"
-                        stroke="url(#gradStroke)"
-                        strokeWidth={2.5}
-                        fillOpacity={1}
-                        fill="url(#gradHours)"
-                        dot={{ fill: '#6366F1', strokeWidth: 0, r: 4 }}
-                        activeDot={{ r: 6, fill: '#818CF8', stroke: 'var(--color-surface-3)', strokeWidth: 2 }}
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
+              <CardContent sx={{ height: 350, pt: 0, position: 'relative' }}>
+                {loading ? <Skeleton variant="rectangular" height="100%" /> : (
+                  <>
+                    {!hasWeeklyData && (
+                      <Box sx={{ position: 'absolute', inset: 0, zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', bgcolor: alpha(theme.palette.background.paper, 0.4), backdropFilter: 'blur(2px)', borderRadius: '12px' }}>
+                         <Typography sx={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', fontWeight: 600 }}>Chưa có hoạt động trong 7 ngày qua</Typography>
+                         <Typography sx={{ color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>Hãy bắt đầu bằng việc làm bài tập hoặc tham gia thảo luận!</Typography>
+                      </Box>
+                    )}
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={statsData?.weeklyPerformance || []} margin={{ top: 20, right: 10, left: -20, bottom: 0 }}>
+                        <defs>
+                          <linearGradient id="colorVal" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#6366F1" stopOpacity={0.3}/>
+                            <stop offset="95%" stopColor="#6366F1" stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={alpha('#6E7681', 0.1)} />
+                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#6E7681', fontSize: 12 }} dy={10} />
+                        <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6E7681', fontSize: 12 }} />
+                        <RechartsTooltip content={<CustomTooltip />} />
+                        <Area type="monotone" dataKey="value" stroke="#6366F1" strokeWidth={3} fillOpacity={1} fill="url(#colorVal)" />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </>
                 )}
               </CardContent>
             </Card>
           </motion.div>
         </Grid>
 
-        {/* Current Course progress */}
-        <Grid item xs={12} md={4}>
-          <motion.div variants={item} style={{ height: '100%' }}>
-            <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-              <CardHeader
-                title={
-                  <Typography sx={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '1rem', color: 'var(--color-text)' }}>
-                    {t('dashboard.continue_learning')}
-                  </Typography>
-                }
-                sx={{ pb: 0, px: 3, pt: 2.5 }}
-              />
-              <CardContent sx={{ flex: 1, px: 3, pb: '24px !important', pt: 2 }}>
-                {loading ? (
-                  <Box>
-                    <Skeleton variant="rounded" height={130} sx={{ mb: 2, bgcolor: 'rgba(33,38,45,0.6)' }} />
-                    <Skeleton width="80%" height={22} sx={{ mb: 0.5, bgcolor: 'rgba(33,38,45,0.6)' }} />
-                    <Skeleton width="50%" height={18} sx={{ mb: 2, bgcolor: 'rgba(33,38,45,0.6)' }} />
-                    <Skeleton variant="rounded" height={6} sx={{ bgcolor: 'rgba(33,38,45,0.6)' }} />
-                  </Box>
-                ) : (
-                  <Box>
-                    {/* Course thumbnail */}
-                    <Box
-                      sx={{
-                        position: 'relative',
-                        height: 130,
-                        borderRadius: '10px',
-                        mb: 2.5,
-                        overflow: 'hidden',
-                        background: 'linear-gradient(135deg, #312E81 0%, #1E1B4B 60%, #0D1117 100%)',
-                      }}
-                    >
-                      {/* Decorative circles */}
-                      <Box sx={{ position: 'absolute', top: -20, right: -20, width: 100, height: 100, borderRadius: '50%', background: 'rgba(99,102,241,0.25)' }} />
-                      <Box sx={{ position: 'absolute', bottom: -10, left: -10, width: 70, height: 70, borderRadius: '50%', background: 'rgba(34,211,238,0.15)' }} />
-
-                      {/* Content overlay */}
-                      <Box sx={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', p: 2 }}>
-                        <Box
-                          sx={{
-                            width: 44, height: 44,
-                            borderRadius: '12px',
-                            bgcolor: 'rgba(99,102,241,0.3)',
-                            border: '1px solid rgba(99,102,241,0.4)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            mb: 1, color: '#C7D2FE',
-                          }}
-                        >
-                          {Icons.courses}
-                        </Box>
-                        <Typography sx={{ fontSize: '0.75rem', color: 'rgba(199,210,254,0.8)', fontWeight: 500 }}>
-                          React JS Advanced
-                        </Typography>
-                      </Box>
-
-                      {/* Play button */}
-                      <Box
-                        sx={{
-                          position: 'absolute', top: 10, right: 10,
-                          width: 28, height: 28, borderRadius: '50%',
-                          bgcolor: 'rgba(99,102,241,0.4)',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          color: 'white', cursor: 'pointer',
-                          transition: 'bgcolor 0.2s',
-                          '&:hover': { bgcolor: 'rgba(99,102,241,0.7)' },
-                        }}
-                      >
-                        {Icons.play}
-                      </Box>
-                    </Box>
-
-                    <Typography sx={{ fontWeight: 700, fontSize: '0.9375rem', color: 'var(--color-text)', mb: 0.5, lineHeight: 1.3 }}>
-                      React JS Advanced Practices
-                    </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 2 }}>
-                      <Box sx={{ color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center' }}>
-                        {Icons.clock}
-                      </Box>
-                      <Typography sx={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                        {t('dashboard.completion_status', { completed: 12, total: 24 })}
-                      </Typography>
-                    </Box>
-
-                    {/* Progress */}
-                    <Box>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                        <Typography sx={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{t('common.progress')}</Typography>
-                        <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#818CF8' }}>50%</Typography>
-                      </Box>
-                      <LinearProgress
-                        variant="determinate"
-                        value={50}
-                        className="progress-gradient"
-                        sx={{
-                          height: 6,
-                          borderRadius: 99,
-                          bgcolor: 'rgba(33,38,45,0.8)',
-                          mb: 3,
-                        }}
-                      />
-                    </Box>
-
-                    <Button
-                      variant="contained"
-                      fullWidth
-                      startIcon={Icons.play}
-                      sx={{
-                        height: 40,
-                        borderRadius: '9px',
-                        fontSize: '0.875rem',
-                        background: 'linear-gradient(135deg, #6366F1, #4F46E5)',
-                        cursor: 'pointer',
-                        '&:hover': {
-                          background: 'linear-gradient(135deg, #818CF8, #6366F1)',
-                          boxShadow: '0 6px 18px rgba(99,102,241,0.4)',
-                          transform: 'translateY(-1px)',
-                        },
-                        transition: 'all 0.2s',
-                      }}
-                    >
-                      {t('dashboard.continue_learning_btn')}
-                    </Button>
-                  </Box>
-                )}
+        {/* Progress Card */}
+        <Grid item xs={12} lg={4}>
+          <motion.div variants={itemArr}>
+            <Card sx={{ bgcolor: 'var(--color-surface-2)', border: '1px solid var(--color-border)', height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <CardHeader title={t('dashboard.continue_learning')} titleTypographyProps={{ fontSize: '1.125rem', fontWeight: 700 }} sx={{ px: 3, pt: 3 }} />
+              <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', p: 3 }}>
+                <Box sx={{ mb: 4, textAlign: 'center' }}>
+                  <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', mb: 1 }}>{t('dashboard.achievement', { score: statsData?.totalAchievement || 0 })}</Typography>
+                  <Typography sx={{ fontSize: '3rem', fontWeight: 900, color: 'var(--color-primary-lt)' }}>{Math.round(statsData?.averageCompletion || 0)}%</Typography>
+                  <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', mt: -1 }}>Tiến độ trung bình</Typography>
+                </Box>
+                <Box sx={{ px: 2 }}>
+                  <LinearProgress 
+                    variant="determinate" 
+                    value={statsData?.averageCompletion || 0} 
+                    sx={{ height: 10, borderRadius: 5, bgcolor: alpha('#6366F1', 0.1), '& .MuiLinearProgress-bar': { background: 'linear-gradient(90deg, #6366F1, #22D3EE)' } }} 
+                  />
+                </Box>
+                <Button 
+                  component={Link} to="/courses"
+                  variant="contained" 
+                  fullWidth 
+                  sx={{ mt: 4, py: 1.5, borderRadius: '12px', background: 'linear-gradient(135deg, #6366F1, #4F46E5)', fontWeight: 700 }}
+                >
+                  {t('dashboard.continue_learning_btn')}
+                </Button>
               </CardContent>
             </Card>
           </motion.div>
         </Grid>
       </Grid>
 
-      {/* ── Activity Row ──────────────────────────────────────────── */}
-      <Grid container spacing={2.5}>
+      {/* ── Bottom Row ───────────────────────────────────────────── */}
+      <Grid container spacing={3}>
         {/* Recent Activities */}
         <Grid item xs={12} md={7}>
-          <motion.div variants={item}>
-            <Card>
-              <CardHeader
-                title={
-                  <Typography sx={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '1rem', color: 'var(--color-text)' }}>
-                    {t('dashboard.recent_activity')}
-                  </Typography>
-                }
-                action={
-                  <Button
-                    size="small"
-                    endIcon={Icons.arrowRight}
-                    sx={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', cursor: 'pointer', '&:hover': { color: 'var(--color-primary-lt)' } }}
-                  >
-                    {t('dashboard.view_all')}
-                  </Button>
-                }
-                sx={{ pb: 0, px: 3, pt: 2.5 }}
-              />
-              <CardContent sx={{ px: 2, pb: '16px !important', pt: 1.5 }}>
-                {loading ? (
-                  Array.from({ length: 3 }).map((_, i) => (
-                    <Box key={i} sx={{ display: 'flex', gap: 1.5, p: 1.5, mb: 0.5 }}>
-                      <Skeleton variant="rounded" width={36} height={36} sx={{ borderRadius: '9px', bgcolor: 'rgba(33,38,45,0.8)' }} />
-                      <Box sx={{ flex: 1 }}>
-                        <Skeleton width="70%" height={18} sx={{ mb: 0.5, bgcolor: 'rgba(33,38,45,0.8)' }} />
-                        <Skeleton width="35%" height={14} sx={{ bgcolor: 'rgba(33,38,45,0.8)' }} />
+          <motion.div variants={itemArr}>
+            <Card sx={{ bgcolor: 'var(--color-surface-2)', border: '1px solid var(--color-border)' }}>
+              <CardHeader title={t('dashboard.recent_activity')} titleTypographyProps={{ fontSize: '1.125rem', fontWeight: 700 }} sx={{ px: 3, pt: 3 }} />
+              <CardContent sx={{ p: 0, minHeight: 300 }}>
+                {loading ? <Skeleton height={300} /> : (
+                  <Box sx={{ px: 3, pb: 2.5 }}>
+                    {(statsData?.recentActivities?.length > 0) ? (
+                      <AnimatePresence>
+                        {statsData.recentActivities.map((act, i) => (
+                          <Box key={act.id || i} sx={{ display: 'flex', gap: 2, mb: 3, position: 'relative' }}>
+                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                              <Box sx={{ width: 40, height: 40, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: alpha(act.type === 'SUCCESS' ? '#10B981' : '#6366F1', 0.15), color: act.type === 'SUCCESS' ? '#34D399' : '#818CF8', zIndex: 1 }}>
+                                {act.type === 'SUCCESS' ? Icons.play : Icons.notification}
+                              </Box>
+                              {i !== (statsData.recentActivities.length - 1) && <Box sx={{ width: '2px', flex: 1, bgcolor: alpha('#6E7681', 0.2), my: 0.5 }} />}
+                            </Box>
+                            <Box sx={{ pt: 1, pb: 2 }}>
+                              <Typography sx={{ fontWeight: 600, fontSize: '0.9375rem', color: 'var(--color-text)' }}>{act.title || act.text}</Typography>
+                              <Typography sx={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', mt: 0.5 }}>{act.time}</Typography>
+                            </Box>
+                          </Box>
+                        ))}
+                      </AnimatePresence>
+                    ) : (
+                      <Box sx={{ py: 6, textAlign: 'center' }}>
+                         <Typography sx={{ color: 'var(--color-text-muted)', fontStyle: 'italic' }}>Chưa có hoạt động nào được ghi nhận.</Typography>
                       </Box>
-                    </Box>
-                  ))
-                ) : (
-                  recentActivities.map((act, i) => (
-                    <React.Fragment key={act.id}>
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'flex-start',
-                          gap: 1.5,
-                          px: 1,
-                          py: 1.5,
-                          borderRadius: '9px',
-                          cursor: 'pointer',
-                          '&:hover': { bgcolor: 'rgba(240,246,252,0.03)' },
-                          transition: 'background-color 0.15s',
-                        }}
-                      >
-                        <Box
-                          sx={{
-                            width: 36, height: 36,
-                            borderRadius: '9px',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            flexShrink: 0,
-                            bgcolor: act.type === 'assignment'
-                              ? 'rgba(245,158,11,0.12)'
-                              : act.type === 'course'
-                                ? 'rgba(99,102,241,0.12)'
-                                : 'rgba(34,211,238,0.1)',
-                            color: act.type === 'assignment' ? '#FDE68A' : act.type === 'course' ? '#818CF8' : '#67E8F9',
-                          }}
-                        >
-                          {act.icon}
-                        </Box>
-                        <Box sx={{ flex: 1, minWidth: 0 }}>
-                          <Typography sx={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text)', lineHeight: 1.4, mb: 0.25 }} className="clamp-2">
-                            {act.text}
-                          </Typography>
-                          <Typography sx={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                            {act.time}
-                          </Typography>
-                        </Box>
-                        <Box sx={{ color: 'var(--color-text-muted)', flexShrink: 0, mt: 0.5 }}>
-                          {Icons.arrowRight}
-                        </Box>
-                      </Box>
-                      {i < recentActivities.length - 1 && (
-                        <Divider sx={{ borderColor: 'rgba(48,54,61,0.5)', mx: 1 }} />
-                      )}
-                    </React.Fragment>
-                  ))
+                    )}
+                  </Box>
                 )}
               </CardContent>
             </Card>
           </motion.div>
         </Grid>
 
-        {/* Upcoming Meetings */}
+        {/* Category Distribution */}
         <Grid item xs={12} md={5}>
-          <motion.div variants={item}>
-            <Card>
-              <CardHeader
-                title={
-                  <Typography sx={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '1rem', color: 'var(--color-text)' }}>
-                    {t('dashboard.upcoming_meetings')}
-                  </Typography>
-                }
-                action={
-                  <Button
-                    component={Link}
-                    to="/calendar"
-                    size="small"
-                    endIcon={Icons.arrowRight}
-                    sx={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', cursor: 'pointer', '&:hover': { color: 'var(--color-primary-lt)' } }}
-                  >
-                    {t('nav.calendar')}
-                  </Button>
-                }
-                sx={{ pb: 0, px: 3, pt: 2.5 }}
-              />
-              <CardContent sx={{ px: 2, pb: '16px !important', pt: 1.5 }}>
-                {loading ? (
-                  Array.from({ length: 2 }).map((_, i) => (
-                    <Box key={i} sx={{ p: 1.5, mb: 1.5 }}>
-                      <Skeleton variant="rounded" height={68} sx={{ borderRadius: '10px', bgcolor: 'rgba(33,38,45,0.8)' }} />
-                    </Box>
-                  ))
-                ) : (
-                  upcomingMeetings.map((meeting) => (
-                    <Box
-                      key={meeting.id}
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1.5,
-                        p: 1.5,
-                        borderRadius: '10px',
-                        border: '1px solid var(--color-border)',
-                        mb: 1.5,
-                        cursor: 'pointer',
-                        bgcolor: 'var(--color-surface-2)',
-                        '&:hover': { 
-                          borderColor: 'var(--color-primary-lt)', 
-                          bgcolor: 'var(--color-surface-3)',
-                          transform: 'translateY(-2px)',
-                          boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-                        },
-                        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          width: 44, height: 44,
-                          borderRadius: '10px',
-                          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                          bgcolor: meeting.status === 'today'
-                            ? alpha(theme.palette.error.main, 0.1)
-                            : alpha(theme.palette.primary.main, 0.1),
-                          border: `1px solid ${meeting.status === 'today' 
-                            ? alpha(theme.palette.error.main, 0.2) 
-                            : alpha(theme.palette.primary.main, 0.2)}`,
-                          color: meeting.status === 'today' 
-                            ? theme.palette.error.main 
-                            : theme.palette.primary.main,
-                          flexShrink: 0,
-                        }}
-                      >
-                        {Icons.meetings}
+          <motion.div variants={itemArr}>
+            <Card sx={{ bgcolor: 'var(--color-surface-2)', border: '1px solid var(--color-border)', height: '100%' }}>
+              <CardHeader title={t('dashboard.group_category_dist')} titleTypographyProps={{ fontSize: '1.125rem', fontWeight: 700 }} sx={{ px: 3, pt: 3 }} />
+              <CardContent sx={{ height: 350, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+                {loading ? <Skeleton variant="circular" width={200} height={200} /> : (
+                   <>
+                    {!hasCategoryData && (
+                      <Box sx={{ position: 'absolute', inset: 0, zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', p: 3 }}>
+                         <Typography sx={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Bạn chưa tham gia nhóm nào để thống kê lĩnh vực.</Typography>
                       </Box>
-                      <Box sx={{ flex: 1, minWidth: 0 }}>
-                        <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3, mb: 0.25 }} className="truncate">
-                          {meeting.title}
-                        </Typography>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-                          <Typography sx={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)' }}>
-                            {meeting.time}
-                          </Typography>
-                          <Chip
-                            label={meeting.group}
-                            size="small"
-                            sx={{
-                              height: 18,
-                              fontSize: '0.625rem',
-                              fontWeight: 600,
-                              bgcolor: 'var(--color-surface-3)',
-                              color: 'var(--color-text-sec)',
-                              border: '1px solid var(--color-border)',
-                              '& .MuiChip-label': { px: '8px' },
-                            }}
-                          />
-                        </Box>
-                      </Box>
-                      {meeting.status === 'today' && (
-                        <Box sx={{ flexShrink: 0 }}>
-                          <Box
-                            sx={{
-                              px: '10px', py: '4px',
-                              borderRadius: '99px',
-                              bgcolor: alpha(theme.palette.error.main, 0.1),
-                              border: `1px solid ${alpha(theme.palette.error.main, 0.25)}`,
-                            }}
-                          >
-                            <Typography sx={{ fontSize: '0.625rem', fontWeight: 700, color: theme.palette.error.main, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                              {t('common.today')}
-                            </Typography>
-                          </Box>
-                        </Box>
-                      )}
-                    </Box>
-                  ))
+                    )}
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={hasCategoryData ? statsData.groupCategories : [{ name: 'Trống', value: 1 }]}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={80}
+                          outerRadius={110}
+                          paddingAngle={8}
+                          dataKey="value"
+                        >
+                          {(hasCategoryData ? statsData.groupCategories : [{ name: 'Trống', value: 1 }]).map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={hasCategoryData ? PIE_COLORS[index % PIE_COLORS.length] : alpha('#6E7681', 0.2)} stroke="none" />
+                          ))}
+                        </Pie>
+                        <RechartsTooltip />
+                        {hasCategoryData && <Legend verticalAlign="bottom" align="center" wrapperStyle={{ paddingTop: '20px' }} />}
+                      </PieChart>
+                    </ResponsiveContainer>
+                   </>
                 )}
               </CardContent>
             </Card>
@@ -712,14 +477,6 @@ const Dashboard = () => {
       </Grid>
     </Box>
   )
-}
-
-// Helper
-function getGreeting() {
-  const h = new Date().getHours()
-  if (h < 12) return 'morning'
-  if (h < 17) return 'afternoon'
-  return 'evening'
 }
 
 export default Dashboard

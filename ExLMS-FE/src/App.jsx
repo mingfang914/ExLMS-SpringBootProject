@@ -15,8 +15,11 @@ import GroupCourseDetail from './pages/Courses/GroupCourseDetail'
 import QuizEditor from './pages/Courses/QuizEditor'
 import QuizPlayer from './pages/Courses/QuizPlayer'
 import QuizResult from './pages/Courses/QuizResult'
+import QuizStats from './pages/Courses/QuizStats'
+import QuizLatestAttempt from './pages/Courses/QuizLatestAttempt'
 import MeetingRoom from './pages/Meetings/MeetingRoom'
 import MeetingDetail from './pages/Meetings/MeetingDetail'
+import GroupCollab from './pages/Collab'
 import ForumList from './pages/Forum/ForumList'
 import ForumPostDetail from './pages/Forum/ForumPostDetail'
 import CreateForumPost from './pages/Forum/CreateForumPost'
@@ -93,8 +96,10 @@ function App() {
           <Route path="/groups/:groupId/courses/:courseId/view" element={<GroupCourseDetail />} />
           <Route path="/groups/:groupId/courses/:courseId/quiz/:quizId/take" element={<QuizPlayer />} />
           <Route path="/groups/:groupId/courses/:courseId/quiz/attempts/:attemptId/result" element={<QuizResult />} />
+          <Route path="/groups/:groupId/courses/:courseId/quiz/:quizId/attempts/latest" element={<QuizLatestAttempt />} />
           <Route path="/groups/:groupId/courses/:id" element={<CourseDetail />} />
           <Route path="/groups/:groupId/meetings/:id" element={<MeetingDetail />} />
+          <Route path="/groups/:groupId/collabs" element={<GroupCollab />} />
           <Route path="/groups/:groupId/assignments" element={<AssignmentList />} />
           <Route path="/groups/:groupId/assignments/:id" element={<AssignmentDetail />} />
           <Route path="/forum" element={<ForumList />} />
@@ -117,6 +122,7 @@ function App() {
           <Route path="/groups/:groupId/courses/:courseId/edit" element={<CourseEditor />} />
           <Route path="/groups/:groupId/courses/:courseId/quiz/create" element={<QuizEditor />} />
           <Route path="/groups/:groupId/courses/:courseId/quiz/:quizId/edit" element={<QuizEditor />} />
+          <Route path="/groups/:groupId/courses/:courseId/quiz/:quizId/stats" element={<QuizStats />} />
           <Route path="/groups/:groupId/assignments/create" element={<AssignmentForm />} />
           <Route path="/groups/:groupId/assignments/:id/edit" element={<AssignmentForm />} />
           

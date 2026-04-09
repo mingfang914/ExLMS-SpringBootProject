@@ -64,8 +64,12 @@ const FieldLabel = ({ children, hint }) => (
 
 const inputSx = {
   '& .MuiOutlinedInput-root': {
-    bgcolor: 'rgba(33,38,45,0.6)',
+    bgcolor: 'var(--color-surface-hover)',
     borderRadius: '10px',
+    border: '1px solid var(--color-border)',
+    '&.Mui-focused': {
+       bgcolor: 'var(--color-surface)',
+    }
   },
 }
 
@@ -163,7 +167,14 @@ const CreateForumPost = () => {
         <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
           <Alert
             severity="error"
-            sx={{ mb: 2.5, borderRadius: '10px', bgcolor: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', color: '#FCA5A5', '& .MuiAlert-icon': { color: '#EF4444' } }}
+            sx={{ 
+              mb: 2.5, 
+              borderRadius: '10px', 
+              bgcolor: 'rgba(239,68,68,0.1)', 
+              border: '1px solid rgba(239,68,68,0.25)', 
+              color: 'var(--color-error)', 
+              '& .MuiAlert-icon': { color: 'var(--color-error)' } 
+            }}
             onClose={() => setError(null)}
           >
             {error}
@@ -173,12 +184,10 @@ const CreateForumPost = () => {
 
       {/* ── Form ───────────────────────────────────────────────── */}
       <Box
+        className="auth-card"
         component="form"
         onSubmit={handleSubmit}
         sx={{
-          bgcolor: 'var(--color-surface)',
-          border: '1px solid var(--color-border)',
-          borderRadius: '14px',
           p: { xs: 3, sm: 4 },
         }}
       >
@@ -193,6 +202,7 @@ const CreateForumPost = () => {
               placeholder={t('forum.post_title_placeholder')}
               inputProps={{ maxLength: 150 }}
               sx={inputSx}
+              className="modern-input"
             />
           </Box>
         </motion.div>
@@ -212,7 +222,7 @@ const CreateForumPost = () => {
 
             {/* Tag chips */}
             {tags.length > 0 && (
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, mb: 1 }}>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, mb: 1.5 }}>
                 {tags.map(tag => (
                   <Chip
                     key={tag}
@@ -220,10 +230,11 @@ const CreateForumPost = () => {
                     onDelete={() => handleRemoveTag(tag)}
                     size="small"
                     sx={{
-                      height: 24, fontSize: '0.75rem', fontWeight: 600,
-                      bgcolor: 'rgba(99,102,241,0.12)', color: '#818CF8',
-                      border: '1px solid rgba(99,102,241,0.25)',
-                      '& .MuiChip-deleteIcon': { color: '#818CF8', '&:hover': { color: '#FCA5A5' } },
+                      height: 28, fontSize: '0.75rem', fontWeight: 600,
+                      bgcolor: 'rgba(99,102,241,0.1)', color: 'var(--color-primary)',
+                      border: '1px solid var(--color-border)',
+                      borderRadius: '6px',
+                      '& .MuiChip-deleteIcon': { color: 'var(--color-primary)', '&:hover': { color: 'var(--color-error)' } },
                     }}
                   />
                 ))}
@@ -232,11 +243,15 @@ const CreateForumPost = () => {
 
             <Box
               sx={{
-                display: 'flex', alignItems: 'center', gap: 1, px: 1.5, height: 40,
+                display: 'flex', alignItems: 'center', gap: 1, px: 2, height: 48,
                 borderRadius: '10px', border: '1px solid var(--color-border)',
-                bgcolor: 'rgba(33,38,45,0.6)',
+                bgcolor: 'var(--color-surface-hover)',
                 transition: 'all 0.2s',
-                '&:focus-within': { borderColor: 'var(--color-primary)', boxShadow: '0 0 0 3px rgba(99,102,241,0.12)' },
+                '&:focus-within': { 
+                  borderColor: 'var(--color-primary)', 
+                  bgcolor: 'var(--color-surface)',
+                  boxShadow: '0 0 0 4px rgba(99,102,241,0.1)' 
+                },
               }}
             >
               <Box sx={{ color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center' }}><TagIcon /></Box>
@@ -261,22 +276,15 @@ const CreateForumPost = () => {
             <FieldLabel>{t('forum.post_content_label')}</FieldLabel>
             <Box
               sx={{
-                borderRadius: '10px',
+                borderRadius: '12px',
                 border: '1px solid var(--color-border)',
                 overflow: 'hidden',
-                bgcolor: 'rgba(33,38,45,0.6)',
+                bgcolor: 'var(--color-surface)',
                 '&:focus-within': { borderColor: 'var(--color-primary)' },
                 transition: 'border-color 0.2s',
-                // CKEditor overrides
-                '& .ck.ck-editor': { background: 'transparent !important' },
+                // CKEditor overrides local
                 '& .ck.ck-editor__main > .ck-editor__editable': {
-                  background: 'transparent !important',
-                  color: 'var(--color-text) !important',
                   minHeight: '320px',
-                },
-                '& .ck.ck-toolbar': {
-                  background: 'rgba(22,27,34,0.8) !important',
-                  borderBottom: '1px solid var(--color-border) !important',
                 },
               }}
             >
@@ -300,10 +308,10 @@ const CreateForumPost = () => {
               onClick={() => navigate('/forum')}
               disabled={loading}
               sx={{
-                height: 42, borderRadius: '10px', px: 3, fontSize: '0.875rem',
+                height: 44, borderRadius: '10px', px: 3, fontSize: '0.875rem', fontWeight: 600,
                 borderColor: 'var(--color-border)', color: 'var(--color-text-sec)',
                 cursor: 'pointer',
-                '&:hover': { borderColor: 'var(--color-border-lt)', bgcolor: 'rgba(240,246,252,0.04)' },
+                '&:hover': { borderColor: 'var(--color-primary)', color: 'var(--color-primary)', bgcolor: 'rgba(99,102,241,0.04)' },
               }}
             >
               {t('common.cancel')}
@@ -314,10 +322,10 @@ const CreateForumPost = () => {
               disabled={loading}
               startIcon={!loading && (isEdit ? <SaveIcon /> : <SendIcon />)}
               sx={{
-                height: 42, borderRadius: '10px', px: 3.5, fontSize: '0.875rem', fontWeight: 600,
-                background: 'linear-gradient(135deg, #6366F1, #4F46E5)',
+                height: 44, borderRadius: '10px', px: 3.5, fontSize: '0.875rem', fontWeight: 700,
+                background: 'var(--color-primary)',
                 cursor: 'pointer',
-                '&:hover': { background: 'linear-gradient(135deg, #818CF8, #6366F1)', boxShadow: '0 6px 18px rgba(99,102,241,0.4)', transform: 'translateY(-1px)' },
+                '&:hover': { background: 'var(--color-primary-lt)', boxShadow: '0 8px 24px rgba(99,102,241,0.3)', transform: 'translateY(-1px)' },
                 '&.Mui-disabled': { background: 'rgba(99,102,241,0.25)', color: 'rgba(255,255,255,0.35)' },
                 transition: 'all 0.2s',
               }}

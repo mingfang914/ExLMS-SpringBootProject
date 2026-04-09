@@ -113,10 +113,10 @@ const AlertCircleIcon = () => (
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
-  visible: (i = 0) => ({ 
-    opacity: 1, 
-    y: 0, 
-    transition: { delay: i * 0.07, duration: 0.45, ease: [0.22, 1, 0.36, 1] } 
+  visible: (i = 0) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.07, duration: 0.45, ease: [0.22, 1, 0.36, 1] }
   }),
 }
 
@@ -187,7 +187,7 @@ const Login = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: '#02040A',
+        background: 'var(--color-bg)',
         position: 'relative',
         overflow: 'hidden',
         px: 2,
@@ -204,11 +204,12 @@ const Login = () => {
         sx={{
           position: 'fixed',
           top: 0, left: 0, right: 0, bottom: 0,
-          backgroundImage: `
-            linear-gradient(rgba(48,54,61,0.15) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(48,54,61,0.15) 1px, transparent 1px)
+          backgroundImage: (theme) => `
+            linear-gradient(var(--color-border) 0.5px, transparent 0.5px),
+            linear-gradient(90deg, var(--color-border) 0.5px, transparent 0.5px)
           `,
           backgroundSize: '48px 48px',
+          opacity: 0.1,
           zIndex: 0,
           pointerEvents: 'none',
         }}
@@ -222,14 +223,12 @@ const Login = () => {
         style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 440 }}
       >
         <Box
+          className="auth-card"
           sx={{
-            background: 'rgba(13,17,23,0.9)',
             backdropFilter: 'blur(24px)',
             WebkitBackdropFilter: 'blur(24px)',
-            border: '1px solid #30363D',
             borderRadius: '20px',
             p: { xs: 3, sm: 4 },
-            boxShadow: '0 32px 80px rgba(0,0,0,0.6)',
           }}
         >
           <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible">
@@ -237,9 +236,9 @@ const Login = () => {
               <Box
                 sx={{
                   width: 40, height: 40, borderRadius: '11px',
-                  background: 'linear-gradient(135deg, #6366F1, #22D3EE)',
+                  background: 'linear-gradient(135deg, var(--color-primary), var(--color-accent))',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  boxShadow: '0 6px 18px rgba(99,102,241,0.4)',
+                  boxShadow: '0 6px 18px rgba(99,102,241,0.3)',
                 }}
               >
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -248,10 +247,10 @@ const Login = () => {
                 </svg>
               </Box>
               <Box>
-                <Typography sx={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '1.25rem', lineHeight: 1.1, color: '#F0F6FC' }}>
+                <Typography sx={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '1.25rem', lineHeight: 1.1, color: 'var(--color-text)' }}>
                   ExLMS
                 </Typography>
-                <Typography sx={{ fontSize: '0.625rem', color: '#6E7681', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                <Typography sx={{ fontSize: '0.625rem', color: 'var(--color-text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
                   Learning Platform
                 </Typography>
               </Box>
@@ -259,17 +258,17 @@ const Login = () => {
           </motion.div>
 
           <motion.div custom={1} variants={fadeUp} initial="hidden" animate="visible">
-            <Typography sx={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '1.625rem', color: '#F0F6FC', letterSpacing: '-0.02em', mb: 0.5 }}>
+            <Typography sx={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '1.625rem', color: 'var(--color-text)', letterSpacing: '-0.02em', mb: 0.5 }}>
               {t('auth.signin_title')}
             </Typography>
-            <Typography sx={{ fontSize: '0.875rem', color: '#8B949E', mb: 3 }}>
+            <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text-sec)', mb: 3 }}>
               {t('auth.signin_subtitle')}
             </Typography>
           </motion.div>
 
           {error && (
             <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
-              <Alert severity="error" icon={<AlertCircleIcon />} sx={{ mb: 2.5, bgcolor: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', color: '#FCA5A5', borderRadius: '10px', '& .MuiAlert-icon': { color: '#EF4444' } }}>
+              <Alert severity="error" icon={<AlertCircleIcon />} sx={{ mb: 2.5, bgcolor: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', color: 'var(--color-error)', borderRadius: '10px', '& .MuiAlert-icon': { color: 'var(--color-error)' } }}>
                 {error}
               </Alert>
             </motion.div>
@@ -278,51 +277,51 @@ const Login = () => {
           <Box component="form" onSubmit={handleSubmit} noValidate>
             <motion.div custom={2} variants={fadeUp} initial="hidden" animate="visible">
               <Box sx={{ mb: 0.5 }}>
-                <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600, color: '#8B949E', mb: 0.75 }}>{t('auth.email')}</Typography>
-                <TextField fullWidth id="email" name="email" type="email" autoFocus placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} InputProps={{ startAdornment: <InputAdornment position="start" sx={{ color: '#6E7681' }}><EmailIcon /></InputAdornment> }} sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'rgba(33,38,45,0.6)', borderRadius: '10px', color: '#F0F6FC' } }} />
+                <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text-sec)', mb: 0.75 }}>{t('auth.email')}</Typography>
+                <TextField fullWidth id="email" name="email" type="email" autoFocus placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} InputProps={{ startAdornment: <InputAdornment position="start" sx={{ color: 'var(--color-text-muted)' }}><EmailIcon /></InputAdornment> }} className="auth-input" sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }} />
               </Box>
             </motion.div>
 
             <motion.div custom={3} variants={fadeUp} initial="hidden" animate="visible">
               <Box sx={{ mt: 2, mb: 0.5 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.75 }}>
-                  <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600, color: '#8B949E' }}>{t('auth.password')}</Typography>
-                  <Typography component={RouterLink} to="/forgot-password" sx={{ fontSize: '0.75rem', color: '#818CF8', textDecoration: 'none', cursor: 'pointer', '&:hover': { color: '#22D3EE' }, transition: 'color 0.2s' }}>{t('auth.forgot_password')}</Typography>
+                  <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text-sec)' }}>{t('auth.password')}</Typography>
+                  <Typography component={RouterLink} to="/forgot-password" sx={{ fontSize: '0.75rem', color: 'var(--color-primary)', textDecoration: 'none', cursor: 'pointer', '&:hover': { color: 'var(--color-accent)' }, transition: 'color 0.2s' }}>{t('auth.forgot_password')}</Typography>
                 </Box>
-                <TextField fullWidth id="password" name="password" type={showPwd ? 'text' : 'password'} placeholder={t('auth.placeholder_password')} value={password} onChange={(e) => setPassword(e.target.value)} InputProps={{ startAdornment: <InputAdornment position="start" sx={{ color: '#6E7681' }}><LockIcon /></InputAdornment>, endAdornment: <InputAdornment position="end"><IconButton onClick={() => setShowPwd(!showPwd)} edge="end" sx={{ color: '#6E7681', '&:hover': { color: '#F0F6FC' }, mr: -0.5 }}>{showPwd ? <EyeOffIcon /> : <EyeIcon />}</IconButton></InputAdornment> }} sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'rgba(33,38,45,0.6)', borderRadius: '10px', color: '#F0F6FC' } }} />
+                <TextField fullWidth id="password" name="password" type={showPwd ? 'text' : 'password'} placeholder={t('auth.placeholder_password')} value={password} onChange={(e) => setPassword(e.target.value)} InputProps={{ startAdornment: <InputAdornment position="start" sx={{ color: 'var(--color-text-muted)' }}><LockIcon /></InputAdornment>, endAdornment: <InputAdornment position="end"><IconButton onClick={() => setShowPwd(!showPwd)} edge="end" sx={{ color: 'var(--color-text-muted)', '&:hover': { color: 'var(--color-text)' }, mr: -0.5 }}>{showPwd ? <EyeOffIcon /> : <EyeIcon />}</IconButton></InputAdornment> }} className="auth-input" sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }} />
               </Box>
             </motion.div>
 
             <motion.div custom={4} variants={fadeUp} initial="hidden" animate="visible">
-              <Button type="submit" fullWidth variant="contained" disabled={isSubmitting} endIcon={!isSubmitting && <ArrowRightIcon />} sx={{ mt: 3, mb: 2, height: 48, borderRadius: '10px', fontSize: '0.9375rem', fontWeight: 700, background: 'linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)', '&:hover': { background: 'linear-gradient(135deg, #818CF8 0%, #6366F1 100%)', transform: 'translateY(-1px)', boxShadow: '0 8px 24px rgba(99,102,241,0.4)' } }}>
+              <Button type="submit" fullWidth variant="contained" disabled={isSubmitting} endIcon={!isSubmitting && <ArrowRightIcon />} sx={{ mt: 3, mb: 2, height: 48, borderRadius: '10px', fontSize: '0.9375rem', fontWeight: 700, background: 'var(--color-primary)', '&:hover': { background: 'var(--color-primary-lt)', transform: 'translateY(-1px)', boxShadow: '0 8px 24px rgba(99,102,241,0.4)' } }}>
                 {isSubmitting ? <CircularProgress size={20} sx={{ color: 'white' }} /> : t('auth.signin')}
               </Button>
             </motion.div>
           </Box>
 
           <motion.div custom={5} variants={fadeUp} initial="hidden" animate="visible">
-            <Divider sx={{ borderColor: '#30363D', my: 1.5 }}>
-              <Typography sx={{ px: 1.5, fontSize: '0.75rem', color: '#6E7681' }}>Social login</Typography>
+            <Divider sx={{ borderColor: 'var(--color-border)', my: 1.5 }}>
+              <Typography sx={{ px: 1.5, fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Social login</Typography>
             </Divider>
 
-            <GoogleLoginButton 
+            <GoogleLoginButton
               disabled={isSubmitting}
               onSuccess={onGoogleSuccess}
               onError={onGoogleError}
             />
 
-            <Button component={RouterLink} to="/register" fullWidth variant="outlined" sx={{ height: 44, borderRadius: '10px', fontSize: '0.875rem', fontWeight: 600, borderColor: '#30363D', color: '#8B949E', '&:hover': { borderColor: '#6366F1', color: '#F0F6FC', bgcolor: 'rgba(99,102,241,0.06)' } }}>
+            <Button component={RouterLink} to="/register" fullWidth variant="outlined" sx={{ height: 44, borderRadius: '10px', fontSize: '0.875rem', fontWeight: 600, borderColor: 'var(--color-border)', color: 'var(--color-text-sec)', '&:hover': { borderColor: 'var(--color-primary)', color: 'var(--color-text)', bgcolor: 'rgba(99,102,241,0.06)' } }}>
               {t('auth.create_account')}
             </Button>
           </motion.div>
         </Box>
 
         <motion.div custom={6} variants={fadeUp} initial="hidden" animate="visible">
-          <Typography sx={{ textAlign: 'center', mt: 3, fontSize: '0.75rem', color: '#6E7681' }}>
+          <Typography sx={{ textAlign: 'center', mt: 3, fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
             {t('auth.agreement')}{' '}
-            <Typography component="span" sx={{ color: '#818CF8', cursor: 'pointer', fontSize: 'inherit' }}>{t('auth.terms')}</Typography>
+            <Typography component="span" sx={{ color: 'var(--color-primary)', cursor: 'pointer', fontSize: 'inherit' }}>{t('auth.terms')}</Typography>
             {' '}{t('auth.and')}{' '}
-            <Typography component="span" sx={{ color: '#818CF8', cursor: 'pointer', fontSize: 'inherit' }}>{t('auth.privacy')}</Typography>
+            <Typography component="span" sx={{ color: 'var(--color-primary)', cursor: 'pointer', fontSize: 'inherit' }}>{t('auth.privacy')}</Typography>
           </Typography>
         </motion.div>
       </motion.div>

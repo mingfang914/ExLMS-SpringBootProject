@@ -23,6 +23,7 @@ public class CreateQuizRequest {
     private String description;
     private UUID groupId;
     private UUID chapterId;
+    private String coverImageUrl;
     @Min(0)
     private Integer timeLimitSec;
     @Builder.Default
@@ -34,7 +35,7 @@ public class CreateQuizRequest {
     @Builder.Default
     private boolean shuffleQuestions = false;
     @Builder.Default
-    private GroupQuiz.ResultVisibility resultVisibility = GroupQuiz.ResultVisibility.IMMEDIATE;
+    private GroupQuiz.ResultVisibility resultVisibility = GroupQuiz.ResultVisibility.CLOSE;
     private LocalDateTime openAt;
     private LocalDateTime closeAt;
     private String status;

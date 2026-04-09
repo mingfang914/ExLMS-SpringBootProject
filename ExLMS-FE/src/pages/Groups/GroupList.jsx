@@ -23,6 +23,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import groupService from '../../services/groupService'
+import authService from '../../services/authService'
 import GroupCard from '../../components/Groups/GroupCard'
 
 // ── SVG Icons ─────────────────────────────────────────────────────
@@ -79,6 +80,7 @@ const GroupList = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [activeTab, setActiveTab] = useState(0)
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' })
+  const [user, setUser] = useState(null)
 
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false)
   const [inviteCode, setInviteCode] = useState('')
@@ -99,7 +101,18 @@ const GroupList = () => {
     }
   }
 
-  useEffect(() => { fetchGroups(activeTab) }, [activeTab])
+  useEffect(() => { 
+    fetchGroups(activeTab)
+    const fetchUser = async () => {
+      try {
+        const profile = await authService.getCurrentUser()
+        setUser(profile)
+      } catch (err) {
+        console.error("Failed to fetch user profile", err)
+      }
+    }
+    fetchUser()
+  }, [activeTab])
 
   const handleJoinGroup = async (groupId) => {
     try {
@@ -183,20 +196,22 @@ const GroupList = () => {
             >
               {t('groups.join_by_code')}
             </Button>
-            <Button
-              variant="contained"
-              startIcon={<PlusIcon />}
-              component={Link}
-              to="/groups/create"
-              sx={{
-                height: 38, borderRadius: '9px', fontSize: '0.875rem', fontWeight: 600,
-                background: 'linear-gradient(135deg, #6366F1, #4F46E5)',
-                cursor: 'pointer',
-                '&:hover': { background: 'linear-gradient(135deg, #818CF8, #6366F1)', boxShadow: '0 4px 12px rgba(99,102,241,0.35)' },
-              }}
-            >
-              {t('groups.create_group')}
-            </Button>
+            {user?.role !== 'STUDENT' && (
+              <Button
+                variant="contained"
+                startIcon={<PlusIcon />}
+                component={Link}
+                to="/groups/create"
+                sx={{
+                  height: 38, borderRadius: '9px', fontSize: '0.875rem', fontWeight: 600,
+                  background: 'linear-gradient(135deg, #6366F1, #4F46E5)',
+                  cursor: 'pointer',
+                  '&:hover': { background: 'linear-gradient(135deg, #818CF8, #6366F1)', boxShadow: '0 4px 12px rgba(99,102,241,0.35)' },
+                }}
+              >
+                {t('groups.create_group')}
+              </Button>
+            )}
           </Box>
         </Box>
       </motion.div>
@@ -359,7 +374,7 @@ const GroupList = () => {
               >
                 {t('groups.clear_search')}
               </Button>
-            ) : (
+            ) : user?.role !== 'STUDENT' ? (
               <Button
                 component={Link} to="/groups/create"
                 variant="contained"
@@ -368,7 +383,7 @@ const GroupList = () => {
               >
                 {t('groups.create_group')}
               </Button>
-            )}
+            ) : null}
           </Box>
         </motion.div>
       ) : (

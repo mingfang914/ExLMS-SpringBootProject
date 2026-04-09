@@ -2,8 +2,8 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import SockJS from 'sockjs-client'
 import { Client } from '@stomp/stompjs'
 import { useTranslation } from 'react-i18next'
-import { 
-  Box, Typography, Paper, Button, Container, Grid, 
+import {
+  Box, Typography, Paper, Button, Container, Grid,
   Tabs, Tab, List, ListItem, ListItemText, ListItemAvatar,
   Avatar, TextField, IconButton, Chip, Divider,
   Dialog, DialogTitle, DialogContent, DialogActions,
@@ -12,8 +12,8 @@ import {
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import LiveKitMeeting from '../../components/Meetings/LiveKitMeeting'
-import { 
-  ArrowBack as BackIcon, 
+import {
+  ArrowBack as BackIcon,
   Send as SendIcon,
   Poll as PollIcon,
   QuestionAnswer as QAIcon,
@@ -29,7 +29,7 @@ const MeetingRoom = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const { user } = useSelector((state) => state.auth)
-  
+
   const [meeting, setMeeting] = useState(null)
   const [tabValue, setTabValue] = useState(0)
   const [questions, setQuestions] = useState([])
@@ -40,17 +40,20 @@ const MeetingRoom = () => {
   const [answeringId, setAnsweringId] = useState(null)
   const [openPollDialog, setOpenPollDialog] = useState(false)
   const [pollForm, setPollForm] = useState({ question: '', options: ['', ''] })
+  const [isRecording, setIsRecording] = useState(false)
+  const mediaRecorderRef = useRef(null)
+  const recordedChunksRef = useRef([])
   const stompClientRef = useRef(null)
-  
+
   const roomName = location.state?.roomName || meeting?.joinUrl?.split('/').pop() || `exlms-meeting-${id}`
   const meetingTitle = meeting?.title || location.state?.title || t('common.loading')
-  
+
   const handleMeetingEnd = useCallback(() => {
     navigate(`/groups/${groupId}/meetings/${id}`)
   }, [navigate, groupId, id])
 
-  const isInstructor = user?.role === 'ADMIN' || user?.role === 'INSTRUCTOR' || 
-                       meeting?.currentUserRole === 'OWNER' || meeting?.currentUserRole === 'EDITOR'
+  const isInstructor = user?.role === 'ADMIN' || user?.role === 'INSTRUCTOR' ||
+    meeting?.currentUserRole === 'OWNER' || meeting?.currentUserRole === 'EDITOR'
 
   const fetchData = useCallback(async () => {
     try {
@@ -60,14 +63,14 @@ const MeetingRoom = () => {
 
       const qs = await meetingService.getQuestions(id)
       setQuestions(Array.isArray(qs) ? qs : [])
-      
+
       const ps = await meetingService.getPolls(id)
       setPolls(Array.isArray(ps) ? ps : [])
-      
+
       // We check role from meetingData here for precision
-      const currentIsInstructor = user?.role === 'ADMIN' || user?.role === 'INSTRUCTOR' || 
-                                  meetingData?.currentUserRole === 'OWNER' || meetingData?.currentUserRole === 'EDITOR'
-      
+      const currentIsInstructor = user?.role === 'ADMIN' || user?.role === 'INSTRUCTOR' ||
+        meetingData?.currentUserRole === 'OWNER' || meetingData?.currentUserRole === 'EDITOR'
+
       if (currentIsInstructor) {
         const att = await meetingService.getAttendanceReport(id)
         setAttendance(Array.isArray(att) ? att : [])
@@ -104,8 +107,11 @@ const MeetingRoom = () => {
       case 'POLL_UPDATED':
         setPolls(prev => prev.map(p => {
           if (p.id === data.id) {
-            // Keep user's vote status if we had it
-            return { ...data, userVoted: p.userVoted }
+            // Merge existing local userVoted status if available
+            return { 
+              ...data, 
+              userVoted: data.userVotedOptionId !== null || p.userVoted 
+            }
           }
           return p
         }))
@@ -136,7 +142,7 @@ const MeetingRoom = () => {
 
     meetingService.recordAttendance(id, true)
     fetchData()
-    
+
     // Setup WebSocket
     const socket = new SockJS('/api/ws')
     const client = new Client({
@@ -180,16 +186,6 @@ const MeetingRoom = () => {
     }
   }, [id, user, fetchData, handleWebSocketEvent])
 
-  if (!user) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <CircularProgress />
-      </Box>
-    )
-  }
-
-
-
   const handleSendQuestion = useCallback(async () => {
     if (!newQuestion.trim()) return
     try {
@@ -224,6 +220,14 @@ const MeetingRoom = () => {
     }
   }, [t])
 
+  if (!user) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    )
+  }
+
   const handleCreatePoll = async () => {
     if (!pollForm.question.trim() || pollForm.options.some(o => !o.trim())) {
       alert(t('meetings.poll_form_error'))
@@ -249,6 +253,57 @@ const MeetingRoom = () => {
     setPollForm(prev => ({ ...prev, options: newOptions }))
   }
 
+  const handleToggleRecording = async () => {
+    if (isRecording) {
+      if (mediaRecorderRef.current) {
+        mediaRecorderRef.current.stop()
+      }
+      setIsRecording(false)
+    } else {
+      try {
+        const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true })
+        const mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' })
+        mediaRecorderRef.current = mediaRecorder
+        recordedChunksRef.current = []
+
+        mediaRecorder.ondataavailable = (e) => {
+          if (e.data.size > 0) {
+            recordedChunksRef.current.push(e.data)
+          }
+        }
+
+        mediaRecorder.onstop = async () => {
+          const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' })
+          const file = new File([blob], 'recording.webm', { type: 'video/webm' })
+          try {
+            await meetingService.uploadRecording(id, file)
+            alert(t('meetings.recording_uploaded') || 'Bản ghi hình đã được lưu và tải lên thành công!')
+          } catch (err) {
+            console.error('Lỗi khi tải lên bản ghi', err)
+            alert(err.response?.data?.message || 'Có lỗi xảy ra khi lưu bản ghi hình')
+          }
+          // Stop all tracks
+          stream.getTracks().forEach(track => track.stop())
+        }
+
+        mediaRecorder.start()
+        setIsRecording(true)
+
+        // Handle user clicking "Stop sharing" Native browser UI
+        stream.getVideoTracks()[0].onended = () => {
+          if (mediaRecorderRef.current?.state === 'recording') {
+            mediaRecorderRef.current.stop()
+            setIsRecording(false)
+          }
+        }
+
+      } catch (err) {
+        console.error('Error starting recording:', err)
+        alert('Không thể bắt đầu ghi hình. Vui lòng cấp quyền chia sẻ màn hình.')
+      }
+    }
+  }
+
   return (
     <Container maxWidth={false} sx={{ mt: 2, height: 'calc(100vh - 40px)', display: 'flex', flexDirection: 'column' }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
@@ -260,12 +315,28 @@ const MeetingRoom = () => {
             {meetingTitle}
           </Typography>
           <Chip icon={<LiveIcon sx={{ color: 'error.main !important', fontSize: 'small' }} />} label={t('meetings.live')} size="small" variant="outlined" sx={{ ml: 2, fontWeight: 'bold', color: 'error.main' }} />
+          {isRecording && (
+            <Chip label="Đang ghi hình" size="small" sx={{ ml: 1, bgcolor: 'error.main', color: 'white', fontWeight: 'bold' }} />
+          )}
         </Box>
         {isInstructor && (
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button
+              variant={isRecording ? "outlined" : "contained"}
+              color={isRecording ? "error" : "primary"}
+              onClick={handleToggleRecording}
+              startIcon={<LiveIcon />}
+            >
+              {isRecording ? "Dừng ghi hình" : "Ghi hình"}
+            </Button>
             <Button variant="contained" color="error" onClick={async () => {
-                await meetingService.endMeeting(id)
-                handleMeetingEnd()
+              if (isRecording) {
+                handleToggleRecording() // Stop recording if ending
+              }
+              await meetingService.endMeeting(id)
+              handleMeetingEnd()
             }}>{t('meetings.end_meeting')}</Button>
+          </Box>
         )}
       </Box>
 
@@ -296,50 +367,52 @@ const MeetingRoom = () => {
               <Tab icon={<QAIcon />} label={t('meetings.tabs.qa')} />
               <Tab icon={<PollIcon />} label={t('meetings.tabs.polls')} />
             </Tabs>
-            
-            <Box sx={{ flexGrow: 1, overflowY: 'auto', p: 1 }}>
+
+            <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
               {tabValue === 0 && (
-                <List>
-                  {isInstructor ? (
-                    attendance.map(a => (
-                      <ListItem key={a.id} sx={{ mb: 1, bgcolor: 'background.paper', borderRadius: 1, border: '1px solid', borderColor: 'divider' }}>
-                        <ListItemAvatar>
-                          <Avatar sx={{ bgcolor: a.leftAt ? 'grey.400' : 'success.main' }}>{a.userName[0]}</Avatar>
-                        </ListItemAvatar>
-                        <ListItemText 
-                          primary={<Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>{a.userName}</Typography>}
-                          secondary={
-                            <Box component="span">
-                              <Typography variant="caption" display="block">
-                                {t('meetings.joined_at')} {new Date(a.joinedAt).toLocaleTimeString()}
-                              </Typography>
-                              <Typography variant="caption" color={a.leftAt ? "text.secondary" : "success.main"} sx={{ fontWeight: 600 }}>
-                                {a.leftAt ? t('meetings.left', { count: Math.round(a.durationSec/60) }) : t('meetings.joining')}
-                              </Typography>
-                            </Box>
-                          }
-                        />
-                      </ListItem>
-                    ))
-                  ) : (
-                    <Typography variant="body2" color="text.secondary" textAlign="center" sx={{ mt: 2 }}>
-                      {t('meetings.instructor_only_attendance')}
-                    </Typography>
-                  )}
-                </List>
+                <Box sx={{ flexGrow: 1, overflowY: 'auto', p: 1 }}>
+                  <List>
+                    {isInstructor ? (
+                      attendance.map(a => (
+                        <ListItem key={a.id} sx={{ mb: 1, bgcolor: 'background.paper', borderRadius: 1, border: '1px solid', borderColor: 'divider' }}>
+                          <ListItemAvatar>
+                            <Avatar sx={{ bgcolor: a.leftAt ? 'grey.400' : 'success.main' }}>{a.userName[0]}</Avatar>
+                          </ListItemAvatar>
+                          <ListItemText
+                            primary={<Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>{a.userName}</Typography>}
+                            secondary={
+                              <Box component="span">
+                                <Typography variant="caption" display="block">
+                                  {t('meetings.joined_at')} {new Date(a.joinedAt).toLocaleTimeString()}
+                                </Typography>
+                                <Typography variant="caption" color={a.leftAt ? "text.secondary" : "success.main"} sx={{ fontWeight: 600 }}>
+                                  {a.leftAt ? t('meetings.left', { count: Math.round(a.durationSec / 60) }) : t('meetings.joining')}
+                                </Typography>
+                              </Box>
+                            }
+                          />
+                        </ListItem>
+                      ))
+                    ) : (
+                      <Typography variant="body2" color="text.secondary" textAlign="center" sx={{ mt: 2 }}>
+                        {t('meetings.instructor_only_attendance')}
+                      </Typography>
+                    )}
+                  </List>
+                </Box>
               )}
 
               {tabValue === 1 && (
                 <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                  <Box sx={{ flexGrow: 1, overflowY: 'auto', p: 1, mb: 8 }}>
+                  <Box sx={{ flexGrow: 1, overflowY: 'auto', p: 1 }}>
                     {questions.map(q => (
                       <Box key={q.id} sx={{ mb: 2, display: 'flex', flexDirection: 'column', alignItems: q.userId === user.id ? 'flex-end' : 'flex-start' }}>
-                        <Paper 
+                        <Paper
                           elevation={0}
-                          sx={{ 
-                            p: 1.5, 
-                            maxWidth: '90%', 
-                            borderRadius: 2, 
+                          sx={{
+                            p: 1.5,
+                            maxWidth: '90%',
+                            borderRadius: 2,
                             bgcolor: q.userId === user.id ? 'primary.light' : 'grey.100',
                             color: q.userId === user.id ? 'primary.contrastText' : 'text.primary',
                             position: 'relative'
@@ -349,7 +422,7 @@ const MeetingRoom = () => {
                             {q.userId === user.id ? t('meetings.you') : q.userName}
                           </Typography>
                           <Typography variant="body2">{q.content}</Typography>
-                          
+
                           {q.answered && (
                             <Box sx={{ mt: 1, pt: 1, borderTop: '1px solid', borderColor: 'rgba(0,0,0,0.1)' }}>
                               <Typography variant="caption" sx={{ fontWeight: 'bold', display: 'block' }}>
@@ -372,8 +445,8 @@ const MeetingRoom = () => {
                       </Typography>
                     )}
                   </Box>
-                  <Box sx={{ position: 'absolute', bottom: 10, left: 10, right: 10, display: 'flex', gap: 1, bgcolor: 'background.paper', p: 1, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
-                    <TextField 
+                  <Box sx={{ display: 'flex', flexShrink: 0, gap: 1, bgcolor: 'background.paper', p: 1, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+                    <TextField
                       fullWidth size="small" placeholder={t('meetings.ask_question')}
                       value={newQuestion} onChange={(e) => setNewQuestion(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && handleSendQuestion()}
@@ -384,22 +457,38 @@ const MeetingRoom = () => {
               )}
 
               {tabValue === 2 && (
-                <Box>
+                <Box sx={{ flexGrow: 1, overflowY: 'auto', p: 1 }}>
                   {polls.map(p => (
-                    <Paper key={p.id} variant="outlined" sx={{ mb: 2, p: 2, borderRadius: 2 }}>
-                      <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 2 }}>{p.question}</Typography>
-                      {p.options.map(o => (
-                        <Button 
-                          key={o.id} 
-                          fullWidth 
-                          variant={p.userVotedOptionId === o.id ? "contained" : "outlined"}
-                          onClick={() => handleVote(p.id, o.id)}
-                          sx={{ mb: 1, justifyContent: 'space-between' }}
-                        >
-                          {o.label}
-                          <Typography variant="caption">{o.voteCount} votes</Typography>
-                        </Button>
-                      ))}
+                    <Paper key={p.id} variant="outlined" sx={{ mb: 2, p: 2, borderRadius: 2, bgcolor: 'background.paper', borderColor: 'divider' }}>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 2, color: 'text.primary' }}>{p.question}</Typography>
+                      {p.options.map(o => {
+                        const hasVoted = p.userVotedOptionId === o.id
+                        return (
+                          <Button
+                            key={o.id}
+                            fullWidth
+                            variant={hasVoted ? "contained" : "outlined"}
+                            onClick={() => handleVote(p.id, o.id)}
+                            sx={{ 
+                              mb: 1, 
+                              justifyContent: 'space-between',
+                              borderColor: hasVoted ? 'primary.main' : 'var(--color-border)',
+                              bgcolor: hasVoted ? 'primary.main' : 'transparent',
+                              color: 'text.primary',
+                              '&:hover': {
+                                bgcolor: hasVoted ? 'primary.dark' : 'rgba(99,102,241,0.08)'
+                              }
+                            }}
+                          >
+                            <Typography variant="body2" sx={{ fontWeight: hasVoted ? 700 : 500, color: hasVoted ? 'white' : 'text.primary' }}>
+                               {o.label}
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: hasVoted ? 'white' : 'text.secondary' }}>
+                               {o.voteCount === 1 ? `1 ${t('common.vote') || 'vote'}` : `${o.voteCount} ${t('common.votes') || 'votes'}`}
+                            </Typography>
+                          </Button>
+                        )
+                      })}
                     </Paper>
                   ))}
                   {isInstructor && (
@@ -417,7 +506,7 @@ const MeetingRoom = () => {
       <Dialog open={!!answeringId} onClose={() => setAnsweringId(null)}>
         <DialogTitle>{t('meetings.answer_question_dialog')}</DialogTitle>
         <DialogContent>
-          <TextField 
+          <TextField
             autoFocus fullWidth multiline rows={3} label={t('meetings.answer_label')} sx={{ mt: 1 }}
             value={answerText} onChange={e => setAnswerText(e.target.value)}
           />
@@ -431,13 +520,13 @@ const MeetingRoom = () => {
       <Dialog open={openPollDialog} onClose={() => setOpenPollDialog(false)} fullWidth maxWidth="sm">
         <DialogTitle>{t('meetings.create_poll_dialog')}</DialogTitle>
         <DialogContent sx={{ pt: 2 }}>
-          <TextField 
+          <TextField
             fullWidth label={t('meetings.poll_question_label')} sx={{ mb: 3 }}
-            value={pollForm.question} onChange={e => setPollForm({...pollForm, question: e.target.value})}
+            value={pollForm.question} onChange={e => setPollForm({ ...pollForm, question: e.target.value })}
           />
           <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>{t('meetings.options_label')}</Typography>
           {pollForm.options.map((opt, idx) => (
-            <TextField 
+            <TextField
               key={idx} fullWidth size="small" label={t('meetings.option_placeholder', { count: idx + 1 })} sx={{ mb: 1.5 }}
               value={opt} onChange={e => handlePollOptionChange(idx, e.target.value)}
             />

@@ -126,7 +126,7 @@ public class CourseService {
         boolean isInstructor = "OWNER".equals(member.getRole()) || "EDITOR".equals(member.getRole());
 
         return groupCourseRepository.findByGroup_Id(groupId).stream()
-                .filter(gc -> isInstructor || (gc.getStatus() != GroupCourse.GroupCourseStatus.DRAFT && gc.getStatus() != GroupCourse.GroupCourseStatus.CLOSED))
+                .filter(gc -> isInstructor || (gc.getStatus() != GroupCourse.GroupCourseStatus.DRAFT))
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
@@ -141,7 +141,7 @@ public class CourseService {
                 .orElseThrow(() -> new RuntimeException("Bạn không có quyền truy cập!"));
 
         boolean isInstructor = "OWNER".equals(member.getRole()) || "EDITOR".equals(member.getRole());
-        if (!isInstructor && (deployment.getStatus() == GroupCourse.GroupCourseStatus.DRAFT || deployment.getStatus() == GroupCourse.GroupCourseStatus.CLOSED)) {
+        if (!isInstructor && (deployment.getStatus() == GroupCourse.GroupCourseStatus.DRAFT)) {
             throw new RuntimeException("Khóa học hiện tại không khả dụng hoặc đã kết thúc!");
         }
 

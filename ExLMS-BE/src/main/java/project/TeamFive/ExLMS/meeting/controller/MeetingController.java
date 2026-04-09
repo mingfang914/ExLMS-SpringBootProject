@@ -83,6 +83,20 @@ public class MeetingController {
         }
     }
 
+    @PostMapping(value = "/{id}/recording", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Void> uploadRecording(
+            @PathVariable("id") String id,
+            @RequestParam("file") org.springframework.web.multipart.MultipartFile file,
+            @AuthenticationPrincipal User user) {
+        try {
+            UUID meetingId = UUID.fromString(id.trim());
+            meetingService.uploadRecording(meetingId, file, user);
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid UUID format: " + id);
+        }
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<MeetingResponseDTO> updateMeeting(
             @PathVariable("id") String id,

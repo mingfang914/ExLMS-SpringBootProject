@@ -18,6 +18,7 @@ public class GroupFeedPostResponse {
     private String content;
     private UUID linkedEntityId;
     private LinkedEntityType linkedEntityType;
+    private String linkedEntityTitle;
     private boolean pinned;
     private int reactionCount;
     private int commentCount;

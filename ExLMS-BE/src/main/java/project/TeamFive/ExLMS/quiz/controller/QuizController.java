@@ -80,6 +80,13 @@ public class QuizController {
         return ResponseEntity.ok(quizAttemptService.getQuizStats(id));
     }
 
+    @GetMapping("/quizzes/{id}/attempts")
+    public ResponseEntity<List<QuizAttemptResponse>> getAttemptsByDeployment(
+            @PathVariable UUID id,
+            @RequestParam(defaultValue = "GROUP_QUIZ") String type) {
+        return ResponseEntity.ok(quizAttemptService.getAttemptsByDeployment(id, type));
+    }
+
     @PutMapping("/quizzes/{id}")
     public ResponseEntity<QuizResponseDTO> updateQuiz(
             @PathVariable UUID id,

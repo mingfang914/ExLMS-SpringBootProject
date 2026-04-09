@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react'
+import { alpha } from '@mui/material/styles'
 import {
   Box, Typography, Paper, Grid, Card, CardContent, Divider,
   List, ListItem, ListItemText, LinearProgress, CircularProgress,
   Alert, Breadcrumbs, Link, Button, Table, TableBody, TableCell,
-  TableContainer, TableHead, TableRow, Avatar, Chip
+  TableContainer, TableHead, TableRow, Avatar, Chip, Tooltip
 } from '@mui/material'
 import {
   TrendingUp, People, Timer, AssignmentTurnedIn,
   TrendingDown, HelpOutline, NavigateNext as NextIcon,
-  Visibility as ViewIcon
+  Visibility as ViewIcon, VisibilityOff as ViewOffIcon,
+  Settings as SettingsIcon, CheckCircle as CheckCircleIcon
 } from '@mui/icons-material'
 import { useParams, Link as RouterLink } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -46,6 +48,21 @@ const QuizStats = () => {
     fetchData()
   }, [quizId, t])
 
+  const handleToggleVisibility = async () => {
+    try {
+      const newVisibility = quiz.resultVisibility === 'OPEN' ? 'CLOSE' : 'OPEN'
+      await quizService.updateQuiz(quizId, {
+        ...quiz,
+        resultVisibility: newVisibility
+      })
+      // Refresh only quiz info
+      const quizData = await quizService.getQuiz(quizId)
+      setQuiz(quizData)
+    } catch (err) {
+      alert('Không thể thay đổi trạng thái công bố kết quả')
+    }
+  }
+
   if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}><CircularProgress /></Box>
   if (error) return (
       <Box sx={{ p: 4 }}>
@@ -61,9 +78,34 @@ const QuizStats = () => {
         <Typography color="var(--color-text)" fontWeight={600}>Thống kê & Lịch sử</Typography>
       </Breadcrumbs>
 
-      <Typography variant="h4" fontWeight={800} gutterBottom sx={{ mb: 5, color: 'var(--color-text)', fontFamily: 'var(--font-heading)' }}>
-        Thống kê: {quiz?.title}
-      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 5 }}>
+        <Typography variant="h4" fontWeight={800} sx={{ color: 'var(--color-text)', fontFamily: 'var(--font-heading)' }}>
+          Thống kê: {quiz?.title}
+        </Typography>
+
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <Tooltip title={quiz?.resultVisibility === 'OPEN' ? "Học viên có thể xem chi tiết bài làm" : "Học viên chỉ thấy thông báo kết quả chưa công bố"}>
+            <Chip 
+              icon={quiz?.resultVisibility === 'OPEN' ? <ViewIcon /> : <ViewOffIcon />}
+              label={quiz?.resultVisibility === 'OPEN' ? "Kết quả: Đã công bố" : "Kết quả: Đang ẩn"} 
+              color={quiz?.resultVisibility === 'OPEN' ? "success" : "warning"}
+              variant="filled"
+              sx={{ fontWeight: 800, height: 40, borderRadius: '12px', px: 1 }}
+            />
+          </Tooltip>
+          <Button
+            variant="contained"
+            startIcon={quiz?.resultVisibility === 'OPEN' ? <ViewOffIcon /> : <ViewIcon />}
+            onClick={handleToggleVisibility}
+            sx={{ 
+              borderRadius: '12px', fontWeight: 800, 
+              background: quiz?.resultVisibility === 'OPEN' ? 'linear-gradient(135deg, #f43f5e, #e11d48)' : 'linear-gradient(135deg, #10b981, #059669)'
+            }}
+          >
+            {quiz?.resultVisibility === 'OPEN' ? "Ẩn kết quả" : "Công bố kết quả"}
+          </Button>
+        </Box>
+      </Box>
 
       {stats && stats.totalAttempts > 0 ? (
         <>
@@ -169,8 +211,8 @@ const QuizStats = () => {
                   <TableCell>Lần {att.attemptNumber}</TableCell>
                   <TableCell>{att.submittedAt ? format(new Date(att.submittedAt), 'HH:mm dd/MM/yyyy') : 'Chưa nộp'}</TableCell>
                   <TableCell>
-                    <Typography fontWeight={800} color={att.passed ? 'success.main' : 'error.main'}>
-                      {Math.round(att.score)}%
+                    <Typography fontWeight={800} color={att.score !== null ? (att.passed ? 'success.main' : 'error.main') : 'text.secondary'}>
+                      {att.score !== null ? `${Math.round(att.score)}%` : 'Đang ẩn'}
                     </Typography>
                   </TableCell>
                   <TableCell>

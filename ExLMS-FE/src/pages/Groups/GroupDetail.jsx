@@ -348,6 +348,7 @@ const GroupDetail = () => {
             {group.isJoined && <Tab icon={<AssignmentIcon />} iconPosition="start" label={t('group_detail.tabs.assignments')} />}
             {group.isJoined && <Tab icon={<QuizIcon />} iconPosition="start" label="Kiểm tra" />}
             {group.isJoined && <Tab icon={<MeetingIcon />} iconPosition="start" label={t('group_detail.tabs.meetings')} />}
+            {group.isJoined && <Tab icon={<ShareIcon />} iconPosition="start" label="Làm việc nhóm" />}
             {group.isJoined && <Tab icon={<ForumIcon />} iconPosition="start" label={t('group_detail.tabs.feed')} />}
             {group.isJoined && <Tab icon={<PeopleIcon />} iconPosition="start" label={t('group_detail.tabs.members')} />}
           </Tabs>
@@ -557,12 +558,19 @@ const GroupDetail = () => {
                         transition: 'all 0.2s',
                         borderRadius: 4,
                         background: 'rgba(255,255,255,0.02)',
-                        border: '1px solid rgba(255,255,255,0.1)'
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        display: 'flex',
+                        overflow: 'hidden'
                       }}
                     >
-                      <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: '20px !important' }}>
+                      <CardMedia
+                        component="img"
+                        sx={{ width: 160, objectFit: 'cover', display: { xs: 'none', sm: 'block' } }}
+                        image={asgn.coverImageUrl || '/api/files/download/Assets/AssignmentDefaultCover.jpg'}
+                      />
+                      <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flex: 1, py: '20px !important' }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
-                          <Avatar sx={{ bgcolor: 'rgba(252, 211, 77, 0.1)', color: '#FCD34D', width: 48, height: 48, borderRadius: 2 }}>
+                          <Avatar sx={{ bgcolor: 'rgba(252, 211, 77, 0.1)', color: '#FCD34D', width: 48, height: 48, borderRadius: 2, display: { sm: 'none' } }}>
                             <AssignmentIcon />
                           </Avatar>
                           <Box sx={{ flex: 1 }}>
@@ -594,7 +602,7 @@ const GroupDetail = () => {
                             </Grid>
                           </Box>
                         </Box>
-                        <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
+                        <Box sx={{ display: 'flex', gap: 1, ml: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
                           <Button 
                             variant="contained" 
                             component={RouterLink} 
@@ -604,26 +612,28 @@ const GroupDetail = () => {
                           >
                             {String(asgn.status).toUpperCase() === 'CLOSED' ? (asgn.allowLate ? 'Nộp muộn' : t('common.closed')) : t('group_detail.actions.details')}
                           </Button>
-                          {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && String(asgn.status).toUpperCase() !== 'CLOSED' && (
-                            <IconButton 
-                              size="small" 
-                              color="primary"
-                              onClick={() => setEditDeployModal({ open: true, type: 'assignment', resource: asgn })}
-                              sx={{ bgcolor: 'rgba(99, 102, 241, 0.1)', '&:hover': { bgcolor: 'rgba(99, 102, 241, 0.2)' } }}
-                            >
-                              <EditIcon fontSize="small" />
-                            </IconButton>
-                          )}
-                          {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && asgn.status !== 'CLOSED' && (
-                            <IconButton 
-                              size="small" 
-                              color="error"
-                              onClick={() => handleDeleteResource('assignment', asgn.id)}
-                              sx={{ bgcolor: 'rgba(239, 68, 68, 0.1)', '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.2)' } }}
-                            >
-                              <DeleteIcon fontSize="small" />
-                            </IconButton>
-                          )}
+                          <Box sx={{ display: 'flex', gap: 1 }}>
+                            {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && String(asgn.status).toUpperCase() !== 'CLOSED' && (
+                              <IconButton 
+                                size="small" 
+                                color="primary"
+                                onClick={() => setEditDeployModal({ open: true, type: 'assignment', resource: asgn })}
+                                sx={{ bgcolor: 'rgba(99, 102, 241, 0.1)', '&:hover': { bgcolor: 'rgba(99, 102, 241, 0.2)' } }}
+                              >
+                                <EditIcon fontSize="small" />
+                              </IconButton>
+                            )}
+                            {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && asgn.status !== 'CLOSED' && (
+                              <IconButton 
+                                size="small" 
+                                color="error"
+                                onClick={() => handleDeleteResource('assignment', asgn.id)}
+                                sx={{ bgcolor: 'rgba(239, 68, 68, 0.1)', '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.2)' } }}
+                              >
+                                <DeleteIcon fontSize="small" />
+                              </IconButton>
+                            )}
+                          </Box>
                         </Box>
                       </CardContent>
                     </Card>
@@ -673,13 +683,17 @@ const GroupDetail = () => {
                       borderRadius: '24px', 
                       background: 'rgba(255,255,255,0.02)', 
                       border: '1px solid rgba(255,255,255,0.05)',
-                      '&:hover': { borderColor: '#10B981', background: 'rgba(16, 185, 129, 0.05)' }
+                      '&:hover': { borderColor: '#10B981', background: 'rgba(16, 185, 129, 0.05)' },
+                      overflow: 'hidden'
                     }}>
-                      <CardContent sx={{ p: 4 }}>
+                      <CardMedia
+                        component="img"
+                        height="140"
+                        image={quiz.coverImageUrl || '/api/files/download/Assets/QuizDefaultCover.png'}
+                        sx={{ objectFit: 'cover' }}
+                      />
+                      <CardContent sx={{ p: 4, pt: 3 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                          <Avatar sx={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10B981' }}>
-                            <QuizIcon />
-                          </Avatar>
                           <Typography variant="h6" fontWeight={800}>{quiz.title}</Typography>
                         </Box>
                         
@@ -713,11 +727,16 @@ const GroupDetail = () => {
                             fullWidth 
                             variant="contained" 
                             component={RouterLink}
-                            to={`/groups/${id}/courses/placeholder-quiz/quiz/${quiz.id}/take`} 
-                            disabled={quiz.status === 'CLOSED' && (group.currentUserRole === 'MEMBER' || !group.currentUserRole)}
+                            to={quiz.status === 'CLOSED' 
+                              ? (group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR' 
+                                  ? `/groups/${id}/courses/placeholder-quiz/quiz/${quiz.id}/stats`
+                                  : `/groups/${id}/courses/placeholder-quiz/quiz/${quiz.id}/attempts/latest`) // Sẽ tạo route/logic cho học sinh sau
+                              : `/groups/${id}/courses/placeholder-quiz/quiz/${quiz.id}/take`
+                            } 
+                            disabled={quiz.status === 'CLOSED' && (group.currentUserRole === 'MEMBER' || !group.currentUserRole) && quiz.userAttemptCount === 0}
                             sx={{ borderRadius: '12px', fontWeight: 700, background: 'rgba(16, 185, 129, 0.2)', color: '#10B981', '&:hover': { background: '#10B981', color: '#FFF' } }}
                           >
-                            {quiz.status === 'CLOSED' ? 'Đã đóng' : 'Bắt đầu làm bài'}
+                            {quiz.status === 'CLOSED' ? 'Xem' : 'Bắt đầu làm bài'}
                           </Button>
                           {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
                             <>
@@ -795,52 +814,59 @@ const GroupDetail = () => {
                     <Grid item xs={12} md={6} key={meeting.id}>
                       <Paper 
                         sx={{ 
-                          p: 3, 
                           display: 'flex', 
-                          justifyContent: 'space-between', 
-                          alignItems: 'center',
-                          borderRadius: 2,
+                          flexDirection: 'column', 
+                          borderRadius: '16px',
+                          overflow: 'hidden',
                           '&:hover': { boxShadow: 4, borderColor: 'primary.main' },
                           border: '1px solid',
                           borderColor: isLive ? 'error.main' : 'divider'
                         }}
                       >
-                        <Box>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>{meeting.title}</Typography>
-                            {isLive && <Chip label="LIVE" color="error" size="small" />}
-                            {meeting.status === 'DRAFT' && <Chip label="DRAFT" variant="outlined" size="small" />}
+                        <CardMedia
+                          component="img"
+                          height="120"
+                          image={meeting.coverImageUrl || '/api/files/download/Assets/MeetingDefaultCover.png'}
+                          sx={{ objectFit: 'cover' }}
+                        />
+                        <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                              <Typography variant="h6" sx={{ fontWeight: 'bold' }}>{meeting.title}</Typography>
+                              {isLive && <Chip label="LIVE" color="error" size="small" />}
+                              {meeting.status === 'DRAFT' && <Chip label="DRAFT" variant="outlined" size="small" />}
+                            </Box>
+                            <Typography variant="body2" color="text.secondary">
+                              {format(new Date(meeting.startAt), 'HH:mm dd/MM/yyyy')}
+                            </Typography>
                           </Box>
-                          <Typography variant="body2" color="text.secondary">
-                            {format(new Date(meeting.startAt), 'HH:mm dd/MM/yyyy')}
-                          </Typography>
-                        </Box>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
-                            <Box sx={{ display: 'flex', mr: 1 }}>
-                              {meeting.status !== 'CLOSED' && (
-                                <Tooltip title={t('common.edit')}>
-                                  <IconButton size="small" onClick={() => handleOpenEditMeeting(meeting)}>
-                                    <EditIcon fontSize="small" />
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
+                              <Box sx={{ display: 'flex', mr: 1 }}>
+                                {meeting.status !== 'CLOSED' && (
+                                  <Tooltip title={t('common.edit')}>
+                                    <IconButton size="small" onClick={() => handleOpenEditMeeting(meeting)}>
+                                      <EditIcon fontSize="small" />
+                                    </IconButton>
+                                  </Tooltip>
+                                )}
+                                <Tooltip title={t('common.delete')}>
+                                  <IconButton size="small" color="error" onClick={() => handleDeleteMeeting(meeting.id)}>
+                                    <DeleteIcon fontSize="small" />
                                   </IconButton>
                                 </Tooltip>
-                              )}
-                              <Tooltip title={t('common.delete')}>
-                                <IconButton size="small" color="error" onClick={() => handleDeleteMeeting(meeting.id)}>
-                                  <DeleteIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                            </Box>
-                          )}
-                          <Button
-                            variant="contained"
-                            component={RouterLink}
-                            to={`/groups/${id}/meetings/${meeting.id}`}
-                            disabled={meeting.status === 'DRAFT' && group.currentUserRole === 'MEMBER'}
-                            color={isLive ? 'error' : 'primary'}
-                          >
-                            {meeting.status === 'CLOSED' ? t('group_detail.meetings.view_report') : t('group_detail.meetings.join')}
-                          </Button>
+                              </Box>
+                            )}
+                            <Button
+                              variant="contained"
+                              component={RouterLink}
+                              to={`/groups/${id}/meetings/${meeting.id}`}
+                              disabled={meeting.status === 'DRAFT' && group.currentUserRole === 'MEMBER'}
+                              color={isLive ? 'error' : 'primary'}
+                            >
+                              {meeting.status === 'CLOSED' ? t('group_detail.meetings.view_report') : t('group_detail.meetings.join')}
+                            </Button>
+                          </Box>
                         </Box>
                       </Paper>
                     </Grid>
@@ -851,8 +877,38 @@ const GroupDetail = () => {
           </Box>
         )}
 
-        {/* Placeholder for other tabs */}
         {activeTab === 5 && (
+          <Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+              <Typography variant="h5">Collaboration Spaces</Typography>
+              <Button 
+                variant="contained" 
+                component={RouterLink}
+                to={`/groups/${id}/collabs`}
+                startIcon={<ShareIcon />}
+              >
+                Vào không gian làm việc
+              </Button>
+            </Box>
+            <Paper sx={{ p: 10, textAlign: 'center', borderRadius: 4, background: 'rgba(99, 102, 241, 0.05)', border: '1px dashed #6366F1' }}>
+                <ShareIcon sx={{ fontSize: 60, color: '#6366F1', mb: 2, opacity: 0.7 }} />
+                <Typography variant="h6" fontWeight="bold">Soạn thảo tài liệu thời gian thực</Typography>
+                <Typography color="text.secondary" sx={{ mb: 3 }}>
+                    Cùng nhau tạo ghi chú, lên kế hoạch và thảo luận trực tiếp trên cùng một tài liệu Tiptap.
+                </Typography>
+                <Button 
+                    variant="contained" 
+                    component={RouterLink}
+                    to={`/groups/${id}/collabs`}
+                    size="large"
+                >
+                    Khám phá ngay
+                </Button>
+            </Paper>
+          </Box>
+        )}
+
+        {activeTab === 6 && (
           <GroupFeed 
             groupId={id} 
             currentUserRole={group.currentUserRole}
@@ -862,7 +918,7 @@ const GroupDetail = () => {
           />
         )}
 
-        {activeTab === 6 && (
+        {activeTab === 7 && (
           <Paper sx={{ p: 3 }}>
             <GroupMembers groupId={id} groupRole={group.currentUserRole} />
           </Paper>

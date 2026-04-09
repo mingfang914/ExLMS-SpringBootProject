@@ -31,7 +31,7 @@ const makeDefaultConfig = () => {
     startDate: toLocalISO(now),
     endDate: toLocalISO(new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)),
     shuffleQuestions: false,
-    resultVisibility: 'IMMEDIATE',
+    resultVisibility: 'CLOSE',
     allowLate: false,
     latePenaltyPercent: 0,
     status: 'PUBLISHED',
@@ -225,9 +225,8 @@ const InventoryDeploymentModal = ({ open, onClose, type, groupId, onDeploySucces
                       label="Hiển thị kết quả"
                       onChange={(e) => setConfig({ ...config, resultVisibility: e.target.value })}
                     >
-                      <MenuItem value="IMMEDIATE">Sau khi làm bài</MenuItem>
-                      <MenuItem value="AFTER_DEADLINE">Sau khi hết hạn</MenuItem>
-                      <MenuItem value="OPENED">Mở thủ công</MenuItem>
+                      <MenuItem value="OPEN">Công bố (Mọi người có thể xem chi tiết)</MenuItem>
+                      <MenuItem value="CLOSE">Chưa công bố (Ẩn với thành viên)</MenuItem>
                     </Select>
                   </FormControl>
                   <FormControlLabel

@@ -11,4 +11,7 @@ import java.util.UUID;
 public interface QuizResponseRepository extends JpaRepository<QuizResponse, UUID> {
     List<QuizResponse> findByAttempt_Id(UUID attemptId);
     List<QuizResponse> findByAttempt_Quiz_Id(UUID quizId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT r FROM QuizResponse r JOIN FETCH r.question WHERE r.attempt.deploymentId = :deploymentId AND r.attempt.deploymentType = :deploymentType")
+    List<QuizResponse> findByDeploymentIdAndType(byte[] deploymentId, project.TeamFive.ExLMS.quiz.entity.QuizAttempt.DeploymentType deploymentType);
 }

@@ -28,6 +28,9 @@ public class Assignment extends SoftDeletableEntity {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "cover_image_url")
+    private String coverImageUrl;
+
     @Builder.Default
     @Column(name = "max_score", nullable = false)
     private int maxScore = 100;

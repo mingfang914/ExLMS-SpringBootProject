@@ -20,6 +20,8 @@ public class AssignmentResponseDTO {
     private UUID templateId;     // This is the template ID (Assignment ID)
     private String title;
     private String description;
+    private String coverImageUrl;
+    private LocalDateTime dueDate;
     private UUID groupId;
     private int maxScore;
     private LocalDateTime assignedAt;
@@ -47,6 +49,7 @@ public class AssignmentResponseDTO {
                 .maxFileSizeMb(template.getMaxFileSizeMb())
                 .allowLate(deployment.isAllowLate())
                 .latePenaltyPercent(deployment.getLatePenaltyPercent())
+                .coverImageUrl(template.getCoverImageUrl() != null ? template.getCoverImageUrl() : "/api/files/download/Assets/AssignmentDefaultCover.jpg")
                 .status(deployment.getStatus())
                 .build();
     }

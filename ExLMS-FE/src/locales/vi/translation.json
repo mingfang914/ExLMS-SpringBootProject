@@ -1,4 +1,36 @@
 {
+  "dashboard": {
+    "achievement": "Thành tích: {{score}} điểm",
+    "activity_last_7_days": "Hoạt động (7 ngày qua)",
+    "group_category_dist": "Phân bổ lĩnh vực",
+    "total": "tổng cộng",
+    "learning_hours": "Thời gian học tập",
+    "total_learning_time": "Tổng thời gian: {{count}}h",
+    "continue_learning": "Tiếp tục học tập",
+    "continue_learning_btn": "Học tiếp bài trước",
+    "completion_status": "Đã xong {{completed}}/{{total}} bài",
+    "recent_activity": "Hoạt động gần đây",
+    "view_all": "Xem tất cả",
+    "upcoming_meetings": "Lịch họp sắp tới",
+    "this_week": "Tuần này",
+    "hero_desc": "Hôm nay bạn muốn học gì?",
+    "greetings": {
+      "morning": "Chào buổi sáng",
+      "afternoon": "Chào buổi chiều",
+      "evening": "Chào buổi tối"
+    },
+    "stats": {
+      "groups": "Nhóm tham gia",
+      "courses": "Khóa học",
+      "assignments": "Bài tập chờ",
+      "meetings": "Lịch họp"
+    },
+    "activities": {
+      "new_assignment": "Có bài tập mới trong nhóm",
+      "course_updated": "Nội dung khóa học đã cập nhật",
+      "new_replies": "Có phản hồi mới trong diễn đàn"
+    }
+  },
   "common": {
     "search": "Tìm kiếm...",
     "save": "Lưu",
@@ -41,7 +73,9 @@
     "mins_ago": "{{count}} phút trước",
     "hrs_ago": "{{count}} giờ trước",
     "days_ago": "{{count}} ngày trước",
-    "closed": "Đã đóng"
+    "closed": "Đã đóng",
+    "all": "Tất cả",
+    "load_more": "Tải thêm"
   },
   "navigation": {
     "notifications": "Thông báo",
@@ -139,36 +173,6 @@
     "about_subtitle": "ExLMS (Extended Learning Management System) là nền tảng quản lý học tập thế hệ mới. Với sứ mệnh xóa nhòa khoảng cách giữa sinh viên và kiến thức thông qua các công cụ cộng tác nhóm hiện đại.",
     "about_description": "Tất cả trong một: Từ Video Meeting, Quản lý tài liệu đến Hệ thống thi cử trực tuyến đều được tích hợp trong một giao diện duy nhất, tinh gọn và dễ sử dụng.",
     "copyright": "© {{year}} ExLMS - Nâng tầm tri thức. Phát triển bởi Astatine."
-  },
-  "dashboard": {
-    "welcome": "Chào mừng trở lại,",
-    "greetings": {
-      "morning": "Chào buổi sáng",
-      "afternoon": "Chào buổi chiều",
-      "evening": "Chào buổi tối"
-    },
-    "description": "Bạn có 4 thông báo mới và 2 bài tập cần hoàn thành.",
-    "learning_hours": "Giờ học tập",
-    "this_week": "Tuần này",
-    "continue_learning": "Tiếp tục học tập",
-    "recent_activity": "Hoạt động gần đây",
-    "upcoming_meetings": "Các cuộc họp sắp tới",
-    "stats": {
-      "groups": "Nhóm tham gia",
-      "courses": "Khóa học",
-      "assignments": "Bài tập",
-      "meetings": "Cuộc họp"
-    },
-    "hero_desc": "Hôm nay bạn muốn học gì?",
-    "total_learning_time": "Tổng cộng: {{count}}h",
-    "completion_status": "Đã hoàn thành {{completed}} / {{total}} bài học",
-    "continue_learning_btn": "Tiếp tục học ngay",
-    "view_all": "Xem tất cả",
-    "activities": {
-      "new_assignment": "Bài tập mới đã được giao trong nhóm của bạn.",
-      "course_updated": "Nội dung khóa học React JS vừa được cập nhật.",
-      "new_replies": "Có 3 phản hồi mới trong bài viết của bạn."
-    }
   },
   "header": {
     "search": "Tìm kiếm...",
@@ -471,6 +475,15 @@
       "post_not_found": "Bài viết không tồn tại.",
       "title_content_required": "Vui lòng nhập tiêu đề và nội dung.",
       "save_failed": "Có lỗi xảy ra khi lưu bài viết."
+    },
+    "placeholder": "Bạn đang nghĩ gì?",
+    "pinned": "Đã ghim",
+    "time_just_now": "Vừa xong",
+    "linked_entity": "Thực thể liên kết nội bộ (Nhấp để xem chi tiết)",
+    "no_posts": "Chưa có bài viết nào.",
+    "actions": {
+      "like": "Thích",
+      "comment": "Bình luận"
     }
   },
   "calendar": {
@@ -557,7 +570,9 @@
     "graded": "Đã chấm",
     "awaiting_grade": "Đang chờ chấm điểm",
     "your_submission": "Nộp bài của bạn",
-    "text_content": "Nội dung văn bản",
+    "text_submission": "Nội dung bài làm (văn bản)",
+    "file_submission": "Nộp tệp đính kèm",
+    "allowed_types": "Định dạng cho phép: {{types}}",
     "enter_answer": "Nhập câu trả lời của bạn...",
     "attachments": "Tệp đính kèm",
     "choose_file": "Chọn tệp nộp",
@@ -598,7 +613,9 @@
     },
     "submission_content": "Nội dung sinh viên nộp",
     "max_possible": "Điểm tối đa có thể đạt",
-    "both": "Cả hai"
+    "both": "Cả hai",
+    "file": "Nộp tệp",
+    "text": "Nộp văn bản"
   },
   "assignment_form": {
     "title_new": "Tạo bài tập mới",
@@ -709,9 +726,8 @@
     "shuffle_questions_label": "Xáo trộn thứ tự câu hỏi",
     "visibility_label": "Hiển thị kết quả",
     "visibility": {
-      "immediate": "Ngay sau khi nộp",
-      "after_deadline": "Sau hạn chót",
-      "manual": "Thủ công (Giảng viên mở)"
+      "open": "Công bố (Mọi người có thể xem chi tiết)",
+      "close": "Chưa công bố (Ẩn với thành viên)"
     },
     "add_question": "Thêm câu hỏi",
     "question_content_label": "Nội dung câu hỏi *",
@@ -722,6 +738,7 @@
     "placeholder_answer": "Đáp án {{count}}",
     "enter_question_placeholder": "Nhập nội dung câu hỏi...",
     "add_answer": "Thêm đáp án",
+    "mark_correct": "Đánh dấu là đáp án đúng",
     "explanation_label": "Giải thích đáp án (hiển thị sau khi nộp)",
     "types": {
       "single": "Trắc nghiệm 1 đáp án",

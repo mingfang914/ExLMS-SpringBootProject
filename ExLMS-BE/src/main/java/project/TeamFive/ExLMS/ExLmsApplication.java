@@ -9,7 +9,12 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication
 @EnableScheduling
 @EnableAsync
-public class ExLmsApplication { // cap nhat
+public class ExLmsApplication {
+
+	@jakarta.annotation.PostConstruct
+	public void init() {
+		java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
+	}
 
 	public static void main(String[] args) {
 		// Load .env from project root or current dir
