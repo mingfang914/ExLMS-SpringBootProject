@@ -70,7 +70,7 @@ public class CollabService {
 
         collab = collabRepository.save(collab);
         if (collab.getStatus() == GroupCollab.CollabStatus.PUBLISHED) {
-            notificationService.notifyGroupPublishedItem(group, "Bài tập nhóm", collab.getTitle(), "PUBLISHED", collab.getId(), "/collab");
+            notificationService.notifyGroupPublishedItem(group, "COLLAB", collab.getTitle(), "PUBLISHED", collab.getId(), "/collab");
         }
         return CollabResponseDTO.fromEntity(collab);
     }
@@ -96,7 +96,7 @@ public class CollabService {
 
         collab = collabRepository.save(collab);
         if (oldStatus != GroupCollab.CollabStatus.PUBLISHED && collab.getStatus() == GroupCollab.CollabStatus.PUBLISHED) {
-            notificationService.notifyGroupPublishedItem(collab.getGroup(), "Bài tập nhóm", collab.getTitle(), "PUBLISHED", collab.getId(), "/collab");
+            notificationService.notifyGroupPublishedItem(collab.getGroup(), "COLLAB", collab.getTitle(), "PUBLISHED", collab.getId(), "/collab");
         }
         return CollabResponseDTO.fromEntity(collab);
     }
@@ -112,7 +112,7 @@ public class CollabService {
         collab = collabRepository.save(collab);
         
         if (oldStatus != GroupCollab.CollabStatus.PUBLISHED && status == GroupCollab.CollabStatus.PUBLISHED) {
-            notificationService.notifyGroupPublishedItem(collab.getGroup(), "Bài tập nhóm", collab.getTitle(), "PUBLISHED", collab.getId(), "/collab");
+            notificationService.notifyGroupPublishedItem(collab.getGroup(), "COLLAB", collab.getTitle(), "PUBLISHED", collab.getId(), "/collab");
         }
         return CollabResponseDTO.fromEntity(collab);
     }

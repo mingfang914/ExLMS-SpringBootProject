@@ -131,6 +131,10 @@ public class NotificationService {
             notificationType = Notification.NotificationType.NEW_COURSE;
         else if ("Buổi họp".equalsIgnoreCase(typeStr) || "Meeting".equalsIgnoreCase(typeStr))
             notificationType = Notification.NotificationType.NEW_MEETING;
+        else if ("COLLAB".equalsIgnoreCase(typeStr)) {
+            notificationType = Notification.NotificationType.NEW_COLLAB;
+            typeStr = "Bài tập nhóm";
+        }
 
         String body = String.format("Một %s mới đã được đăng trong nhóm %s: %s", typeStr, group.getName(), title);
         String actionUrl = "/groups/" + group.getId() + (path != null ? path : "");

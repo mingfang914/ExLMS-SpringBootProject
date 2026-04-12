@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { getQuiz, startAttempt, submitAttempt } from '../../services/quizService';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useModal } from '../../context/ModalContext';
 import { 
   Box, Typography, Paper, Button, Container, 
   RadioGroup, FormControlLabel, Radio, Checkbox, TextField,
@@ -20,6 +21,7 @@ const TakeQuiz = () => {
     const { t } = useTranslation();
     const { groupId, courseId, quizId } = useParams();
     const navigate = useNavigate();
+    const { showSuccess, showError, showConfirm } = useModal();
     
     const [quiz, setQuiz] = useState(null);
     const [attempt, setAttempt] = useState(null);
@@ -90,7 +92,7 @@ const TakeQuiz = () => {
     };
 
     const handleAutoSubmit = async () => {
-        alert("Hết thời gian! Bài làm của bạn sẽ được tự động nộp.");
+        await showError(t('common.error'), "Hết thời gian! Bài làm của bạn sẽ được tự động nộp.");
         await executeSubmit();
     };
 
@@ -100,7 +102,12 @@ const TakeQuiz = () => {
             ? `Bạn còn ${unanswered} câu chưa làm. Bạn có chắc chắn muốn nộp bài?` 
             : t('quizzes.player.confirm_desc', { count: questions.length, total: questions.length });
 
-        if (!window.confirm(msg)) return;
+        const confirmed = await showConfirm(
+            t('common.confirm_action'),
+            msg,
+            'warning'
+        );
+        if (!confirmed) return;
         await executeSubmit();
     };
 

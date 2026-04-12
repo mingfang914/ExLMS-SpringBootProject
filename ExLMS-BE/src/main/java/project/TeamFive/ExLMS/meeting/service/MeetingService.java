@@ -232,8 +232,9 @@ public class MeetingService {
             return; // Silent return for attendance if no user
         Meeting meeting = meetingRepository.findById(meetingId).orElseThrow();
 
-        MeetingAttendance attendance = attendanceRepository.findByMeeting_IdAndUser_Id(meetingId, user.getId())
-                .orElse(MeetingAttendance.builder()
+        // Use findTop... to avoid NonUniqueResultException if concurrency occurred
+        MeetingAttendance attendance = attendanceRepository.findTopByMeeting_IdAndUser_IdOrderByCreatedAtDesc(meetingId, user.getId())
+                .orElseGet(() -> MeetingAttendance.builder()
                         .meeting(meeting)
                         .user(user)
                         .present(true)

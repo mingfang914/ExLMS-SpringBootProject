@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { createQuiz } from '../../services/quizService';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useModal } from '../../context/ModalContext';
 import { 
   Box, Typography, TextField, Button, Paper, Grid, 
   MenuItem, Divider, CircularProgress, Alert,
@@ -11,6 +12,7 @@ import { ArrowBack as BackIcon, Save as SaveIcon } from '@mui/icons-material';
 
 const CreateQuiz = () => {
     const { t } = useTranslation();
+    const { showSuccess, showError } = useModal();
     const { groupId } = useParams();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
@@ -30,7 +32,7 @@ const CreateQuiz = () => {
             setLoading(true);
             setError(null);
             await createQuiz(groupId, formData);
-            alert(t('quizzes.messages.create_success') || 'Quiz created successfully');
+            await showSuccess(t('common.success'), t('quizzes.messages.create_success') || 'Quiz created successfully');
             navigate(`/groups/${groupId}?tab=quizzes`);
         } catch (err) {
             console.error('Failed to create quiz:', err);

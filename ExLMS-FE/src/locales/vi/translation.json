@@ -384,8 +384,6 @@
       "delete_success": "Đã xóa buổi họp!",
       "delete_failed": "Xóa buổi họp thất bại.",
       "update_success": "Cập nhật buổi họp thành công!",
-      "delete_failed": "Xóa buổi họp thất bại.",
-      "update_success": "Cập nhật buổi họp thành công!",
       "update_failed": "Cập nhật buổi họp thất bại.",
       "status_draft": "Dành cho chủ nhóm (DRAFT)",
       "status_published": "Công khai (PUBLISHED)"

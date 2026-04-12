@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useModal } from '../../context/ModalContext';
 
 const UserProfile = () => {
     const { t } = useTranslation();
+    const { showSuccess } = useModal();
     const [profile, setProfile] = useState({ fullName: 'Nguyễn Văn A', email: 'user@example.com', bio: '' });
 
-    const handleSave = (e) => {
+    const handleSave = async (e) => {
         e.preventDefault();
-        alert(t('profile.update_success'));
+        await showSuccess(t('common.success'), t('profile.update_success'));
     };
 
     return (

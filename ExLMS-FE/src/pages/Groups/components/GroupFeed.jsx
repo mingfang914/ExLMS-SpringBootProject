@@ -50,9 +50,11 @@ import { vi, enUS } from 'date-fns/locale'
 import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useModal } from '../../../context/ModalContext'
 
 const GroupFeed = ({ groupId, currentUserRole, groupCourses = [], groupAssignments = [], groupMeetings = [] }) => {
   const { t, i18n } = useTranslation()
+  const { showSuccess, showError, showConfirm } = useModal()
   const [posts, setPosts] = useState([])
   const [loading, setLoading] = useState(true)
   const [filterType, setFilterType] = useState('')
@@ -106,17 +108,22 @@ const GroupFeed = ({ groupId, currentUserRole, groupCourses = [], groupAssignmen
       setLinkedEntity(null)
       setIsCreating(false)
     } catch (err) {
-      alert(t('common.error'))
+      await showError(t('common.error'), t('common.error'))
     }
   }
 
   const handleDeletePost = async (postId) => {
-    if (window.confirm(t('common.confirm_delete'))) {
+    const confirmed = await showConfirm(
+      t('common.confirm_delete'),
+      t('common.confirm_delete_post_msg') || 'Bạn có chắc chắn muốn xóa bài viết này?',
+      'error'
+    );
+    if (confirmed) {
       try {
         await groupFeedService.deletePost(groupId, postId)
         setPosts(posts.filter(p => p.id !== postId))
       } catch (err) {
-        alert(t('common.error'))
+        await showError(t('common.error'), t('common.error'))
       }
     }
   }
@@ -126,7 +133,7 @@ const GroupFeed = ({ groupId, currentUserRole, groupCourses = [], groupAssignmen
       await groupFeedService.togglePinPost(groupId, postId)
       setPosts(posts.map(p => p.id === postId ? { ...p, pinned: !p.pinned } : p))
     } catch (err) {
-      alert(t('common.error'))
+      await showError(t('common.error'), t('common.error'))
     }
   }
 
@@ -288,6 +295,9 @@ const GroupFeed = ({ groupId, currentUserRole, groupCourses = [], groupAssignmen
               formatDate={formatDate}
               setPosts={setPosts}
               posts={posts}
+              showSuccess={showSuccess}
+              showError={showError}
+              showConfirm={showConfirm}
             />
           ))
         )}
@@ -341,7 +351,7 @@ const GroupFeed = ({ groupId, currentUserRole, groupCourses = [], groupAssignmen
   )
 }
 
-const PostItem = ({ post, currentUser, currentUserRole, onDelete, onTogglePin, onToggleReaction, groupId, formatDate, setPosts, posts }) => {
+const PostItem = ({ post, currentUser, currentUserRole, onDelete, onTogglePin, onToggleReaction, groupId, formatDate, setPosts, posts, showSuccess, showError, showConfirm }) => {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const [comments, setComments] = useState([])
@@ -379,18 +389,23 @@ const PostItem = ({ post, currentUser, currentUserRole, onDelete, onTogglePin, o
       setNewComment('')
       post.commentCount += 1 // Optimistic update
     } catch (err) {
-      alert('Lỗi khi gửi bình luận!')
+      await showError(t('common.error'), 'Lỗi khi gửi bình luận!')
     }
   }
 
   const handleDeleteComment = async (commentId) => {
-    if (!window.confirm('Bạn có chắc chắn muốn xóa bình luận này?')) return
+    const confirmed = await showConfirm(
+      t('common.confirm_delete'),
+      'Bạn có chắc chắn muốn xóa bình luận này?',
+      'warning'
+    );
+    if (!confirmed) return
     try {
       await groupFeedService.deleteComment(groupId, commentId)
       setComments(comments.filter(c => c.id !== commentId))
       post.commentCount -= 1
     } catch (err) {
-      alert('Lỗi xác thực hoặc không có quyền xóa!')
+      await showError(t('common.error'), 'Lỗi xác thực hoặc không có quyền xóa!')
     }
   }
 
@@ -401,7 +416,7 @@ const PostItem = ({ post, currentUser, currentUserRole, onDelete, onTogglePin, o
       setComments(comments.map(c => c.id === commentId ? updated : c))
       setEditingCommentId(null)
     } catch (err) {
-      alert('Lỗi khi cập nhật bình luận!')
+      await showError(t('common.error'), 'Lỗi khi cập nhật bình luận!')
     }
   }
 
@@ -417,7 +432,7 @@ const PostItem = ({ post, currentUser, currentUserRole, onDelete, onTogglePin, o
       setPosts(posts.map(p => p.id === post.id ? updated : p))
       setIsEditing(false)
     } catch (err) {
-      alert('Lỗi khi cập nhật bài viết!')
+      await showError(t('common.error'), 'Lỗi khi cập nhật bài viết!')
     }
   }
 

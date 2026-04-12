@@ -202,28 +202,33 @@ const GroupDetail = () => {
 
 
   const handleDeleteResource = async (type, resId) => {
-    if (!window.confirm(t('common.confirm_delete'))) return
+    const confirmed = await showConfirm(
+      t('common.confirm_delete'),
+      t('common.confirm_delete_msg') || 'Bạn có chắc chắn muốn xóa học liệu này?',
+      'error'
+    );
+    if (!confirmed) return
     try {
       if (type === 'course') await courseService.deleteCourse(id, resId)
       else if (type === 'assignment') await assignmentService.deleteDeployment(resId)
       else if (type === 'quiz') await quizService.deleteQuiz(resId)
       
       refreshData()
-      alert(t('common.success'))
+      await showSuccess(t('common.success'))
     } catch (err) {
-      alert(err.response?.data?.message || t('common.error'))
+      await showError(t('common.error'), err.response?.data?.message || t('common.error'))
     }
   }
 
   const handleJoinGroup = async () => {
     try {
       const response = await groupService.createJoinRequest(id, t('groups.messages.join_default'))
-      alert(response || t('groups.messages.join_sent'))
+      await showSuccess(t('common.success'), response || t('groups.messages.join_sent'))
       // Tải lại thông tin nhóm nếu nhóm được duyệt tự động (Auto-Join)
       const groupData = await groupService.getGroupById(id)
       setGroup(groupData)
     } catch (err) {
-      alert(err.response?.data?.message || t('groups.errors.join_failed'))
+      await showError(t('common.error'), err.response?.data?.message || t('groups.errors.join_failed'))
     }
   }
 
@@ -250,24 +255,29 @@ const GroupDetail = () => {
       await groupService.updateGroup(id, editGroupData)
       setGroup({ ...group, ...editGroupData })
       setManageDialogOpen(false)
-      alert(t('group_detail.messages.update_success'))
+      await showSuccess(t('common.success'), t('group_detail.messages.update_success'))
     } catch (err) {
-      alert(err.response?.data?.message || t('group_detail.errors.update_failed'))
+      await showError(t('common.error'), err.response?.data?.message || t('group_detail.errors.update_failed'))
     }
   }
 
   const handleDeleteGroup = async () => {
     if (deleteConfirmText !== group.name) {
-      alert(t('group_detail.danger_zone.desc') + group.name)
+      await showError(t('common.error'), t('group_detail.danger_zone.desc') + group.name)
       return
     }
-    if (window.confirm(t('common.confirm_delete'))) {
+    const confirmed = await showConfirm(
+      t('common.confirm_delete'),
+      t('group_detail.danger_zone.desc_full'),
+      'error'
+    );
+    if (confirmed) {
       try {
         await groupService.deleteGroup(id)
-        alert(t('common.success'))
+        await showSuccess(t('common.success'))
         navigate('/groups')
       } catch (err) {
-        alert(err.response?.data?.message || t('common.error'))
+        await showError(t('common.error'), err.response?.data?.message || t('common.error'))
       }
     }
   }
@@ -280,20 +290,25 @@ const GroupDetail = () => {
       setMeetings(freshMeetings)
       setScheduleDialogOpen(false)
       setNewMeetingData({ title: '', description: '', startAt: '', endAt: '', status: 'PUBLISHED' })
-      alert(t('group_detail.meetings.schedule_success'))
+      await showSuccess(t('common.success'), t('group_detail.meetings.schedule_success'))
     } catch (err) {
-      alert(t('group_detail.meetings.schedule_failed'))
+      await showError(t('common.error'), t('group_detail.meetings.schedule_failed'))
     }
   }
 
   const handleDeleteMeeting = async (meetingId) => {
-    if (window.confirm(t('group_detail.meetings.delete_confirm'))) {
+    const confirmed = await showConfirm(
+      t('common.confirm_delete'),
+      t('group_detail.meetings.delete_confirm'),
+      'warning'
+    );
+    if (confirmed) {
       try {
         await meetingService.deleteMeeting(meetingId)
         setMeetings(meetings.filter(m => m.id !== meetingId))
-        alert(t('group_detail.meetings.delete_success'))
+        await showSuccess(t('common.success'), t('group_detail.meetings.delete_success'))
       } catch (err) {
-        alert(err.response?.data?.message || t('group_detail.meetings.delete_failed'))
+        await showError(t('common.error'), err.response?.data?.message || t('group_detail.meetings.delete_failed'))
       }
     }
   }
@@ -320,9 +335,9 @@ const GroupDetail = () => {
       const freshMeetings = await meetingService.getMeetingsByGroup(id)
       setMeetings(freshMeetings)
       setEditMeetingDialogOpen(false)
-      alert(t('group_detail.meetings.update_success'))
+      await showSuccess(t('common.success'), t('group_detail.meetings.update_success'))
     } catch (err) {
-      alert(err.response?.data?.message || t('group_detail.meetings.update_failed'))
+      await showError(t('common.error'), err.response?.data?.message || t('group_detail.meetings.update_failed'))
     }
   }
 
@@ -965,9 +980,9 @@ const GroupDetail = () => {
         onClose={() => setDeployModal({ ...deployModal, open: false })}
         type={deployModal.type}
         groupId={id}
-        onDeploySuccess={() => {
+        onDeploySuccess={async () => {
           refreshData();
-          alert('Học liệu đã được kết nối thành công!');
+          await showSuccess(t('common.success'), 'Học liệu đã được kết nối thành công!');
         }}
       />
 
@@ -976,9 +991,9 @@ const GroupDetail = () => {
         onClose={() => setEditDeployModal({ ...editDeployModal, open: false })}
         type={editDeployModal.type}
         resource={editDeployModal.resource}
-        onUpdateSuccess={() => {
+        onUpdateSuccess={async () => {
           refreshData();
-          alert('Cập nhật thiết đặt thành công!');
+          await showSuccess(t('common.success'), 'Cập nhật thiết đặt thành công!');
         }}
       />
 
@@ -997,7 +1012,10 @@ const GroupDetail = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setShareDialogOpen(false)}>{t('common.close')}</Button>
-          <Button variant="contained" onClick={() => { navigator.clipboard.writeText(group.inviteCode); alert(t('common.success')); }}>
+          <Button variant="contained" onClick={async () => { 
+            navigator.clipboard.writeText(group.inviteCode); 
+            await showSuccess(t('common.success'), t('group_detail.invite_code_copied') || 'Đã sao chép mã mời!'); 
+          }}>
             {t('common.copy')}
           </Button>
         </DialogActions>

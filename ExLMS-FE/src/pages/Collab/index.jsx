@@ -17,12 +17,14 @@ import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
+import { useModal } from '../../context/ModalContext';
 
 const GroupCollab = ({ groupId: propGroupId }) => {
   const { groupId: paramsGroupId, collabId } = useParams();
   const groupId = propGroupId || paramsGroupId;
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
+  const { showSuccess, showError, showConfirm } = useModal();
 
   const [collabs, setCollabs] = useState([]);
   const [activeCollab, setActiveCollab] = useState(null);
@@ -59,16 +61,8 @@ const GroupCollab = ({ groupId: propGroupId }) => {
       onConnect: () => {
         client.subscribe('/topic/resource-status', (msg) => {
           const payload = JSON.parse(msg.body);
-          if (payload.type === 'STATUS_CHANGED' && payload.data.type === 'COLLAB') {
-            setCollabs(current => current.map(c =>
-              c.id === payload.data.id ? { ...c, status: payload.data.status } : c
-            ));
-            setActiveCollab(current => {
-              if (current && current.id === payload.data.id) {
-                return { ...current, status: payload.data.status };
-              }
-              return current;
-            });
+          if (payload.type === 'STATUS_CHANGED' && (payload.data.type === 'COLLAB' || payload.data.type === 'Bài tập nhóm')) {
+            fetchData();
           }
         });
       }
@@ -98,8 +92,9 @@ const GroupCollab = ({ groupId: propGroupId }) => {
       setOpenDialog(false);
       resetForm();
       fetchData();
+      await showSuccess(t('common.success'), editingId ? 'Cập nhật thành công!' : 'Tạo phiên làm việc mới thành công!');
     } catch (err) {
-      alert(err.response?.data?.message || 'Có lỗi xảy ra');
+      await showError(t('common.error'), err.response?.data?.message || 'Có lỗi xảy ra');
     }
   };
 
@@ -129,12 +124,18 @@ const GroupCollab = ({ groupId: propGroupId }) => {
 
   const handleDelete = async (id, e) => {
     e.stopPropagation();
-    if (window.confirm('Bạn có chắc chắn muốn xóa phiên làm việc này?')) {
+    const confirmed = await showConfirm(
+      t('common.confirm_delete'),
+      'Bạn có chắc chắn muốn xóa phiên làm việc này?',
+      'error'
+    );
+    if (confirmed) {
       try {
         await collabService.deleteCollab(id);
         fetchData();
+        await showSuccess(t('common.success'), 'Xóa phiên làm việc thành công!');
       } catch (err) {
-        alert(err.response?.data?.message || 'Không thể xóa phiên làm việc');
+        await showError(t('common.error'), err.response?.data?.message || 'Không thể xóa phiên làm việc');
       }
     }
   };

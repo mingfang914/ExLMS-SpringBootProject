@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useModal } from '../../../context/ModalContext'
 import {
   Dialog,
   DialogTitle,
@@ -25,6 +26,7 @@ import assignmentService from '../../../services/assignmentService'
 import * as quizService from '../../../services/quizService'
 
 const DeploymentEditModal = ({ open, onClose, type, resource, onUpdateSuccess }) => {
+  const { showSuccess, showError } = useModal()
   const [config, setConfig] = useState({})
   const [loading, setLoading] = useState(false)
 
@@ -71,7 +73,7 @@ const DeploymentEditModal = ({ open, onClose, type, resource, onUpdateSuccess })
       onClose()
     } catch (err) {
       console.error('Update failed:', err)
-      alert(err.response?.data?.message || 'Cập nhật thất bại. Vui lòng thử lại.')
+      await showError('Cập nhật thất bại', err.response?.data?.message || 'Cập nhật thất bại. Vui lòng thử lại.')
     } finally {
       setLoading(false)
     }

@@ -9,11 +9,13 @@ import assignmentService from '../../services/assignmentService';
 import { ArrowBack as BackIcon, Save as SaveIcon } from '@mui/icons-material';
 import CKEditorWrapper from '../../components/Common/CKEditorWrapper';
 import { useTranslation } from 'react-i18next';
+import { useModal } from '../../context/ModalContext';
 
 const AssignmentForm = () => {
   const { t } = useTranslation();
   const { groupId, id } = useParams();
   const navigate = useNavigate();
+  const { showSuccess, showError } = useModal();
   const isEdit = !!id;
 
   const [formData, setFormData] = useState({
@@ -90,14 +92,14 @@ const AssignmentForm = () => {
         } else {
           await assignmentService.updateTemplate(id, payload);
         }
-        alert(t('common.update_success'));
+        await showSuccess(t('common.success'), t('common.update_success'));
       } else {
         if (groupId) {
           await assignmentService.createAssignment(groupId, payload);
         } else {
           await assignmentService.createTemplate(payload);
         }
-        alert(t('common.create_success'));
+        await showSuccess(t('common.success'), t('common.create_success'));
       }
       navigate(-1);
     } catch (err) {

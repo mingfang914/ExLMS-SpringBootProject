@@ -17,11 +17,13 @@ import {
 import { format } from 'date-fns'
 import { vi } from 'date-fns/locale'
 import meetingService from '../../services/meetingService'
+import { useModal } from '../../context/ModalContext'
 
 const MeetingDetail = () => {
   const { groupId, id } = useParams()
   const navigate = useNavigate()
   const { user } = useSelector((state) => state.auth)
+  const { showSuccess, showError, showConfirm } = useModal()
   const [meeting, setMeeting] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -92,7 +94,7 @@ const MeetingDetail = () => {
         const diffMinutes = (startAt - now) / (1000 * 60)
 
         if (diffMinutes > 15) {
-          alert(`Chưa đến giờ bắt đầu. Vui lòng quay lại sau (Ít nhất là 15 phút trước giờ bắt đầu)`)
+          await showError(t('common.error'), `Chưa đến giờ bắt đầu. Vui lòng quay lại sau (Ít nhất là 15 phút trước giờ bắt đầu)`)
           return
         }
 
@@ -105,7 +107,7 @@ const MeetingDetail = () => {
         }
       })
     } catch (err) {
-      alert(err.response?.data?.message || 'Không thể bắt đầu buổi họp')
+      await showError(t('common.error'), err.response?.data?.message || 'Không thể bắt đầu buổi họp')
     }
   }
 

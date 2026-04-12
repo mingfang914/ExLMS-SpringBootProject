@@ -28,8 +28,12 @@ import {
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import * as quizService from '../../services/quizService'
+import { useModal } from '../../context/ModalContext'
+import { useTranslation } from 'react-i18next'
 
 const QuizInventory = () => {
+  const { t } = useTranslation()
+  const { showSuccess, showError, showConfirm } = useModal()
   const [quizzes, setQuizzes] = useState([])
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
@@ -216,9 +220,19 @@ const QuizInventory = () => {
                           </IconButton>
                           <IconButton 
                             onClick={async () => {
-                              if (window.confirm('Xóa bản mẫu trắc nghiệm này?')) {
-                                await quizService.deleteTemplate(quiz.templateId)
-                                fetchInventory()
+                              const confirmed = await showConfirm(
+                                t('common.confirm_delete'),
+                                'Xóa bản mẫu trắc nghiệm này?',
+                                'error'
+                              );
+                              if (confirmed) {
+                                try {
+                                  await quizService.deleteTemplate(quiz.templateId)
+                                  await showSuccess(t('common.success'), 'Xóa bản mẫu thành công!')
+                                  fetchInventory()
+                                } catch (err) {
+                                  await showError(t('common.error'), 'Không thể xóa bản mẫu')
+                                }
                               }
                             }}
                             sx={{ background: 'rgba(255,255,255,0.05)', borderRadius: '12px', color: '#EF4444' }}

@@ -26,6 +26,7 @@ import { format } from 'date-fns';
 import { vi, enUS } from 'date-fns/locale';
 import CKEditorWrapper from '../../components/Common/CKEditorWrapper';
 import { useTranslation } from 'react-i18next';
+import { useModal } from '../../context/ModalContext';
 
 const AssignmentDetail = () => {
   const { t, i18n } = useTranslation();
@@ -33,6 +34,7 @@ const AssignmentDetail = () => {
   const { groupId, id } = useParams();
   const navigate = useNavigate();
   const { user } = useSelector(state => state.auth);
+  const { showSuccess, showError, showConfirm } = useModal();
 
   const [assignment, setAssignment] = useState(null);
   const [submissions, setSubmissions] = useState([]);
@@ -125,10 +127,10 @@ const AssignmentDetail = () => {
 
       if (editingSubmission) {
         await assignmentService.updateSubmission(editingSubmission, formData);
-        alert(t('assignment_detail.messages.update_success'));
+        await showSuccess(t('common.success'), t('assignment_detail.messages.update_success'));
       } else {
         await assignmentService.submitAssignment(id, formData);
-        alert(t('assignment_detail.messages.submit_success'));
+        await showSuccess(t('common.success'), t('assignment_detail.messages.submit_success'));
       }
 
       // Refresh my submissions
@@ -138,7 +140,7 @@ const AssignmentDetail = () => {
       setSelectedFile(null);
       setEditingSubmission(null);
     } catch (err) {
-      alert(err.response?.data?.message || t('assignment_detail.errors.submit_failed'));
+      await showError(t('common.error'), err.response?.data?.message || t('assignment_detail.errors.submit_failed'));
     } finally {
       setSubmitting(false);
     }
@@ -150,9 +152,9 @@ const AssignmentDetail = () => {
       await assignmentService.deleteSubmission(confirmCancel);
       const mySubs = await assignmentService.getMySubmissions(id);
       setMySubmissions(mySubs);
-      alert(t('assignment_detail.messages.cancel_success'));
+      await showSuccess(t('common.success'), t('assignment_detail.messages.cancel_success'));
     } catch (err) {
-      alert(err.response?.data?.message || t('assignment_detail.errors.cancel_failed'));
+      await showError(t('common.error'), err.response?.data?.message || t('assignment_detail.errors.cancel_failed'));
     } finally {
       setConfirmCancel(null);
     }
@@ -169,7 +171,7 @@ const AssignmentDetail = () => {
   const handleGrade = async () => {
     // Validate score
     if (gradeData.score < 0 || gradeData.score > assignment.maxScore) {
-      alert(t('assignment_detail.errors.invalid_score', { max: assignment.maxScore }));
+      await showError(t('common.error'), t('assignment_detail.errors.invalid_score', { max: assignment.maxScore }));
       return;
     }
 
@@ -180,9 +182,9 @@ const AssignmentDetail = () => {
       const subs = await assignmentService.getAllSubmissions(id);
       setSubmissions(subs);
       setGradingSubmission(null);
-      alert(t('assignment_detail.messages.grade_success'));
+      await showSuccess(t('common.success'), t('assignment_detail.messages.grade_success'));
     } catch (err) {
-      alert(t('assignment_detail.errors.grade_failed'));
+      await showError(t('common.error'), t('assignment_detail.errors.grade_failed'));
     } finally {
       setGrading(false);
     }
@@ -197,7 +199,7 @@ const AssignmentDetail = () => {
       a.download = `Grades_${assignment.title}.xlsx`;
       a.click();
     } catch (err) {
-      alert(t('assignment_detail.errors.export_failed'));
+      await showError(t('common.error'), t('assignment_detail.errors.export_failed'));
     }
   };
 

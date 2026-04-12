@@ -24,8 +24,12 @@ import {
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import courseService from '../../services/courseService'
+import { useModal } from '../../context/ModalContext'
+import { useTranslation } from 'react-i18next'
 
 const CourseInventory = () => {
+  const { t } = useTranslation()
+  const { showSuccess, showError, showConfirm } = useModal()
   const [courses, setCourses] = useState([])
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
@@ -204,11 +208,21 @@ const CourseInventory = () => {
                           >
                             Sửa
                           </Button>
-                          <IconButton
+                          <IconButton 
                             onClick={async () => {
-                              if (window.confirm('Xóa bản mẫu khóa học này?')) {
-                                await courseService.deleteTemplate(course.templateId)
-                                fetchInventory()
+                              const confirmed = await showConfirm(
+                                t('common.confirm_delete'),
+                                'Xóa bản mẫu khóa học này?',
+                                'error'
+                              );
+                              if (confirmed) {
+                                try {
+                                  await courseService.deleteTemplate(course.templateId)
+                                  await showSuccess(t('common.success'), 'Xóa bản mẫu thành công!')
+                                  fetchInventory()
+                                } catch (err) {
+                                  await showError(t('common.error'), 'Không thể xóa bản mẫu')
+                                }
                               }
                             }}
                             sx={{

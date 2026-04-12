@@ -22,6 +22,7 @@ import {
   FiberManualRecord as LiveIcon
 } from '@mui/icons-material'
 import meetingService from '../../services/meetingService'
+import { useModal } from '../../context/ModalContext'
 
 const MeetingRoom = () => {
   const { t } = useTranslation()
@@ -29,6 +30,7 @@ const MeetingRoom = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const { user } = useSelector((state) => state.auth)
+  const { showSuccess, showError, showConfirm } = useModal()
 
   const [meeting, setMeeting] = useState(null)
   const [tabValue, setTabValue] = useState(0)
@@ -84,7 +86,7 @@ const MeetingRoom = () => {
     }
   }, [id, user?.role, handleMeetingEnd])
 
-  const handleWebSocketEvent = useCallback((event) => {
+  const handleWebSocketEvent = useCallback(async (event) => {
     const { type, data } = event
     switch (type) {
       case 'QUESTION_ADDED':
@@ -120,15 +122,15 @@ const MeetingRoom = () => {
       case 'MEMBER_LEFT':
         // If instructor is viewing attendance, refresh it
         if (isInstructor) {
-          fetchData()
+          await fetchData()
         }
         break
       case 'MEETING_STARTED':
-        fetchData()
+        await fetchData()
         break
       case 'MEETING_ENDED':
         if (!isInstructor) {
-          alert(t('meetings.ended_by_instructor'))
+          await showSuccess(t('common.info'), t('meetings.ended_by_instructor'))
         }
         handleMeetingEnd()
         break
@@ -216,7 +218,7 @@ const MeetingRoom = () => {
       setPolls(prev => prev.map(p => p.id === pollId ? { ...p, userVoted: true } : p))
       // fetchData() is now handled by WebSocket
     } catch (err) {
-      alert(t('meetings.already_voted'))
+      await showError(t('common.error'), t('meetings.already_voted'))
     }
   }, [t])
 
@@ -230,7 +232,7 @@ const MeetingRoom = () => {
 
   const handleCreatePoll = async () => {
     if (!pollForm.question.trim() || pollForm.options.some(o => !o.trim())) {
-      alert(t('meetings.poll_form_error'))
+      await showError(t('common.error'), t('meetings.poll_form_error'))
       return
     }
     try {
@@ -277,10 +279,10 @@ const MeetingRoom = () => {
           const file = new File([blob], 'recording.webm', { type: 'video/webm' })
           try {
             await meetingService.uploadRecording(id, file)
-            alert(t('meetings.recording_uploaded') || 'Bản ghi hình đã được lưu và tải lên thành công!')
+            await showSuccess(t('common.success'), t('meetings.recording_uploaded') || 'Bản ghi hình đã được lưu và tải lên thành công!')
           } catch (err) {
             console.error('Lỗi khi tải lên bản ghi', err)
-            alert(err.response?.data?.message || 'Có lỗi xảy ra khi lưu bản ghi hình')
+            await showError(t('common.error'), err.response?.data?.message || 'Có lỗi xảy ra khi lưu bản ghi hình')
           }
           // Stop all tracks
           stream.getTracks().forEach(track => track.stop())
@@ -299,7 +301,7 @@ const MeetingRoom = () => {
 
       } catch (err) {
         console.error('Error starting recording:', err)
-        alert('Không thể bắt đầu ghi hình. Vui lòng cấp quyền chia sẻ màn hình.')
+        await showError(t('common.error'), 'Không thể bắt đầu ghi hình. Vui lòng cấp quyền chia sẻ màn hình.')
       }
     }
   }
