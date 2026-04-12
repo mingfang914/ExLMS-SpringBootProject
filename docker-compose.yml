@@ -47,20 +47,6 @@ services:
     volumes:
       - minio_data:/data
 
-  # 2.1 MinIO Initializer Script (Creates Buckets & Uploads Assets)
-  lms-minio-init:
-    image: minio/mc
-    container_name: lms-minio-init
-    depends_on:
-      - lms-minio
-    entrypoint: >
-      /bin/sh -c "
-      sh /docker-init/init.sh
-      "
-    volumes:
-      - ./docker-init/minio:/docker-init
-      - ./Assets:/assets
-
   # 3. Backend Service (Spring Boot)
   lms-backend:
     build:
@@ -94,6 +80,8 @@ services:
         condition: service_started
     ports:
       - "8081:8081"
+    volumes:
+      - ./Assets:/app/Assets
 
   # 4. Frontend Service (React/Vite served via Nginx)
   lms-frontend:
@@ -112,19 +100,6 @@ services:
       - "3000:80"
     depends_on:
       - lms-backend
-
-  # 5. Database Admin Tool (phpMyAdmin)
-  lms-phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    container_name: lms-phpmyadmin
-    restart: always
-    environment:
-      PMA_HOST: lms-mysql
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
-    ports:
-      - "8080:80"
-    depends_on:
-      - lms-mysql
 
   # 6. Meeting Microservice (Token Generator)
   lms-meeting-service:

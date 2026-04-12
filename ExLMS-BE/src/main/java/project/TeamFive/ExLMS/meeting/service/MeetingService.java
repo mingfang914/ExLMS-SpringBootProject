@@ -88,7 +88,7 @@ public class MeetingService {
                 .createdBy(creator)
                 .title(request.getTitle())
                 .description(request.getDescription())
-                .coverImageUrl(request.getCoverImageUrl())
+                .coverImageKey(request.getCoverImageKey() != null ? request.getCoverImageKey() : "Assets/MeetingDefaultCover.png")
                 .platform("livekit")
                 .joinUrl(joinUrl)
                 .startAt(request.getStartAt() != null ? request.getStartAt() : LocalDateTime.now())
@@ -129,6 +129,7 @@ public class MeetingService {
 
         meeting.setTitle(request.getTitle());
         meeting.setDescription(request.getDescription());
+        if (request.getCoverImageKey() != null) meeting.setCoverImageKey(request.getCoverImageKey());
         meeting.setStartAt(request.getStartAt());
         meeting.setEndAt(request.getEndAt());
         Meeting.MeetingStatus oldStatus = meeting.getStatus();

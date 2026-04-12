@@ -49,7 +49,7 @@ public class AssignmentResponseDTO {
                 .maxFileSizeMb(template.getMaxFileSizeMb())
                 .allowLate(deployment.isAllowLate())
                 .latePenaltyPercent(deployment.getLatePenaltyPercent())
-                .coverImageUrl(template.getCoverImageUrl() != null ? template.getCoverImageUrl() : "/api/files/download/Assets/AssignmentDefaultCover.jpg")
+                .coverImageUrl(template.getCoverImageKey() != null ? "/api/files/download/" + template.getCoverImageKey() : "/api/files/download/Assets/AssignmentDefaultCover.jpg")
                 .status(deployment.getStatus())
                 .build();
     }

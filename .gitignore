@@ -16,7 +16,7 @@ design-system/
 .springBeans
 .sts4-cache
 .env
-.env.local
+.env.production
 
 ### IntelliJ IDEA ###
 .idea

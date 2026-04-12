@@ -15,7 +15,8 @@ import {
   CheckCircle as CheckCircleIcon,
   Error as ErrorIcon,
   Description as DescriptionIcon,
-  FilePresent as FileIcon
+  FilePresent as FileIcon,
+  ChevronLeft as BackIcon
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
@@ -206,6 +207,13 @@ const AssignmentDetail = () => {
 
   return (
     <Box sx={{ p: 4 }}>
+      <Button 
+        startIcon={<BackIcon />} 
+        onClick={() => navigate(`/groups/${groupId}`)}
+        sx={{ mb: 3, fontWeight: 700, borderRadius: '12px', color: 'text.secondary' }}
+      >
+        Quay lại nhóm
+      </Button>
       <Grid container spacing={4}>
         {/* Left Side: Assignment Info */}
         <Grid item xs={12} md={isInstructor ? 12 : 8}>

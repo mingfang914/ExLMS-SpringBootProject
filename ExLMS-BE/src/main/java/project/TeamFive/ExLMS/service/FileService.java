@@ -3,6 +3,7 @@ package project.TeamFive.ExLMS.service;
 import io.minio.GetPresignedObjectUrlArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
+import io.minio.SetBucketPolicyArgs;
 import io.minio.http.Method;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,9 +46,32 @@ public class FileService {
             if (!found) {
                 minioClient.makeBucket(io.minio.MakeBucketArgs.builder().bucket(name).build());
                 log.info("Bucket created successfully: {}", name);
+                setBucketPublicPolicy(name);
             }
         } catch (Exception e) {
             log.error("Error initializing Minio bucket {}: {}", name, e.getMessage());
+        }
+    }
+
+    private void setBucketPublicPolicy(String name) {
+        try {
+            String policy = "{\n" +
+                    "  \"Version\": \"2012-10-17\",\n" +
+                    "  \"Statement\": [\n" +
+                    "    {\n" +
+                    "      \"Action\": [\"s3:GetBucketLocation\", \"s3:GetObject\"],\n" +
+                    "      \"Effect\": \"Allow\",\n" +
+                    "      \"Principal\": \"*\",\n" +
+                    "      \"Resource\": [\"arn:aws:s3:::" + name + "\", \"arn:aws:s3:::" + name + "/*\"]\n" +
+                    "    }\n" +
+                    "  ]\n" +
+                    "}";
+            minioClient.setBucketPolicy(
+                    SetBucketPolicyArgs.builder().bucket(name).config(policy).build()
+            );
+            log.info("Public read policy set for bucket: {}", name);
+        } catch (Exception e) {
+            log.error("Failed to set bucket policy for {}: {}", name, e.getMessage());
         }
     }
 

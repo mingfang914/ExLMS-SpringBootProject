@@ -81,7 +81,7 @@ public class CourseService {
 
         String thumbnailKey = request.getThumbnailKey();
         if (thumbnailKey == null || thumbnailKey.trim().isEmpty()) {
-            thumbnailKey = "DefaultCourseImg.png";
+            thumbnailKey = "Assets/DefaultCourseImg.png";
         }
 
         Course template = Course.builder()

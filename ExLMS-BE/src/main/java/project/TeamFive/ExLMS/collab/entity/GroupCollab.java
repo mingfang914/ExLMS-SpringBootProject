@@ -31,8 +31,8 @@ public class GroupCollab {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "cover_image_url")
-    private String coverImageUrl;
+    @Column(name = "cover_image_key")
+    private String coverImageKey;
 
     @Column(name = "document_data", columnDefinition = "LONGTEXT")
     private String documentData;

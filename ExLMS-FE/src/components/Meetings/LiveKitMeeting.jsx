@@ -13,7 +13,8 @@ const LiveKitMeeting = ({ roomName, identity, name, role, onMeetingEnd }) => {
   const [error, setError] = useState(null);
 
   // Configuration from .env or fallback for local dev
-  const tokenServiceUrl = import.meta.env.VITE_MEETING_SERVICE_URL || 'http://localhost:4000/getToken';
+  const baseServiceUrl = import.meta.env.VITE_MEETING_SERVICE_URL || 'http://localhost:4000';
+  const tokenServiceUrl = baseServiceUrl.endsWith('/getToken') ? baseServiceUrl : `${baseServiceUrl}/getToken`;
   const livekitServerUrl = import.meta.env.VITE_LIVEKIT_URL || 'ws://localhost:7800';
 
   useEffect(() => {

@@ -34,7 +34,7 @@ public class AssignmentService {
         Assignment assignment = Assignment.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
-                .coverImageUrl(request.getCoverImageUrl() != null ? request.getCoverImageUrl() : "http://localhost:9000/exlms-files/Assets/AssignmentDefaultCover.jpg")
+                .coverImageKey(request.getCoverImageKey() != null ? request.getCoverImageKey() : "Assets/AssignmentDefaultCover.jpg")
                 .maxScore(request.getMaxScore() != null ? request.getMaxScore() : 100)
                 .submissionType(safeSubmissionType(request.getSubmissionType()))
                 .allowedFileTypes(request.getAllowedFileTypes())
@@ -64,6 +64,7 @@ public class AssignmentService {
 
         if (request.getTitle() != null) assignment.setTitle(request.getTitle());
         if (request.getDescription() != null) assignment.setDescription(request.getDescription());
+        if (request.getCoverImageKey() != null) assignment.setCoverImageKey(request.getCoverImageKey());
         if (request.getMaxScore() != null) assignment.setMaxScore(request.getMaxScore());
         
         if (request.getSubmissionType() != null) {
@@ -271,7 +272,7 @@ public class AssignmentService {
                 .templateId(assignment.getId())
                 .title(assignment.getTitle())
                 .description(project.TeamFive.ExLMS.util.UrlUtils.normalizeCkeUrls(assignment.getDescription()))
-                .coverImageUrl(assignment.getCoverImageUrl() != null ? assignment.getCoverImageUrl() : "http://localhost:9000/exlms-files/Assets/AssignmentDefaultCover.jpg")
+                .coverImageUrl(assignment.getCoverImageKey() != null ? "/api/files/download/" + assignment.getCoverImageKey() : "/api/files/download/Assets/AssignmentDefaultCover.jpg")
                 .maxScore(assignment.getMaxScore())
                 .submissionType(assignment.getSubmissionType())
                 .allowedFileTypes(assignment.getAllowedFileTypes())

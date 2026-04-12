@@ -28,7 +28,7 @@ public class CollabResponseDTO {
                 .groupId(entity.getGroup().getId())
                 .title(entity.getTitle())
                 .description(entity.getDescription())
-                .coverImageUrl(entity.getCoverImageUrl() != null ? entity.getCoverImageUrl() : "/api/files/download/Assets/CollabDefaultCover.png")
+                .coverImageUrl(entity.getCoverImageKey() != null ? "/api/files/download/" + entity.getCoverImageKey() : "/api/files/download/Assets/CollabDefaultCover.png")
                 .documentData(entity.getDocumentData())
                 .startAt(entity.getStartAt())
                 .endAt(entity.getEndAt())

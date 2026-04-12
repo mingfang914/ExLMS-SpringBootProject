@@ -17,7 +17,7 @@ public class CreateMeetingRequest {
     @NotBlank(message = "Title is required")
     private String title;
     private String description;
-    private String coverImageUrl;
+    private String coverImageKey;
     private LocalDateTime startAt;
     private LocalDateTime endAt;
     private Meeting.MeetingStatus status;

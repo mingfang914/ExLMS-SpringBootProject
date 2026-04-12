@@ -49,7 +49,7 @@ public class StudyGroupService {
         // 3. Khởi tạo đối tượng Nhóm
         String coverKey = request.getCoverKey();
         if (coverKey == null || coverKey.trim().isEmpty()) {
-            coverKey = "DefaultGroupCover.png";
+            coverKey = "Assets/DefaultGroupCover.png";
         }
 
         StudyGroup newGroup = StudyGroup.builder()

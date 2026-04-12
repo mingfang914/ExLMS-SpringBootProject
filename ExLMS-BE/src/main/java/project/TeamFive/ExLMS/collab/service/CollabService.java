@@ -58,7 +58,7 @@ public class CollabService {
                 .group(group)
                 .title(dto.getTitle())
                 .description(dto.getDescription())
-                .coverImageUrl(dto.getCoverImageUrl() != null ? dto.getCoverImageUrl() : "http://localhost:9000/exlms-files/Assets/CollabDefaultCover.png")
+                .coverImageKey(dto.getCoverImageKey() != null ? dto.getCoverImageKey() : "Assets/CollabDefaultCover.png")
                 .startAt(dto.getStartAt())
                 .endAt(dto.getEndAt())
                 .status(GroupCollab.CollabStatus.DRAFT)
