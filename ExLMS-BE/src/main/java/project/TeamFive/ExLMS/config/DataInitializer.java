@@ -29,23 +29,26 @@ public class DataInitializer implements CommandLineRunner {
 
     private void seedAssets() {
         String[] assets = {
-            "AssignmentDefaultCover.jpg",
-            "CollabDefaultCover.png",
-            "DefaultAvatar.png",
-            "DefaultCourseImg.png",
-            "DefaultGroupCover.png",
-            "MeetingDefaultCover.png",
-            "QuizDefaultCover.png"
+                "AssignmentDefaultCover.jpg",
+                "CollabDefaultCover.png",
+                "DefaultAvatar.png",
+                "DefaultCourseImg.png",
+                "DefaultGroupCover.png",
+                "MeetingDefaultCover.png",
+                "QuizDefaultCover.png",
+                "login_gif.mp4",
+                "landingpagePicture.png"
         };
 
         // Try to find Assets directory
         java.io.File assetsDir = new java.io.File("Assets");
         if (!assetsDir.exists()) {
-             assetsDir = new java.io.File("../Assets"); // Try parent if running from subdomain
+            assetsDir = new java.io.File("../Assets"); // Try parent if running from subdomain
         }
 
         if (!assetsDir.exists()) {
-            log.warn("Assets directory not found, skipping asset seeding (Path checked: {})", assetsDir.getAbsolutePath());
+            log.warn("Assets directory not found, skipping asset seeding (Path checked: {})",
+                    assetsDir.getAbsolutePath());
             return;
         }
 
@@ -62,7 +65,10 @@ public class DataInitializer implements CommandLineRunner {
             } catch (Exception e) {
                 retryCount++;
                 log.warn("Minio not ready yet, retrying in 2s... ({}/{})", retryCount, maxRetries);
-                try { Thread.sleep(2000); } catch (InterruptedException ignored) {}
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException ignored) {
+                }
             }
         }
 

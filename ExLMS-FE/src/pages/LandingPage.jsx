@@ -151,7 +151,7 @@ const LandingPage = () => {
             zIndex: 0,
           }}
         >
-          <source src="/api/files/download/login_gif.mp4" type="video/mp4" />
+          <source src="/api/files/download/Assets/login_gif.mp4" type="video/mp4" />
         </video>
 
         <Box
@@ -249,7 +249,7 @@ const LandingPage = () => {
               >
                 <Box
                   component="img"
-                  src="/api/files/download/landingpagePicture.png"
+                  src="/api/files/download/Assets/landingpagePicture.png"
                   sx={{
                     width: '100%',
                     borderRadius: 4,
