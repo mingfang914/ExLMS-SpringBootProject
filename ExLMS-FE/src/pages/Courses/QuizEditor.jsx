@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import {
   Box, Typography, Paper, TextField, Select, MenuItem, FormControl, InputLabel,
   Button, IconButton, Switch, FormControlLabel, Chip, Divider, Accordion,
-  AccordionSummary, AccordionDetails, Alert, Snackbar, CircularProgress, Tooltip
+  AccordionSummary, AccordionDetails, Alert, Snackbar, CircularProgress, Tooltip, Fab
 } from '@mui/material'
 import {
   Add as AddIcon, Delete as DeleteIcon, Save as SaveIcon,
@@ -57,7 +57,7 @@ const QuizEditor = () => {
             // Inventory mode
             data = await quizService.getTemplateById(quizId)
           }
-          
+
           setQuiz({
             title: data.title,
             description: data.description || '',
@@ -174,166 +174,181 @@ const QuizEditor = () => {
       ) : (
         <>
           {/* ── Quiz Config ── */}
-      <Paper className="premium-glass" sx={{ p: 4, mb: 5, borderRadius: '24px', color: 'var(--color-text)' }}>
-        <Typography variant="h6" gutterBottom fontWeight={800} color="var(--color-primary-lt)">{t('quizzes.config')}</Typography>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, mt: 2 }}>
-          <TextField label={t('quizzes.title_label')} fullWidth value={quiz.title}
-            onChange={e => updateQuiz('title', e.target.value)} />
-          <TextField label={t('quizzes.desc_label')} fullWidth multiline rows={2} value={quiz.description}
-            onChange={e => updateQuiz('description', e.target.value)} />
+          <Paper className="premium-glass" sx={{ p: 4, mb: 5, borderRadius: '24px', color: 'var(--color-text)' }}>
+            <Typography variant="h6" gutterBottom fontWeight={800} color="var(--color-primary-lt)">{t('quizzes.config')}</Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, mt: 2 }}>
+              <TextField label={t('quizzes.title_label')} fullWidth value={quiz.title}
+                onChange={e => updateQuiz('title', e.target.value)} />
+              <TextField label={t('quizzes.desc_label')} fullWidth multiline rows={2} value={quiz.description}
+                onChange={e => updateQuiz('description', e.target.value)} />
 
-          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-            <TextField label={t('quizzes.time_limit_label')}
-              type="number" sx={{ flex: 1, minWidth: 280 }}
-              inputProps={{ min: 0 }}
-              value={quiz.timeLimitSec || ''}
-              onChange={e => updateQuiz('timeLimitSec', e.target.value || null)} />
-            <TextField label={t('quizzes.max_attempts_label')} type="number" sx={{ width: 180 }}
-              inputProps={{ min: 1 }}
-              value={quiz.maxAttempts}
-              onChange={e => updateQuiz('maxAttempts', Math.max(1, parseInt(e.target.value) || 1))} />
-            <TextField label={t('quizzes.passing_score_label')} type="number" sx={{ width: 160 }}
-              inputProps={{ min: 0, max: 100 }}
-              value={quiz.passingScore}
-              onChange={e => updateQuiz('passingScore', Math.max(0, Math.min(100, parseInt(e.target.value) || 0)))} />
+              <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                <TextField label={t('quizzes.time_limit_label')}
+                  type="number" sx={{ flex: 1, minWidth: 280 }}
+                  inputProps={{ min: 0 }}
+                  value={quiz.timeLimitSec || ''}
+                  onChange={e => updateQuiz('timeLimitSec', e.target.value || null)} />
+                <TextField label={t('quizzes.max_attempts_label')} type="number" sx={{ width: 180 }}
+                  inputProps={{ min: 1 }}
+                  value={quiz.maxAttempts}
+                  onChange={e => updateQuiz('maxAttempts', Math.max(1, parseInt(e.target.value) || 1))} />
+                <TextField label={t('quizzes.passing_score_label')} type="number" sx={{ width: 160 }}
+                  inputProps={{ min: 0, max: 100 }}
+                  value={quiz.passingScore}
+                  onChange={e => updateQuiz('passingScore', Math.max(0, Math.min(100, parseInt(e.target.value) || 0)))} />
+              </Box>
+
+
+            </Box>
+          </Paper>
+
+          {/* ── Questions ── */}
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2.5 }}>
+            <Typography variant="h6" fontWeight={700}>{t('quizzes.question')} ({questions.length})</Typography>
           </Box>
 
+          {questions.map((q, qIdx) => (
+            <Accordion key={qIdx} defaultExpanded className="premium-glass glow-on-hover" sx={{ mb: 3, borderRadius: '24px !important', color: 'var(--color-text)', overflow: 'hidden', '&:before': { display: 'none' } }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: 'var(--color-text-muted)' }} />}>
+                <Chip label={t('quizzes.question_no', { count: qIdx + 1 })} size="small" sx={{ mr: 2, fontWeight: 700, bgcolor: 'rgba(99,102,241,0.1)', color: '#818CF8' }} />
+                <Typography noWrap sx={{ flex: 1, fontWeight: 600 }}>{q.content || t('quizzes.enter_question_placeholder')}</Typography>
+                <Chip label={QUESTION_TYPES.find(t => t.value === q.questionType)?.label || q.questionType}
+                  size="small" color="primary" variant="outlined" sx={{ mr: 2, borderRadius: 1.5 }} />
+                <IconButton size="small" color="error" onClick={(e) => { e.stopPropagation(); deleteQuestion(qIdx) }} sx={{ border: '1px solid var(--color-border)', borderRadius: '8px' }}>
+                  <DeleteIcon fontSize="small" />
+                </IconButton>
+              </AccordionSummary>
+              <AccordionDetails sx={{ borderTop: '1px solid var(--color-border)', pt: 3 }}>
+                <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+                  <TextField label={t('quizzes.question_content_label')} fullWidth value={q.content}
+                    onChange={e => updateQuestion(qIdx, 'content', e.target.value)} />
+                  <FormControl sx={{ minWidth: 240 }}>
+                    <InputLabel>{t('quizzes.question_type_label')}</InputLabel>
+                    <Select value={q.questionType} label={t('quizzes.question_type_label')}
+                      onChange={e => updateQuestion(qIdx, 'questionType', e.target.value)}>
+                      {QUESTION_TYPES.map(t => (
+                        <MenuItem key={t.value} value={t.value}>{t.label}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                  <TextField
+                    label={t('quizzes.points_label')}
+                    type="number"
+                    sx={{ width: 120 }}
+                    value={q.points}
+                    inputProps={{ min: 1 }}
+                    onChange={e => updateQuestion(qIdx, 'points', Math.max(1, parseInt(e.target.value) || 1))} />
+                </Box>
 
-        </Box>
-      </Paper>
-
-      {/* ── Questions ── */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2.5 }}>
-        <Typography variant="h6" fontWeight={700}>{t('quizzes.question')} ({questions.length})</Typography>
-        <Button 
-            variant="contained" 
-            startIcon={<AddIcon />} 
-            onClick={addQuestion}
-            sx={{ 
-                borderRadius: '10px', fontWeight: 700,
-                background: 'linear-gradient(135deg, #6366F1, #4F46E5)',
-                '&:hover': { background: 'linear-gradient(135deg, #818CF8, #6366F1)' }
-            }}
-        >
-          {t('quizzes.add_question')}
-        </Button>
-      </Box>
-
-      {questions.map((q, qIdx) => (
-        <Accordion key={qIdx} defaultExpanded className="premium-glass glow-on-hover" sx={{ mb: 3, borderRadius: '24px !important', color: 'var(--color-text)', overflow: 'hidden', '&:before': { display: 'none' } }}>
-          <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: 'var(--color-text-muted)' }} />}>
-            <Chip label={t('quizzes.question_no', { count: qIdx + 1 })} size="small" sx={{ mr: 2, fontWeight: 700, bgcolor: 'rgba(99,102,241,0.1)', color: '#818CF8' }} />
-            <Typography noWrap sx={{ flex: 1, fontWeight: 600 }}>{q.content || t('quizzes.enter_question_placeholder')}</Typography>
-            <Chip label={QUESTION_TYPES.find(t => t.value === q.questionType)?.label || q.questionType}
-              size="small" color="primary" variant="outlined" sx={{ mr: 2, borderRadius: 1.5 }} />
-            <IconButton size="small" color="error" onClick={(e) => { e.stopPropagation(); deleteQuestion(qIdx) }} sx={{ border: '1px solid var(--color-border)', borderRadius: '8px' }}>
-              <DeleteIcon fontSize="small" />
-            </IconButton>
-          </AccordionSummary>
-          <AccordionDetails sx={{ borderTop: '1px solid var(--color-border)', pt: 3 }}>
-            <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-              <TextField label={t('quizzes.question_content_label')} fullWidth value={q.content}
-                onChange={e => updateQuestion(qIdx, 'content', e.target.value)} />
-              <FormControl sx={{ minWidth: 240 }}>
-                <InputLabel>{t('quizzes.question_type_label')}</InputLabel>
-                <Select value={q.questionType} label={t('quizzes.question_type_label')}
-                  onChange={e => updateQuestion(qIdx, 'questionType', e.target.value)}>
-                  {QUESTION_TYPES.map(t => (
-                    <MenuItem key={t.value} value={t.value}>{t.label}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <TextField 
-                label={t('quizzes.points_label')} 
-                type="number" 
-                sx={{ width: 120 }} 
-                value={q.points}
-                inputProps={{ min: 1 }}
-                onChange={e => updateQuestion(qIdx, 'points', Math.max(1, parseInt(e.target.value) || 1))} />
-            </Box>
-
-            {/* Answers — only for choice questions */}
-            {['SINGLE_CHOICE', 'MULTIPLE_CHOICE', 'TRUE_FALSE'].includes(q.questionType) && (
-              <Box sx={{ p: 3, borderRadius: '20px', bgcolor: 'rgba(0,0,0,0.15)', border: '1px solid var(--glass-border)' }}>
-                <Typography variant="subtitle2" color="var(--color-text-sec)" mb={2} fontWeight={700}>
-                  {t('quizzes.answers_label')}
-                </Typography>
-                {(q.questionType === 'TRUE_FALSE'
-                  ? [{ content: t('quizzes.types.true'), isCorrect: q.answers[0]?.isCorrect }, { content: t('quizzes.types.false'), isCorrect: q.answers[1]?.isCorrect }]
-                  : q.answers
-                ).map((a, aIdx) => (
-                  <Box key={aIdx} sx={{ display: 'flex', gap: 1.5, mb: 1.5, alignItems: 'center' }}>
-                    <Tooltip title={t('quizzes.mark_correct')}>
-                        <Button
-                        variant={a.isCorrect ? 'contained' : 'outlined'}
-                        color={a.isCorrect ? 'success' : 'inherit'}
-                        size="small" 
-                        sx={{ 
-                            minWidth: 44, height: 40, 
-                            borderRadius: (q.questionType === 'SINGLE_CHOICE' || q.questionType === 'TRUE_FALSE') ? '50%' : '8px' 
-                        }}
-                        onClick={() => setCorrectAnswer(qIdx, aIdx, q.questionType === 'SINGLE_CHOICE' || q.questionType === 'TRUE_FALSE')}
-                        >
-                          {a.isCorrect ? '✓' : ''}
-                        </Button>
-                    </Tooltip>
-                    <TextField
-                      size="small" fullWidth
-                      placeholder={t('quizzes.placeholder_answer', { count: aIdx + 1 })}
-                      value={a.content}
-                      disabled={q.questionType === 'TRUE_FALSE'}
-                      onChange={e => updateAnswer(qIdx, aIdx, 'content', e.target.value)}
-                    />
+                {/* Answers — only for choice questions */}
+                {['SINGLE_CHOICE', 'MULTIPLE_CHOICE', 'TRUE_FALSE'].includes(q.questionType) && (
+                  <Box sx={{ p: 3, borderRadius: '20px', bgcolor: 'rgba(0,0,0,0.15)', border: '1px solid var(--glass-border)' }}>
+                    <Typography variant="subtitle2" color="var(--color-text-sec)" mb={2} fontWeight={700}>
+                      {t('quizzes.answers_label')}
+                    </Typography>
+                    {(q.questionType === 'TRUE_FALSE'
+                      ? [{ content: t('quizzes.types.true'), isCorrect: q.answers[0]?.isCorrect }, { content: t('quizzes.types.false'), isCorrect: q.answers[1]?.isCorrect }]
+                      : q.answers
+                    ).map((a, aIdx) => (
+                      <Box key={aIdx} sx={{ display: 'flex', gap: 1.5, mb: 1.5, alignItems: 'center' }}>
+                        <Tooltip title={t('quizzes.mark_correct')}>
+                          <Button
+                            variant={a.isCorrect ? 'contained' : 'outlined'}
+                            color={a.isCorrect ? 'success' : 'inherit'}
+                            size="small"
+                            sx={{
+                              minWidth: 44, height: 40,
+                              borderRadius: (q.questionType === 'SINGLE_CHOICE' || q.questionType === 'TRUE_FALSE') ? '50%' : '8px'
+                            }}
+                            onClick={() => setCorrectAnswer(qIdx, aIdx, q.questionType === 'SINGLE_CHOICE' || q.questionType === 'TRUE_FALSE')}
+                          >
+                            {a.isCorrect ? '✓' : ''}
+                          </Button>
+                        </Tooltip>
+                        <TextField
+                          size="small" fullWidth
+                          placeholder={t('quizzes.placeholder_answer', { count: aIdx + 1 })}
+                          value={a.content}
+                          disabled={q.questionType === 'TRUE_FALSE'}
+                          onChange={e => updateAnswer(qIdx, aIdx, 'content', e.target.value)}
+                        />
+                        {q.questionType !== 'TRUE_FALSE' && (
+                          <IconButton size="small" color="error" onClick={() => deleteAnswer(qIdx, aIdx)} sx={{ border: '1px solid var(--color-border)', borderRadius: '8px' }}>
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        )}
+                      </Box>
+                    ))}
                     {q.questionType !== 'TRUE_FALSE' && (
-                      <IconButton size="small" color="error" onClick={() => deleteAnswer(qIdx, aIdx)} sx={{ border: '1px solid var(--color-border)', borderRadius: '8px' }}>
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
+                      <Button size="small" startIcon={<AddIcon />} onClick={() => addAnswer(qIdx)} sx={{ mt: 1, fontWeight: 700 }}>
+                        {t('quizzes.add_answer')}
+                      </Button>
                     )}
                   </Box>
-                ))}
-                {q.questionType !== 'TRUE_FALSE' && (
-                  <Button size="small" startIcon={<AddIcon />} onClick={() => addAnswer(qIdx)} sx={{ mt: 1, fontWeight: 700 }}>
-                    {t('quizzes.add_answer')}
-                  </Button>
                 )}
-              </Box>
-            )}
 
-            {q.questionType === 'FILL_BLANK' && (
-              <Box sx={{ p: 3, borderRadius: '20px', bgcolor: 'rgba(0,0,0,0.15)', border: '1px solid var(--glass-border)' }}>
-                <TextField label={t('quizzes.types.correct_answer')} fullWidth size="small"
-                    value={q.answers[0]?.content || ''}
-                    onChange={e => updateAnswer(qIdx, 0, 'content', e.target.value)}
-                    placeholder={t('quizzes.types.enter_correct')} />
-              </Box>
-            )}
+                {q.questionType === 'FILL_BLANK' && (
+                  <Box sx={{ p: 3, borderRadius: '20px', bgcolor: 'rgba(0,0,0,0.15)', border: '1px solid var(--glass-border)' }}>
+                    <TextField label={t('quizzes.types.correct_answer')} fullWidth size="small"
+                      value={q.answers[0]?.content || ''}
+                      onChange={e => updateAnswer(qIdx, 0, 'content', e.target.value)}
+                      placeholder={t('quizzes.types.enter_correct')} />
+                  </Box>
+                )}
 
-            {q.questionType === 'SHORT_ANSWER' && (
-              <Alert severity="info" sx={{ borderRadius: '10px' }}>
-                {t('quizzes.short_answer_hint')}
-              </Alert>
-            )}
+                {q.questionType === 'SHORT_ANSWER' && (
+                  <Alert severity="info" sx={{ borderRadius: '10px' }}>
+                    {t('quizzes.short_answer_hint')}
+                  </Alert>
+                )}
 
-            {/* Explanation */}
-            {q.questionType !== 'SHORT_ANSWER' && (
-              <TextField label={t('quizzes.explanation_label')} fullWidth multiline rows={2}
-                sx={{ mt: 3 }} size="small" value={q.explanation}
-                onChange={e => updateQuestion(qIdx, 'explanation', e.target.value)} />
-            )}
-          </AccordionDetails>
-        </Accordion>
-      ))}
+                {/* Explanation */}
+                {q.questionType !== 'SHORT_ANSWER' && (
+                  <TextField label={t('quizzes.explanation_label')} fullWidth multiline rows={2}
+                    sx={{ mt: 3 }} size="small" value={q.explanation}
+                    onChange={e => updateQuestion(qIdx, 'explanation', e.target.value)} />
+                )}
+              </AccordionDetails>
+            </Accordion>
+          ))}
 
-        <Button variant="contained" startIcon={<SaveIcon />} size="large" sx={{ mt: 4, py: 2, borderRadius: '12px', fontWeight: 800, background: 'linear-gradient(135deg, #6366F1, #4F46E5)' }}
-          onClick={handleSave} disabled={saving} fullWidth>
-          {saving ? <CircularProgress size={22} color="inherit" /> : (isEdit ? t('quizzes.update_btn') : t('quizzes.create_btn'))}
-        </Button>
-      </>)}
+          <Button variant="contained" startIcon={<SaveIcon />} size="large" sx={{ mt: 4, py: 2, borderRadius: '12px', fontWeight: 800, background: 'linear-gradient(135deg, #6366F1, #4F46E5)' }}
+            onClick={handleSave} disabled={saving} fullWidth>
+            {saving ? <CircularProgress size={22} color="inherit" /> : (isEdit ? t('quizzes.update_btn') : t('quizzes.create_btn'))}
+          </Button>
+        </>)}
 
       <Snackbar open={snackbar.open} autoHideDuration={3000}
         onClose={() => setSnackbar(p => ({ ...p, open: false }))}>
         <Alert severity={snackbar.severity} sx={{ borderRadius: '10px' }}>{snackbar.msg}</Alert>
       </Snackbar>
+
+      {/* Fixed Bottom-Right FAB: Add Question */}
+      <Tooltip title={t('quizzes.add_question')} placement="left" arrow>
+        <Fab
+          onClick={addQuestion}
+          sx={{
+            position: 'fixed',
+            bottom: 32,
+            right: 32,
+            zIndex: 1200,
+            width: 64,
+            height: 64,
+            background: 'linear-gradient(135deg, #6366F1, #4F46E5)',
+            color: '#fff',
+            boxShadow: '0 8px 32px rgba(99, 102, 241, 0.5)',
+            transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+            '&:hover': {
+              background: 'linear-gradient(135deg, #818CF8, #6366F1)',
+              transform: 'scale(1.1) translateY(-4px)',
+              boxShadow: '0 16px 40px rgba(99, 102, 241, 0.6)',
+            },
+            '&:active': { transform: 'scale(0.95)' },
+          }}
+        >
+          <AddIcon sx={{ fontSize: 28 }} />
+        </Fab>
+      </Tooltip>
     </Box>
   )
 }

@@ -8,20 +8,33 @@ class MyUploadAdapter {
   }
   upload() {
     return this.loader.file.then(file => new Promise((resolve, reject) => {
+      console.log('[CKEditor] Starting upload for file:', file.name);
       const formData = new FormData();
       formData.append('upload', file);
       const token = localStorage.getItem('token');
+      
       fetch('/api/cke/upload', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
         body: formData
       })
-        .then(res => res.json())
+        .then(async res => {
+          if (!res.ok) {
+            const errorText = await res.text();
+            console.error('[CKEditor] Upload failed with status:', res.status, errorText);
+            throw new Error(`Upload failed with status ${res.status}`);
+          }
+          return res.json();
+        })
         .then(res => {
+          console.log('[CKEditor] Upload response:', res);
           if (res.uploaded) resolve({ default: res.url });
           else reject(res.error?.message || 'Upload failed');
         })
-        .catch(err => reject(err));
+        .catch(err => {
+          console.error('[CKEditor] Upload error:', err);
+          reject(err);
+        });
     }));
   }
   abort() { }

@@ -7,6 +7,8 @@ import project.TeamFive.ExLMS.course.dto.request.CourseRequest;
 import project.TeamFive.ExLMS.course.dto.response.CourseResponse;
 import project.TeamFive.ExLMS.course.service.CourseService;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import project.TeamFive.ExLMS.user.entity.User;
 import java.util.List;
 import java.util.UUID;
 
@@ -45,6 +47,15 @@ public class CourseController {
             @PathVariable UUID deploymentId,
             @RequestBody CourseRequest request) {
         return ResponseEntity.ok(courseService.updateCourseDeployment(deploymentId, request));
+    }
+
+    @PostMapping("/{deploymentId}/full-save")
+    public ResponseEntity<CourseResponse> fullSave(
+            @PathVariable UUID groupId,
+            @PathVariable UUID deploymentId,
+            @RequestBody project.TeamFive.ExLMS.course.dto.request.FullCourseRequest request,
+            @AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(courseService.saveFullCourse(deploymentId, request, user));
     }
 
     @DeleteMapping("/{deploymentId}")

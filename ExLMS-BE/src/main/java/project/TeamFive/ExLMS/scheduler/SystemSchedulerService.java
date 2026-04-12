@@ -16,8 +16,6 @@ import project.TeamFive.ExLMS.quiz.entity.GroupQuiz;
 import project.TeamFive.ExLMS.quiz.repository.GroupQuizRepository;
 import project.TeamFive.ExLMS.collab.entity.GroupCollab;
 import project.TeamFive.ExLMS.collab.repository.GroupCollabRepository;
-
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -43,7 +41,6 @@ public class SystemSchedulerService {
     @Transactional
     public void processRealtimeUpdates() {
         LocalDateTime now = LocalDateTime.now();
-        LocalDate today = LocalDate.now();
         log.info("SystemScheduler: Starting periodic status update check at {}", now);
 
         processMeetings(now);
@@ -80,7 +77,7 @@ public class SystemSchedulerService {
         // 1. Open draft meetings that reached startAt
         List<Meeting> toOpen = meetingRepository.findByStatusAndStartAtBefore(
                 Meeting.MeetingStatus.DRAFT, now);
-        
+
         for (Meeting meeting : toOpen) {
             log.info("SystemScheduler: Publishing meeting '{}' (ID: {})", meeting.getTitle(), meeting.getId());
             meeting.setStatus(Meeting.MeetingStatus.PUBLISHED);
@@ -129,7 +126,7 @@ public class SystemSchedulerService {
         // 1. Open draft quizzes that reached openAt
         List<GroupQuiz> toOpen = groupQuizRepository.findByStatusAndOpenAtBefore(
                 GroupQuiz.GroupQuizStatus.DRAFT, now);
-        
+
         for (GroupQuiz quiz : toOpen) {
             log.info("SystemScheduler: Opening quiz (ID: {})", quiz.getId());
             quiz.setStatus(GroupQuiz.GroupQuizStatus.PUBLISHED);
@@ -140,7 +137,7 @@ public class SystemSchedulerService {
         // 2. Close quizzes that reached closeAt
         List<GroupQuiz> toClose = groupQuizRepository.findByStatusAndCloseAtBefore(
                 GroupQuiz.GroupQuizStatus.PUBLISHED, now);
-        
+
         for (GroupQuiz quiz : toClose) {
             log.info("SystemScheduler: Closing quiz (ID: {})", quiz.getId());
             quiz.setStatus(GroupQuiz.GroupQuizStatus.CLOSED);
@@ -151,12 +148,11 @@ public class SystemSchedulerService {
 
     private void processCollabs(LocalDateTime now) {
         // 1. Open draft collabs that reached startAt
-        List<GroupCollab> toOpen = groupCollabRepository.findByStatusNotAndEndAtBefore(
-                GroupCollab.CollabStatus.PUBLISHED, now); // Reusing logic for START
-        
-        // Actually we need better query for START. But we can use the existing logic for CLOSE first.
-        // Let's refine the repository query or use manual filter for simplicity here as mângement is small.
-        
+        // Actually we need better query for START. But we can use the existing logic
+        // for CLOSE first.
+        // Let's refine the repository query or use manual filter for simplicity here as
+        // mângement is small.
+
         List<GroupCollab> allCollabs = groupCollabRepository.findAll();
         for (GroupCollab collab : allCollabs) {
             if (collab.getStatus() == GroupCollab.CollabStatus.DRAFT && collab.getStartAt().isBefore(now)) {
@@ -164,7 +160,8 @@ public class SystemSchedulerService {
                 collab.setStatus(GroupCollab.CollabStatus.PUBLISHED);
                 groupCollabRepository.save(collab);
                 broadcastStatusUpdate(collab.getId(), "COLLAB", "PUBLISHED");
-            } else if (collab.getStatus() == GroupCollab.CollabStatus.PUBLISHED && collab.getEndAt() != null && collab.getEndAt().isBefore(now)) {
+            } else if (collab.getStatus() == GroupCollab.CollabStatus.PUBLISHED && collab.getEndAt() != null
+                    && collab.getEndAt().isBefore(now)) {
                 log.info("SystemScheduler: Closing collab '{}' (ID: {})", collab.getTitle(), collab.getId());
                 collab.setStatus(GroupCollab.CollabStatus.CLOSED);
                 groupCollabRepository.save(collab);

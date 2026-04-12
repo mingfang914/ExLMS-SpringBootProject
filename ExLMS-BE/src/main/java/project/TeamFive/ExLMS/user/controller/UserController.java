@@ -7,8 +7,6 @@ import org.springframework.web.bind.annotation.*;
 import project.TeamFive.ExLMS.user.dto.request.ProfileUpdateRequest;
 import project.TeamFive.ExLMS.user.entity.User;
 import project.TeamFive.ExLMS.user.repository.UserRepository;
-import project.TeamFive.ExLMS.service.FileService;
-
 import java.util.Map;
 import java.util.HashMap;
 import java.time.format.DateTimeFormatter;
@@ -33,13 +31,13 @@ public class UserController {
         response.put("bio", user.getBio());
         response.put("role", user.getRole() != null ? user.getRole().name() : null);
         response.put("status", user.getStatus());
-        
+
         if (user.getCreatedAt() != null) {
             response.put("createdAt", user.getCreatedAt().format(DateTimeFormatter.ISO_DATE_TIME));
         } else {
             response.put("createdAt", null);
         }
-        
+
         String avatarUrl = null;
         if (user.getAvatarKey() != null && !user.getAvatarKey().trim().isEmpty()) {
             avatarUrl = "/api/files/download/" + user.getAvatarKey();
@@ -53,7 +51,7 @@ public class UserController {
     public ResponseEntity<String> updateProfile(
             @AuthenticationPrincipal User currentUser,
             @RequestBody ProfileUpdateRequest request) {
-        
+
         User user = userRepository.findById(currentUser.getId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
 

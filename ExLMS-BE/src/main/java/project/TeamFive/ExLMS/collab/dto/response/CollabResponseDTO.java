@@ -2,8 +2,6 @@ package project.TeamFive.ExLMS.collab.dto.response;
 
 import lombok.Builder;
 import lombok.Data;
-import project.TeamFive.ExLMS.collab.entity.GroupCollab;
-
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -28,7 +26,8 @@ public class CollabResponseDTO {
                 .groupId(entity.getGroup().getId())
                 .title(entity.getTitle())
                 .description(entity.getDescription())
-                .coverImageUrl(entity.getCoverImageKey() != null ? "/api/files/download/" + entity.getCoverImageKey() : "/api/files/download/Assets/CollabDefaultCover.png")
+                .coverImageUrl(entity.getCoverImageKey() != null ? "/api/files/download/" + entity.getCoverImageKey()
+                        : "/api/files/download/Assets/CollabDefaultCover.png")
                 .documentData(entity.getDocumentData())
                 .startAt(entity.getStartAt())
                 .endAt(entity.getEndAt())

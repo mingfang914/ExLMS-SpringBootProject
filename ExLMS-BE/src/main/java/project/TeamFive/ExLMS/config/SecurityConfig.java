@@ -37,6 +37,7 @@ public class SecurityConfig {
                                                                 "/api/v1/collabs/internal/**",
                                                                 "/api/ws/**", "/ws/**", "/error")
                                                 .permitAll()
+                                                .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/cke/upload").authenticated()
                                                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                                                 .requestMatchers("/api/v1/instructor/**")
                                                 .hasAnyRole("ADMIN", "INSTRUCTOR")

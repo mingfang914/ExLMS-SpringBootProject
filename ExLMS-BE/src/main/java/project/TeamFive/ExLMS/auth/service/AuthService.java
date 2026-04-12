@@ -66,7 +66,7 @@ public class AuthService {
                 .status(status)
                 .emailVerified(false)
                 .failedLoginCount(0)
-                .avatarKey("DefaultAvatar.png")
+                .avatarKey("Assets/DefaultAvatar.png")
                 .build();
 
         userRepository.save(newUser);

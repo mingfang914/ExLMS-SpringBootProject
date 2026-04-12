@@ -47,6 +47,8 @@ import {
 } from '@mui/icons-material'
 import { Clock } from 'lucide-react'
 import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { useModal } from '../../context/ModalContext'
 import groupService from '../../services/groupService'
 import courseService from '../../services/courseService'
 import assignmentService from '../../services/assignmentService'
@@ -54,7 +56,6 @@ import * as quizService from '../../services/quizService'
 import meetingService from '../../services/meetingService'
 import { format } from 'date-fns'
 import { vi, enUS } from 'date-fns/locale'
-import { useTranslation } from 'react-i18next'
 
 import GroupMembers from './components/GroupMembers'
 import GroupFeed from './components/GroupFeed'
@@ -80,6 +81,7 @@ const DashedPanel = ({ children, sx = {} }) => (
 
 const GroupDetail = () => {
   const { t, i18n } = useTranslation()
+  const { showConfirm, showSuccess, showError } = useModal()
   const { id } = useParams()
   const [group, setGroup] = useState(null)
   const [courses, setCourses] = useState([])
@@ -226,13 +228,19 @@ const GroupDetail = () => {
   }
 
   const handleLeaveGroup = async () => {
-    if (!window.confirm('Bạn có chắc chắn muốn rời khỏi nhóm học tập này?')) return
+    const confirmed = await showConfirm(
+      t('group_detail.tabs.leave'),
+      t('group_detail.messages.leave_confirm'),
+      'warning'
+    )
+    if (!confirmed) return
+
     try {
       await groupService.leaveGroup(id)
-      alert('Đã rời khỏi nhóm thành công!')
+      await showSuccess(t('common.success'), t('group_detail.messages.leave_success'))
       navigate('/groups')
     } catch (err) {
-      alert(err.response?.data?.message || 'Không thể rời nhóm lúc này!')
+      showError(t('common.error'), err.response?.data?.message || t('group_detail.messages.leave_failed'))
     }
   }
 
@@ -359,18 +367,37 @@ const GroupDetail = () => {
           </Box>
         </Box>
         
-        <Box sx={{ p: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 3 }}>
-          <Tabs value={activeTab} onChange={(e, val) => setActiveTab(val)}>
-            <Tab icon={<InfoIcon />} iconPosition="start" label={t('group_detail.tabs.overview')} />
-            {group.isJoined && <Tab icon={<CourseIcon />} iconPosition="start" label={t('group_detail.tabs.courses')} />}
-            {group.isJoined && <Tab icon={<AssignmentIcon />} iconPosition="start" label={t('group_detail.tabs.assignments')} />}
-            {group.isJoined && <Tab icon={<QuizIcon />} iconPosition="start" label="Kiểm tra" />}
-            {group.isJoined && <Tab icon={<MeetingIcon />} iconPosition="start" label={t('group_detail.tabs.meetings')} />}
-            {group.isJoined && <Tab icon={<ShareIcon />} iconPosition="start" label="Làm việc nhóm" />}
-            {group.isJoined && <Tab icon={<ForumIcon />} iconPosition="start" label={t('group_detail.tabs.feed')} />}
-            {group.isJoined && <Tab icon={<PeopleIcon />} iconPosition="start" label={t('group_detail.tabs.members')} />}
+        <Box 
+          sx={{ 
+            p: 1, 
+            display: 'flex', 
+            flexDirection: { xs: 'column', md: 'row' },
+            justifyContent: 'space-between', 
+            alignItems: { xs: 'stretch', md: 'center' }, 
+            px: { xs: 1, md: 3 },
+            gap: 2
+          }}
+        >
+          <Tabs 
+            value={activeTab} 
+            onChange={(e, val) => setActiveTab(val)}
+            variant="scrollable"
+            scrollButtons="auto"
+            allowScrollButtonsMobile
+            sx={{
+              '& .MuiTabs-flexContainer': { gap: { xs: 0, md: 1 } }
+            }}
+          >
+            <Tab icon={<InfoIcon />} iconPosition="start" label={t('group_detail.tabs.overview')} sx={{ minHeight: 64 }} />
+            {group.isJoined && <Tab icon={<CourseIcon />} iconPosition="start" label={t('group_detail.tabs.courses')} sx={{ minHeight: 64 }} />}
+            {group.isJoined && <Tab icon={<AssignmentIcon />} iconPosition="start" label={t('group_detail.tabs.assignments')} sx={{ minHeight: 64 }} />}
+            {group.isJoined && <Tab icon={<QuizIcon />} iconPosition="start" label={t('group_detail.tabs.quizzes')} sx={{ minHeight: 64 }} />}
+            {group.isJoined && <Tab icon={<MeetingIcon />} iconPosition="start" label={t('group_detail.tabs.meetings')} sx={{ minHeight: 64 }} />}
+            {group.isJoined && <Tab icon={<ShareIcon />} iconPosition="start" label={t('group_detail.tabs.collab')} sx={{ minHeight: 64 }} />}
+            {group.isJoined && <Tab icon={<ForumIcon />} iconPosition="start" label={t('group_detail.tabs.feed')} sx={{ minHeight: 64 }} />}
+            {group.isJoined && <Tab icon={<PeopleIcon />} iconPosition="start" label={t('group_detail.tabs.members')} sx={{ minHeight: 64 }} />}
           </Tabs>
-          <Box sx={{ display: 'flex', gap: 1 }}>
+          <Box sx={{ display: 'flex', gap: 1, justifyContent: { xs: 'flex-end', md: 'flex-start' }, px: { xs: 1, md: 0 }, pb: { xs: 1, md: 0 } }}>
             {!group.isJoined ? (
               <Button variant="contained" color="secondary" onClick={handleJoinGroup}>
                 {t('group_card.join')}
@@ -395,7 +422,7 @@ const GroupDetail = () => {
                     onClick={handleLeaveGroup}
                     sx={{ borderRadius: '12px', fontWeight: 700 }}
                   >
-                    Rời nhóm
+                    {t('group_detail.tabs.leave')}
                   </Button>
                 )}
               </>
@@ -452,7 +479,7 @@ const GroupDetail = () => {
                     onClick={() => setDeployModal({ open: true, type: 'course' })}
                     sx={{ borderRadius: '12px', fontWeight: 700, background: 'linear-gradient(135deg, #6366F1, #4F46E5)' }}
                   >
-                    Kết nối từ kho đồ
+                    {t('group_detail.actions.connect_inventory')}
                   </Button>
                 </Box>
               )}
@@ -483,15 +510,15 @@ const GroupDetail = () => {
                         </Typography>
                         <Stack spacing={1}>
                           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <Typography variant="caption" color="text.secondary">Trạng thái</Typography>
+                            <Typography variant="caption" color="text.secondary">{t('group_detail.resource_card.status')}</Typography>
                             <Chip label={course.status} size="small" color={course.status === 'PUBLISHED' ? 'success' : 'default'} />
                           </Box>
                           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <Typography variant="caption" color="text.secondary">Ngày tạo</Typography>
+                            <Typography variant="caption" color="text.secondary">{t('group_detail.resource_card.created_at')}</Typography>
                             <Typography variant="caption" fontWeight={700}>{course.startDate ? format(new Date(course.startDate), 'dd/MM/yyyy') : '---'}</Typography>
                           </Box>
                           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <Typography variant="caption" color="text.secondary">Ngày kết thúc</Typography>
+                            <Typography variant="caption" color="text.secondary">{t('course_editor.end_date_label')}</Typography>
                             <Typography variant="caption" fontWeight={700}>{course.endDate ? format(new Date(course.endDate), 'dd/MM/yyyy') : '---'}</Typography>
                           </Box>
                         </Stack>
@@ -549,7 +576,7 @@ const GroupDetail = () => {
                       onClick={() => setDeployModal({ open: true, type: 'assignment' })}
                       sx={{ borderRadius: '12px', fontWeight: 700, background: 'linear-gradient(135deg, #FCD34D, #F59E0B)', color: '#000' }}
                     >
-                      Kết nối từ kho đồ
+                      {t('group_detail.actions.connect_inventory')}
                     </Button>
                   </>
                 )}
@@ -601,21 +628,21 @@ const GroupDetail = () => {
                           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
                             <Typography variant="h6" sx={{ fontWeight: 800, lineHeight: 1.2 }}>{asgn.title}</Typography>
                             <Chip 
-                              label={isClosed ? 'Đã đóng' : asgn.status} 
-                              size="small" 
-                              color={isClosed ? 'default' : 'primary'} 
-                              variant="outlined"
+                               label={isClosed ? t('course_editor.status_ended') : asgn.status} 
+                               size="small" 
+                               color={isClosed ? 'default' : 'primary'} 
+                               variant="outlined"
                             />
                           </Box>
 
                           <Stack spacing={1.5} sx={{ mb: 3 }}>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}>
                               <AddIcon sx={{ fontSize: 16 }} />
-                              <Typography variant="caption">Giao: {asgn.assignedAt ? format(new Date(asgn.assignedAt), 'HH:mm dd/MM') : '---'}</Typography>
+                              <Typography variant="caption">{t('group_detail.resource_card.assigned_at')}: {asgn.assignedAt ? format(new Date(asgn.assignedAt), 'HH:mm dd/MM') : '---'}</Typography>
                             </Box>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: isClosed ? 'error.main' : 'warning.main' }}>
                               <Clock sx={{ fontSize: 16 }} />
-                              <Typography variant="caption" fontWeight="bold">Hạn: {asgn.dueAt ? format(new Date(asgn.dueAt), 'HH:mm dd/MM') : '---'}</Typography>
+                              <Typography variant="caption" fontWeight="bold">{t('group_detail.resource_card.due_at')}: {asgn.dueAt ? format(new Date(asgn.dueAt), 'HH:mm dd/MM') : '---'}</Typography>
                             </Box>
                           </Stack>
 
@@ -633,7 +660,7 @@ const GroupDetail = () => {
                                 color: isClosed ? 'text.secondary' : 'white'
                               }}
                             >
-                              {isClosed ? 'Xem lại' : 'Chi tiết'}
+                              {isClosed ? t('group_detail.resource_card.view_quiz') : t('group_detail.actions.details')}
                             </Button>
                             {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
                               <Box sx={{ display: 'flex', gap: 0.5 }}>
@@ -678,7 +705,7 @@ const GroupDetail = () => {
                       onClick={() => setDeployModal({ open: true, type: 'quiz' })}
                       sx={{ borderRadius: '12px', fontWeight: 700, background: 'linear-gradient(135deg, #10B981, #059669)', color: '#FFF' }}
                     >
-                      Kết nối từ kho đồ
+                      {t('group_detail.actions.connect_inventory')}
                     </Button>
                   </>
                 )}
@@ -687,7 +714,7 @@ const GroupDetail = () => {
 
             {quizzes.length === 0 ? (
               <Box sx={{ py: 10, textAlign: 'center' }}>
-                <Typography color="text.secondary">Chưa có bài kiểm tra nào được tổ chức trong nhóm này.</Typography>
+                <Typography color="text.secondary">{t('group_detail.resource_card.no_quizzes')}</Typography>
               </Box>
             ) : (
               <Grid container spacing={3}>
@@ -713,30 +740,30 @@ const GroupDetail = () => {
                         
                         <Grid container spacing={1} sx={{ mb: 3 }}>
                           <Grid item xs={6}>
-                            <Typography variant="caption" color="text.secondary" display="block">Thời lượng</Typography>
-                            <Typography variant="body2" fontWeight={700}>{quiz.timeLimitSec / 60} phút</Typography>
+                            <Typography variant="caption" color="text.secondary" display="block">{t('group_detail.resource_card.duration')}</Typography>
+                            <Typography variant="body2" fontWeight={700}>{quiz.timeLimitSec / 60} {t('group_detail.resource_card.minutes')}</Typography>
                           </Grid>
                           <Grid item xs={6}>
-                            <Typography variant="caption" color="text.secondary" display="block">Số câu hỏi</Typography>
-                            <Typography variant="body2" fontWeight={700}>{quiz.questionCount || 0} câu</Typography>
+                            <Typography variant="caption" color="text.secondary" display="block">{t('group_detail.resource_card.questions_count')}</Typography>
+                            <Typography variant="body2" fontWeight={700}>{quiz.questionCount || 0} {t('group_detail.resource_card.questions')}</Typography>
                           </Grid>
                           <Grid item xs={6}>
-                            <Typography variant="caption" color="text.secondary" display="block">Lượt làm bài</Typography>
-                            <Typography variant="body2" fontWeight={700}>Tối đa {quiz.maxAttempts}</Typography>
+                            <Typography variant="caption" color="text.secondary" display="block">{t('group_detail.resource_card.max_attempts')}</Typography>
+                            <Typography variant="body2" fontWeight={700}>{t('group_detail.resource_card.limit')} {quiz.maxAttempts}</Typography>
                           </Grid>
                           <Grid item xs={6}>
-                            <Typography variant="caption" color="text.secondary" display="block">Điểm đạt</Typography>
+                            <Typography variant="caption" color="text.secondary" display="block">{t('group_detail.resource_card.passing_score')}</Typography>
                             <Typography variant="body2" fontWeight={700}>{quiz.passingScore}/100</Typography>
                           </Grid>
                           {quiz.openAt && (
                             <Grid item xs={6}>
-                              <Typography variant="caption" color="text.secondary" display="block">Thời gian mở</Typography>
+                              <Typography variant="caption" color="text.secondary" display="block">{t('group_detail.resource_card.open_at')}</Typography>
                               <Typography variant="body2" fontWeight={700}>{format(new Date(quiz.openAt), 'HH:mm dd/MM')}</Typography>
                             </Grid>
                           )}
                           {quiz.closeAt && (
                             <Grid item xs={6}>
-                              <Typography variant="caption" color="text.secondary" display="block">Thời gian đóng</Typography>
+                              <Typography variant="caption" color="text.secondary" display="block">{t('group_detail.resource_card.close_at')}</Typography>
                               <Typography variant="body2" fontWeight={700} color="error">{format(new Date(quiz.closeAt), 'HH:mm dd/MM')}</Typography>
                             </Grid>
                           )}
@@ -756,7 +783,7 @@ const GroupDetail = () => {
                             disabled={quiz.status === 'DRAFT' && group.currentUserRole === 'MEMBER'}
                             sx={{ borderRadius: '12px', fontWeight: 700, background: quiz.status === 'CLOSED' ? 'rgba(0,0,0,0.1)' : 'rgba(16, 185, 129, 0.2)', color: quiz.status === 'CLOSED' ? 'text.secondary' : '#10B981', '&:hover': { background: '#10B981', color: '#FFF' } }}
                           >
-                            {quiz.status === 'CLOSED' ? 'Xem' : 'Bắt đầu làm bài'}
+                            {quiz.status === 'CLOSED' ? t('group_detail.resource_card.view_quiz') : t('group_detail.resource_card.start_quiz')}
                           </Button>
                           {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
                             <>
@@ -1041,9 +1068,8 @@ const GroupDetail = () => {
               value={newMeetingData.status}
               onChange={(e) => setNewMeetingData({...newMeetingData, status: e.target.value})}
             >
-              <MenuItem value="DRAFT">Dành cho chủ nhóm (DRAFT)</MenuItem>
-              <MenuItem value="PUBLISHED">Công khai (PUBLISHED)</MenuItem>
-              <MenuItem value="CLOSED">Kết thúc (CLOSED)</MenuItem>
+              <MenuItem value="DRAFT">{t('group_detail.meetings.status_draft')}</MenuItem>
+              <MenuItem value="PUBLISHED">{t('group_detail.meetings.status_published')}</MenuItem>
             </TextField>
             <Button type="submit" variant="contained" fullWidth sx={{ mt: 3 }}>
               {t('common.create')}
@@ -1086,9 +1112,8 @@ const GroupDetail = () => {
               value={editMeetingData.status}
               onChange={(e) => setEditMeetingData({...editMeetingData, status: e.target.value})}
             >
-              <MenuItem value="DRAFT">Dành cho chủ nhóm (DRAFT)</MenuItem>
-              <MenuItem value="PUBLISHED">Công khai (PUBLISHED)</MenuItem>
-              <MenuItem value="CLOSED">Kết thúc (CLOSED)</MenuItem>
+              <MenuItem value="DRAFT">{t('group_detail.meetings.status_draft')}</MenuItem>
+              <MenuItem value="PUBLISHED">{t('group_detail.meetings.status_published')}</MenuItem>
             </TextField>
             <Button type="submit" variant="contained" fullWidth sx={{ mt: 3 }}>
               {t('common.save_changes')}

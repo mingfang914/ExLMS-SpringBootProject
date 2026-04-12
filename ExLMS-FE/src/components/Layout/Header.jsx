@@ -27,7 +27,7 @@ import { markAsRead, markAllAsRead } from '../../store/notificationSlice'
 import { useNavigate } from 'react-router-dom'
 import authService from '../../services/authService'
 import { motion, AnimatePresence } from 'framer-motion'
-import { alpha } from '@mui/material/styles'
+import { alpha, useTheme } from '@mui/material/styles'
 import ThemeToggle from '../Common/ThemeToggle'
 import LanguageToggle from '../Common/LanguageToggle'
 import { useTranslation } from 'react-i18next'
@@ -67,9 +67,14 @@ const CheckAllIcon = () => (
   </svg>
 )
 
-const DRAWER_WIDTH = 256
+const MenuIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="18" x2="20" y2="18"/>
+  </svg>
+)
 
-const Header = () => {
+const Header = ({ onMenuClick, sidebarWidth }) => {
+  const theme = useTheme()
   const [anchorElUser, setAnchorElUser]   = useState(null)
   const [anchorElNotif, setAnchorElNotif] = useState(null)
   const [searchFocused, setSearchFocused] = useState(false)
@@ -114,8 +119,8 @@ const Header = () => {
       position="fixed"
       sx={{
         zIndex: (theme) => theme.zIndex.drawer + 1,
-        width: { sm: `calc(100% - ${DRAWER_WIDTH}px)` },
-        ml: { sm: `${DRAWER_WIDTH}px` },
+        width: { sm: `calc(100% - ${sidebarWidth}px)` },
+        ml: { sm: `${sidebarWidth}px` },
         boxShadow: 'none',
         borderBottom: '1px solid var(--color-border)',
         backgroundColor: 'var(--color-surface)',
@@ -124,6 +129,17 @@ const Header = () => {
       }}
     >
       <Toolbar sx={{ justifyContent: 'space-between', px: { xs: 2, sm: 3 }, minHeight: '64px !important' }}>
+        
+        {/* Hamburger for mobile */}
+        <IconButton
+          color="inherit"
+          aria-label="open drawer"
+          edge="start"
+          onClick={onMenuClick}
+          sx={{ mr: 2, display: { sm: 'none' }, color: 'var(--color-text)' }}
+        >
+          <MenuIcon />
+        </IconButton>
 
         {/* ── Search bar ──────────────────────────────────────────── */}
         <Box
@@ -471,9 +487,9 @@ const Header = () => {
                   height: 20,
                   fontSize: '0.625rem',
                   fontWeight: 700,
-                  bgcolor: user.role === 'ADMIN' ? 'rgba(239,68,68,0.12)' : (user.role === 'INSTRUCTOR' ? 'rgba(16,185,129,0.12)' : 'rgba(99,102,241,0.12)'),
-                  color: user.role === 'ADMIN' ? '#FCA5A5' : (user.role === 'INSTRUCTOR' ? '#6EE7B7' : '#818CF8'),
-                  border: `1px solid ${user.role === 'ADMIN' ? 'rgba(239,68,68,0.25)' : (user.role === 'INSTRUCTOR' ? 'rgba(16,185,129,0.25)' : 'rgba(99,102,241,0.25)')}`,
+                  bgcolor: user.role === 'ADMIN' ? alpha(theme.palette.error.main, 0.1) : (user.role === 'INSTRUCTOR' ? alpha(theme.palette.success.main, 0.1) : alpha(theme.palette.primary.main, 0.1)),
+                  color: user.role === 'ADMIN' ? theme.palette.error.main : (user.role === 'INSTRUCTOR' ? theme.palette.success.main : theme.palette.primary.main),
+                  border: `1px solid ${alpha(user.role === 'ADMIN' ? theme.palette.error.main : (user.role === 'INSTRUCTOR' ? theme.palette.success.main : theme.palette.primary.main), 0.2)}`,
                   '& .MuiChip-label': { px: '8px' },
                 }}
               />
@@ -498,12 +514,12 @@ const Header = () => {
           <MenuItem
             onClick={handleLogout}
             sx={{
-              color: '#FCA5A5',
-              '&:hover': { bgcolor: 'rgba(239,68,68,0.08)' },
+              color: theme.palette.error.light,
+              '&:hover': { bgcolor: alpha(theme.palette.error.main, 0.08) },
             }}
           >
-            <ListItemIcon sx={{ color: '#EF4444', minWidth: 32 }}><LogoutIcon /></ListItemIcon>
-            <Typography sx={{ fontSize: '0.875rem', color: '#FCA5A5' }}>{t('nav.logout')}</Typography>
+            <ListItemIcon sx={{ color: theme.palette.error.main, minWidth: 32 }}><LogoutIcon /></ListItemIcon>
+            <Typography sx={{ fontSize: '0.875rem', color: theme.palette.error.main }}>{t('nav.logout')}</Typography>
           </MenuItem>
         </Box>
       </Menu>

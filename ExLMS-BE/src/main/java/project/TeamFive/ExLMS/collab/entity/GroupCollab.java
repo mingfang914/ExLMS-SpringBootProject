@@ -45,6 +45,7 @@ public class GroupCollab {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
+    @Builder.Default
     private CollabStatus status = CollabStatus.DRAFT;
 
     @CreationTimestamp

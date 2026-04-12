@@ -4,7 +4,6 @@ import {
   Typography,
   TextField,
   Button,
-  Alert,
   CircularProgress,
   InputAdornment,
 } from '@mui/material'
@@ -14,6 +13,7 @@ import { motion } from 'framer-motion'
 import ThemeToggle from '../components/Common/ThemeToggle'
 import LanguageToggle from '../components/Common/LanguageToggle'
 import { useTranslation } from 'react-i18next'
+import { useModal } from '../context/ModalContext'
 
 const EmailIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -39,22 +39,20 @@ const fadeUp = {
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('')
-  const [error, setError] = useState(null)
-  const [success, setSuccess] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { t } = useTranslation()
+  const { showSuccess, showError } = useModal()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setError(null)
-    setSuccess(null)
     setIsSubmitting(true)
 
     try {
-      const message = await authService.forgotPassword(email)
-      setSuccess(message || 'Vui lòng kiểm tra email của bạn để nhận hướng dẫn khôi phục mật khẩu.')
+      await authService.forgotPassword(email)
+      showSuccess(t('common.success'), t('auth.forgot_password_success'))
+      setEmail('')
     } catch (err) {
-      setError(err.response?.data?.message || 'Có lỗi xảy ra. Vui lòng thử lại sau.')
+      showError(t('common.error'), err.response?.data?.message || t('auth.forgot_password_error'))
     } finally {
       setIsSubmitting(false)
     }
@@ -133,54 +131,40 @@ const ForgotPassword = () => {
 
           <motion.div custom={1} variants={fadeUp} initial="hidden" animate="visible">
             <Typography sx={{ fontWeight: 800, fontSize: '1.625rem', color: 'var(--color-text)', mb: 0.5 }}>
-              Khôi phục mật khẩu
+              {t('auth.forgot_title')}
             </Typography>
             <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text-sec)', mb: 3 }}>
-              Nhập email của bạn để nhận liên kết khôi phục mật khẩu.
+              {t('auth.forgot_subtitle')}
             </Typography>
           </motion.div>
 
-          {error && (
-            <Alert severity="error" sx={{ mb: 2.5, bgcolor: 'rgba(239,68,68,0.1)', color: 'var(--color-error)', borderRadius: '10px' }}>
-              {error}
-            </Alert>
-          )}
-
-          {success && (
-            <Alert severity="success" sx={{ mb: 2.5, bgcolor: 'rgba(16,185,129,0.1)', color: 'var(--color-success)', borderRadius: '10px' }}>
-              {success}
-            </Alert>
-          )}
-
-          {!success && (
-            <Box component="form" onSubmit={handleSubmit}>
-              <motion.div custom={2} variants={fadeUp} initial="hidden" animate="visible">
-                <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text-sec)', mb: 0.75 }}>Email</Typography>
-                <TextField
-                  fullWidth
-                  required
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  InputProps={{
-                    startAdornment: <InputAdornment position="start" sx={{ color: 'var(--color-text-muted)' }}><EmailIcon /></InputAdornment>,
-                  }}
-                  className="auth-input"
-                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
-                />
-                <Button
-                  type="submit"
-                  fullWidth
-                  variant="contained"
-                  disabled={isSubmitting}
-                  sx={{ mt: 3, mb: 2, height: 48, borderRadius: '10px', fontWeight: 700, background: 'var(--color-primary)', '&:hover': { background: 'var(--color-primary-lt)' } }}
-                >
-                  {isSubmitting ? <CircularProgress size={20} color="inherit" /> : 'Gửi liên kết'}
-                </Button>
-              </motion.div>
-            </Box>
-          )}
+          <Box component="form" onSubmit={handleSubmit}>
+            <motion.div custom={2} variants={fadeUp} initial="hidden" animate="visible">
+              <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text-sec)', mb: 0.75 }}>Email</Typography>
+              <TextField
+                fullWidth
+                required
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                InputProps={{
+                  startAdornment: <InputAdornment position="start" sx={{ color: 'var(--color-text-muted)' }}><EmailIcon /></InputAdornment>,
+                }}
+                className="auth-input"
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+              />
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                disabled={isSubmitting}
+                sx={{ mt: 3, mb: 2, height: 48, borderRadius: '10px', fontWeight: 700, background: 'var(--color-primary)', '&:hover': { background: 'var(--color-primary-lt)' } }}
+              >
+                {isSubmitting ? <CircularProgress size={20} color="inherit" /> : t('auth.send_link_btn')}
+              </Button>
+            </motion.div>
+          </Box>
 
           <motion.div custom={3} variants={fadeUp} initial="hidden" animate="visible">
             <Button
@@ -191,7 +175,7 @@ const ForgotPassword = () => {
               startIcon={<ArrowLeftIcon />}
               sx={{ color: 'var(--color-text-muted)', '&:hover': { color: 'var(--color-text)' } }}
             >
-              Quay lại đăng nhập
+              {t('auth.back_to_login')}
             </Button>
           </motion.div>
         </Box>

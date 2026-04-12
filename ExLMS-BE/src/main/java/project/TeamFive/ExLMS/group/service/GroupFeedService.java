@@ -55,7 +55,8 @@ public class GroupFeedService {
             if (currentUser != null) {
                 requireGroupMember(group, currentUser);
             }
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
 
         if (type != null && !type.trim().isEmpty()) {
             if ("NOTICE".equalsIgnoreCase(type)) {
@@ -64,7 +65,8 @@ public class GroupFeedService {
             }
             try {
                 GroupFeedPost.LinkedEntityType entityType = GroupFeedPost.LinkedEntityType.valueOf(type.toUpperCase());
-                return feedPostRepository.findByGroupAndLinkedEntityTypeOrderByPinnedDescCreatedAtDesc(group, entityType, pageable)
+                return feedPostRepository
+                        .findByGroupAndLinkedEntityTypeOrderByPinnedDescCreatedAtDesc(group, entityType, pageable)
                         .map(this::mapToResponse);
             } catch (IllegalArgumentException e) {
                 // Ignore invalid type
@@ -104,16 +106,19 @@ public class GroupFeedService {
                 .orElseThrow(() -> new RuntimeException("Post not found"));
 
         if (!post.getAuthor().getId().equals(currentUser.getId())) {
-            GroupMember member = groupMemberRepository.findByGroup_IdAndUser_Id(post.getGroup().getId(), currentUser.getId())
-                .orElseThrow(() -> new RuntimeException("Bạn không phải thành viên nhóm!"));
+            GroupMember member = groupMemberRepository
+                    .findByGroup_IdAndUser_Id(post.getGroup().getId(), currentUser.getId())
+                    .orElseThrow(() -> new RuntimeException("Bạn không phải thành viên nhóm!"));
             if (!"OWNER".equals(member.getRole()) && !"EDITOR".equals(member.getRole())) {
                 throw new RuntimeException("Chỉ người tạo hoặc Quản trị viên nhóm mới có quyền sửa bài viết này!");
             }
         }
 
         post.setContent(request.getContent());
-        if (request.getLinkedEntityId() != null) post.setLinkedEntityId(request.getLinkedEntityId());
-        if (request.getLinkedEntityType() != null) post.setLinkedEntityType(request.getLinkedEntityType());
+        if (request.getLinkedEntityId() != null)
+            post.setLinkedEntityId(request.getLinkedEntityId());
+        if (request.getLinkedEntityType() != null)
+            post.setLinkedEntityType(request.getLinkedEntityType());
         post.setPinned(request.isPinned());
 
         return mapToResponse(feedPostRepository.save(post));
@@ -126,15 +131,16 @@ public class GroupFeedService {
                 .orElseThrow(() -> new RuntimeException("Post not found"));
 
         if (!post.getAuthor().getId().equals(currentUser.getId())) {
-            GroupMember member = groupMemberRepository.findByGroup_IdAndUser_Id(post.getGroup().getId(), currentUser.getId())
-                .orElseThrow(() -> new RuntimeException("Bạn không phải thành viên nhóm!"));
+            GroupMember member = groupMemberRepository
+                    .findByGroup_IdAndUser_Id(post.getGroup().getId(), currentUser.getId())
+                    .orElseThrow(() -> new RuntimeException("Bạn không phải thành viên nhóm!"));
             if (!"OWNER".equals(member.getRole()) && !"EDITOR".equals(member.getRole())) {
                 throw new RuntimeException("Chỉ người tạo hoặc Quản trị viên nhóm mới có quyền xóa bài viết này!");
             }
         }
-        
+
         feedCommentRepository.deleteAll(feedCommentRepository.findByFeedPostOrderByCreatedAtAsc(post));
-        
+
         feedPostRepository.delete(post);
         return "Đã xóa bài viết khỏi feed.";
     }
@@ -144,14 +150,14 @@ public class GroupFeedService {
         User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         GroupFeedPost post = feedPostRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
-        
+
         GroupMember member = groupMemberRepository.findByGroupAndUser(post.getGroup(), currentUser)
-            .orElseThrow(() -> new RuntimeException("Bạn không phải thành viên nhóm!"));
-            
+                .orElseThrow(() -> new RuntimeException("Bạn không phải thành viên nhóm!"));
+
         if (!"OWNER".equals(member.getRole()) && !"EDITOR".equals(member.getRole())) {
             throw new RuntimeException("Chỉ Quản trị viên nhóm mới có quyền ghim bài viết!");
         }
-        
+
         post.setPinned(!post.isPinned());
         feedPostRepository.save(post);
         return post.isPinned() ? "Đã ghim bài viết." : "Đã bỏ ghim bài viết.";
@@ -172,7 +178,7 @@ public class GroupFeedService {
                 .build();
 
         GroupFeedComment savedComment = feedCommentRepository.save(comment);
-        
+
         // Fix for immediate response date if auditing hasn't kicked in yet
         if (savedComment.getCreatedAt() == null) {
             savedComment.setCreatedAt(java.time.LocalDateTime.now());
@@ -207,8 +213,9 @@ public class GroupFeedService {
         GroupFeedPost post = comment.getFeedPost();
 
         if (!comment.getAuthor().getId().equals(currentUser.getId())) {
-            GroupMember member = groupMemberRepository.findByGroup_IdAndUser_Id(post.getGroup().getId(), currentUser.getId())
-                .orElseThrow(() -> new RuntimeException("Bạn không phải thành viên nhóm!"));
+            GroupMember member = groupMemberRepository
+                    .findByGroup_IdAndUser_Id(post.getGroup().getId(), currentUser.getId())
+                    .orElseThrow(() -> new RuntimeException("Bạn không phải thành viên nhóm!"));
             if (!"OWNER".equals(member.getRole()) && !"EDITOR".equals(member.getRole())) {
                 throw new RuntimeException("Chỉ người tạo hoặc Quản trị viên nhóm mới có quyền xóa bình luận này!");
             }
@@ -263,7 +270,8 @@ public class GroupFeedService {
             if (currentUser != null) {
                 requireGroupMember(post.getGroup(), currentUser);
             }
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
 
         return feedCommentRepository.findByFeedPostOrderByCreatedAtAsc(post).stream()
                 .map(this::mapToCommentResponse)
@@ -280,13 +288,19 @@ public class GroupFeedService {
             try {
                 switch (post.getLinkedEntityType()) {
                     case COURSE:
-                        linkedTitle = courseRepository.findById(post.getLinkedEntityId()).map(project.TeamFive.ExLMS.course.entity.Course::getTitle).orElse(null);
+                        linkedTitle = courseRepository.findById(post.getLinkedEntityId())
+                                .map(project.TeamFive.ExLMS.course.entity.Course::getTitle).orElse(null);
                         break;
                     case ASSIGNMENT:
-                        linkedTitle = assignmentRepository.findById(post.getLinkedEntityId()).map(project.TeamFive.ExLMS.assignment.entity.Assignment::getTitle).orElse(null);
+                        linkedTitle = assignmentRepository.findById(post.getLinkedEntityId())
+                                .map(project.TeamFive.ExLMS.assignment.entity.Assignment::getTitle).orElse(null);
                         break;
                     case MEETING:
-                        linkedTitle = meetingRepository.findById(post.getLinkedEntityId()).map(project.TeamFive.ExLMS.meeting.entity.Meeting::getTitle).orElse(null);
+                        linkedTitle = meetingRepository.findById(post.getLinkedEntityId())
+                                .map(project.TeamFive.ExLMS.meeting.entity.Meeting::getTitle).orElse(null);
+                        break;
+                    default:
+                        linkedTitle = "Không tìm thấy nội dung";
                         break;
                 }
             } catch (Exception e) {
@@ -314,7 +328,8 @@ public class GroupFeedService {
     }
 
     private GroupCommentResponse mapToCommentResponse(GroupFeedComment comment) {
-        String role = groupMemberRepository.findByGroup_IdAndUser_Id(comment.getFeedPost().getGroup().getId(), comment.getAuthor().getId())
+        String role = groupMemberRepository
+                .findByGroup_IdAndUser_Id(comment.getFeedPost().getGroup().getId(), comment.getAuthor().getId())
                 .map(GroupMember::getRole)
                 .orElse("member");
 

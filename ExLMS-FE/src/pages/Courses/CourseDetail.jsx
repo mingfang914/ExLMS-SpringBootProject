@@ -230,7 +230,7 @@ const CourseDetail = () => {
                     <Box sx={{ textAlign: 'center', color: 'rgba(255,255,255,0.8)' }}>
                       <Box sx={{ mb: 2 }}><DocIcon /></Box>
                       <Button variant="contained" href={selectedItem.content} download sx={{ borderRadius: '12px' }}>
-                        Tải tệp xuống
+                        {t('course_detail.download_file')}
                       </Button>
                     </Box>
                   )}

@@ -46,8 +46,8 @@ public class FileService {
             if (!found) {
                 minioClient.makeBucket(io.minio.MakeBucketArgs.builder().bucket(name).build());
                 log.info("Bucket created successfully: {}", name);
-                setBucketPublicPolicy(name);
             }
+            setBucketPublicPolicy(name);
         } catch (Exception e) {
             log.error("Error initializing Minio bucket {}: {}", name, e.getMessage());
         }
@@ -148,6 +148,7 @@ public class FileService {
     // --- CKEditor Resource Methods ---
     public String uploadResource(MultipartFile file) {
         String objectKey = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+        log.info("[FileService] Uploading resource to bucket {}: {}", resourceBucket, objectKey);
         try {
             minioClient.putObject(
                     PutObjectArgs.builder()
@@ -157,8 +158,10 @@ public class FileService {
                             .contentType(file.getContentType())
                             .build()
             );
+            log.info("[FileService] Resource upload successful: {}", objectKey);
             return objectKey;
         } catch (Exception e) {
+            log.error("[FileService] Error uploading resource: {}", e.getMessage());
             throw new RuntimeException("Error uploading resource: " + e.getMessage());
         }
     }

@@ -22,4 +22,6 @@ public class CollabRequestDTO {
     private LocalDateTime startAt;
 
     private LocalDateTime endAt;
+    
+    private project.TeamFive.ExLMS.collab.entity.GroupCollab.CollabStatus status;
 }

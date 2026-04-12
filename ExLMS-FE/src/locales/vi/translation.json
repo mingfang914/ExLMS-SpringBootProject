@@ -29,7 +29,21 @@
       "new_assignment": "Có bài tập mới trong nhóm",
       "course_updated": "Nội dung khóa học đã cập nhật",
       "new_replies": "Có phản hồi mới trong diễn đàn"
-    }
+    },
+    "news": {
+      "slide1_title": "Tối ưu hóa thời gian học tập với ExLMS",
+      "slide1_desc": "Khám phá cách sử dụng bộ công cụ Calendar và Task Management để nhân đôi hiệu suất học tập mỗi ngày.",
+      "slide2_title": "7 bí quyết để học nhóm hiệu quả",
+      "slide2_desc": "Xây dựng văn hóa cộng tác trong nhóm học tập chính là chìa khóa để giải quyết những dự án phức tạp một cách nhanh chóng.",
+      "slide3_title": "Xu hướng Hybrid Learning năm 2024",
+      "slide3_desc": "Cùng điểm qua những công nghệ giáo dục đang làm thay đổi cách thức chúng ta tiếp cận tri thức trong kỷ nguyên số."
+    },
+    "activity_tooltip": "Hoạt động",
+    "no_activity_7d": "Chưa có hoạt động trong 7 ngày qua",
+    "start_learning_hint": "Hãy bắt đầu bằng việc làm bài tập hoặc tham gia thảo luận!",
+    "average_progress": "Tiến độ trung bình",
+    "no_recent_activity": "Chưa có hoạt động nào được ghi nhận.",
+    "no_groups_for_stats": "Bạn chưa tham gia nhóm nào để thống kê lĩnh vực."
   },
   "common": {
     "search": "Tìm kiếm...",
@@ -136,7 +150,21 @@
     "passwords_not_match": "Mật khẩu xác nhận không khớp.",
     "password_too_short": "Mật khẩu phải có ít nhất 6 ký tự.",
     "registration_failed": "Đăng ký thất bại. Vui lòng thử lại.",
-    "login_failed": "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin."
+    "login_failed": "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.",
+    "reset_title": "Đặt lại mật khẩu",
+    "reset_subtitle": "Tạo mật khẩu mới cho tài khoản của bạn.",
+    "new_password": "Mật khẩu mới",
+    "invalid_token": "Mã khôi phục không hợp lệ. Vui lòng kiểm tra lại email của bạn.",
+    "reset_success": "Đặt lại mật khẩu thành công! Chuyển hướng về trang đăng nhập...",
+    "reset_error": "Có lỗi xảy ra khi đặt lại mật khẩu.",
+    "forgot_email_sent": "Nếu email tồn tại, hệ thống sẽ gửi mã khôi phục cho bạn.",
+    "forgot_title": "Khôi phục mật khẩu",
+    "forgot_subtitle": "Nhập email của bạn để nhận liên kết khôi phục mật khẩu.",
+    "send_link_btn": "Gửi liên kết",
+    "back_to_login": "Quay lại đăng nhập",
+    "social_login": "Hoặc đăng nhập với",
+    "signin_with_google": "Đăng nhập với Google",
+    "google_error": "Lỗi kết nối với Google. Vui lòng thử lại."
   },
   "landing": {
     "hero_title": "Nâng tầm trải nghiệm học tập & Gặp gỡ trực tuyến",
@@ -291,9 +319,12 @@
       "overview": "Tổng quan",
       "courses": "Khóa học",
       "assignments": "Bài tập",
+      "quizzes": "Kiểm tra",
       "meetings": "Cuộc họp",
+      "collab": "Làm việc nhóm",
       "feed": "Bản tin",
-      "members": "Thành viên"
+      "members": "Thành viên",
+      "leave": "Rời nhóm"
     },
     "owner": "Quản trị viên",
     "founder": "Người sáng lập",
@@ -302,53 +333,64 @@
     "created": "Ngày tạo",
     "recently": "Gần đây",
     "language": "Ngôn ngữ",
-    "manage": "Quản lý",
+    "manage": "Quản lý nhóm",
     "share": "Chia sẻ nhóm",
-    "invite_dialog": {
-      "title": "Mời thành viên mới",
-      "desc": "Gửi mã mời này cho bạn bè hoặc học viên để họ tham gia nhóm.",
-      "copy": "Chép Mã",
-      "close": "Đóng",
-      "copied": "Đã chép mã!"
-    },
-    "danger_zone": {
-      "title": "Khu vực nguy hiểm (Xóa nhóm)",
-      "desc": "Để xác nhận xóa, vui lòng nhập chính xác tên nhóm: ",
-      "delete_btn": "XÓA NHÓM NÀY VĨNH VIỄN"
-    },
-    "meetings": {
-      "title": "Lịch họp trực tuyến",
-      "schedule": "Lên lịch họp",
-      "no_meetings": "Chưa có lịch họp nào.",
-      "live": "TRỰC TIẾP",
-      "view_report": "Xem báo cáo",
-      "join": "Tham gia",
-      "edit": "Chỉnh sửa lịch họp",
-      "delete": "Xóa lịch họp",
-      "update_success": "Đã cập nhật lịch họp thành công!",
-      "update_failed": "Cập nhật lịch họp thất bại!",
-      "delete_confirm": "Bạn có chắc chắn muốn xóa buổi họp này?",
-      "delete_success": "Đã xóa buổi họp thành công!",
-      "delete_failed": "Xóa buổi họp thất bại!",
-      "schedule_success": "Đã lên lịch họp thành công!",
-      "schedule_failed": "Lên lịch họp thất bại!",
-      "description": "Mô tả",
-      "start_time": "Thời gian bắt đầu",
-      "duration": "Thời lượng (phút)"
-    },
     "actions": {
       "create_course": "Tạo khóa học",
       "learn_now": "Học ngay",
       "view_all": "Xem tất cả",
       "details": "Chi tiết",
-      "see_all_assignments": "Xem tất cả {{count}} bài tập"
+      "see_all_assignments": "Xem tất cả {{count}} bài tập",
+      "connect_inventory": "Kết nối từ kho đồ"
+    },
+    "resource_card": {
+      "status": "Trạng thái",
+      "created_at": "Ngày tạo",
+      "due_at": "Hạn nộp",
+      "assigned_at": "Ngày giao",
+      "duration": "Thời lượng",
+      "questions_count": "Số câu hỏi",
+      "max_attempts": "Lượt làm bài",
+      "passing_score": "Điểm đạt",
+      "open_at": "Thời gian mở",
+      "close_at": "Thời gian đóng",
+      "start_quiz": "Bắt đầu làm bài",
+      "view_quiz": "Xem bài",
+      "minutes": "phút",
+      "questions": "câu",
+      "limit": "Tối đa",
+      "no_quizzes": "Chưa có bài kiểm tra nào được tổ chức trong nhóm này."
     },
     "messages": {
-      "update_success": "Cập nhật thông tin thành công!"
+      "leave_confirm": "Bạn có chắc chắn muốn rời khỏi nhóm học tập này?",
+      "leave_success": "Đã rời khỏi nhóm thành công!",
+      "leave_failed": "Không thể rời nhóm lúc này!",
+      "update_success": "Cập nhật thông tin nhóm thành công!"
     },
     "errors": {
-      "update_failed": "Cập nhật thất bại!"
-    }
+      "update_failed": "Cập thất bại!"
+    },
+    "meetings": {
+      "schedule": "Lên lịch họp",
+      "no_meetings": "Chưa có dự kiến cuộc họp nào.",
+      "edit": "Chỉnh sửa buổi họp",
+      "title": "Tiêu đề buổi họp",
+      "description": "Mô tả",
+      "start_time": "Thời gian bắt đầu",
+      "end_time": "Thời gian kết thúc",
+      "schedule_success": "Đã lên lịch họp thành công!",
+      "schedule_failed": "Lên lịch họp thất bại.",
+      "delete_confirm": "Bạn có chắc chắn muốn xóa buổi họp này?",
+      "delete_success": "Đã xóa buổi họp!",
+      "delete_failed": "Xóa buổi họp thất bại.",
+      "update_success": "Cập nhật buổi họp thành công!",
+      "delete_failed": "Xóa buổi họp thất bại.",
+      "update_success": "Cập nhật buổi họp thành công!",
+      "update_failed": "Cập nhật buổi họp thất bại.",
+      "status_draft": "Dành cho chủ nhóm (DRAFT)",
+      "status_published": "Công khai (PUBLISHED)"
+    },
+    "meeting_status": "Trạng thái hiển thị"
   },
   "course_editor": {
     "title_edit": "Chỉnh sửa khóa học",
@@ -410,6 +452,27 @@
       "create_lesson_failed": "Lỗi khi tạo bài học",
       "delete_lesson_failed": "Lỗi khi xóa bài học",
       "save_lesson_failed": "Lỗi khi lưu bài học"
+    },
+    "basic_info": "Thông tin cơ bản",
+    "program_content": "Cấu trúc nội dung",
+    "save_all": "Lưu tất cả",
+    "design_subtitle": "Thiết kế chương trình học tối ưu",
+    "new_foundation_subtitle": "Bắt đầu xây dựng nền tảng tri thức mới",
+    "add_lesson_placeholder": "Thêm bài học mới",
+    "lessons_in_chapter_count": "{{count}} bài học",
+    "chapter_display": "Chương {{idx}}: {{title}}",
+    "empty_structure_title": "Chưa có nội dung cho khóa học này",
+    "empty_structure_subtitle": "Bắt đầu bằng cách thêm chương học đầu tiên của bạn.",
+    "start_building_btn": "Bắt đầu xây dựng",
+    "content_types": {
+      "document": "Tài liệu HTML",
+      "video": "Video Nhúng",
+      "file": "Tệp Tải Xuống"
+    },
+    "placeholders": {
+      "video_url": "URL Video (VD: YouTube, Vimeo...)",
+      "file_url": "Đường dẫn tĩnh tới File",
+      "lesson_name": "Bài {{idx}}: Tên bài học"
     }
   },
   "group_course_detail": {
@@ -526,6 +589,7 @@
     "select_to_begin": "Chọn một bài học để bắt đầu",
     "focus_mode": "Chế độ tập trung",
     "no_desc": "Không có mô tả cho bài học này.",
+    "download_file": "Tải tệp xuống",
     "errors": {
       "load_failed": "Không thể tải dữ liệu khóa học."
     }
@@ -851,5 +915,30 @@
       "qa": "Hỏi đáp",
       "polls": "Bình chọn"
     }
+  },
+  "inventory": {
+    "title_connect": "Kết nối {{type}} từ Kho đồ",
+    "select_items": "Chọn học liệu ({{count}})",
+    "empty_inventory": "Kho đang trống.",
+    "deploy_settings": "Thiết đặt triển khai",
+    "status_initial": "Trạng thái hiển thị ban đầu",
+    "status_published": "Công khai (Gửi thông báo)",
+    "status_draft": "Bản nháp (Không thông báo)",
+    "assigned_at": "Ngày giao bài",
+    "due_at": "Hạn nộp bài",
+    "allow_late": "Cho phép nộp muộn",
+    "late_penalty": "Trừ điểm nộp muộn (%)",
+    "open_at": "Thời gian mở đề",
+    "close_at": "Thời gian đóng đề",
+    "result_visibility": "Hiển thị kết quả",
+    "result_open": "Công bố (Mọi người có thể xem chi tiết)",
+    "result_close": "Chưa công bố (Ẩn với thành viên)",
+    "shuffle_questions": "Trộn câu hỏi",
+    "start_at": "Bắt đầu lúc",
+    "end_at": "Kết thúc lúc",
+    "connecting": "Đang kết nối...",
+    "connect_btn": "Kết nối {{count}} mục",
+    "error_fetch": "Không thể tải dữ liệu từ kho.",
+    "error_deploy": "Triển khai thất bại. Vui lòng thử lại."
   }
 }

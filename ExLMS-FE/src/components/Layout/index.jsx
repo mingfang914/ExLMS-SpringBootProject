@@ -9,6 +9,7 @@ import PageTransition from '../Common/PageTransition'
 const Layout = ({ children }) => {
   const location = useLocation()
   const [collapsed, setCollapsed] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
 
   // Auto-collapse if user enters a meeting room
   useEffect(() => {
@@ -18,6 +19,15 @@ const Layout = ({ children }) => {
       setCollapsed(false)
     }
   }, [location.pathname])
+
+  // Close mobile drawer on route change
+  useEffect(() => {
+    setMobileOpen(false)
+  }, [location.pathname])
+
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen)
+  }
 
   const DRAWER_WIDTH = collapsed ? 72 : 256
 
@@ -32,8 +42,14 @@ const Layout = ({ children }) => {
       }}
     >
       <CssBaseline />
-      <Header />
-      <Sidebar collapsed={collapsed} toggleCollapse={() => setCollapsed(!collapsed)} width={DRAWER_WIDTH} />
+      <Header onMenuClick={handleDrawerToggle} sidebarWidth={DRAWER_WIDTH} />
+      <Sidebar 
+        collapsed={collapsed} 
+        toggleCollapse={() => setCollapsed(!collapsed)} 
+        width={DRAWER_WIDTH}
+        mobileOpen={mobileOpen}
+        onMobileClose={() => setMobileOpen(false)}
+      />
 
       {/* Main content area */}
       <Box
@@ -41,7 +57,7 @@ const Layout = ({ children }) => {
         sx={{
           flexGrow: 1,
           minWidth: 0,
-          width: { sm: `calc(100% - ${DRAWER_WIDTH}px)` },
+          width: { xs: '100%', sm: `calc(100% - ${DRAWER_WIDTH}px)` },
           mt: '64px', // header height
           transition: 'width 0.3s ease',
           bgcolor: 'var(--color-bg)',
