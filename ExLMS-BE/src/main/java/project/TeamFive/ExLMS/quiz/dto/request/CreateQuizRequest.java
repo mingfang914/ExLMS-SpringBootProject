@@ -6,9 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import project.TeamFive.ExLMS.quiz.entity.Quiz;
 import project.TeamFive.ExLMS.quiz.entity.GroupQuiz;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -23,7 +21,7 @@ public class CreateQuizRequest {
     private String description;
     private UUID groupId;
     private UUID chapterId;
-    private String coverImageUrl;
+    private String coverImageKey;
     @Min(0)
     private Integer timeLimitSec;
     @Builder.Default

@@ -77,6 +77,15 @@ public class CourseInventoryController {
         return ResponseEntity.ok(courseService.updateTemplate(id, request, user));
     }
 
+    // [UPDATE] Cập nhật toàn bộ cấu trúc khóa học (Chương, Bài học)
+    @PostMapping("/{id}/full-save")
+    public ResponseEntity<CourseResponse> fullSave(
+            @PathVariable UUID id,
+            @RequestBody project.TeamFive.ExLMS.course.dto.request.FullCourseRequest request,
+            @AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(courseService.saveFullCourse(id, request, user));
+    }
+
     // [DELETE] Xóa bản thiết kế
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteTemplate(

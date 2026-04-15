@@ -73,6 +73,10 @@ jobs:
             MEETING_SERVICE_URL=${{ secrets.MEETING_SERVICE_URL }}
             VITE_LIVEKIT_URL=${{ secrets.VITE_LIVEKIT_URL }}
             VITE_MEETING_SERVICE_URL=${{ secrets.VITE_MEETING_SERVICE_URL }}
+            LIVEKIT_NODE_IP=${{ secrets.LIVEKIT_NODE_IP }}
+            LIVEKIT_RTC_START=${{ secrets.LIVEKIT_RTC_START }}
+            LIVEKIT_RTC_END=${{ secrets.LIVEKIT_RTC_END }}
+            LIVEKIT_UDP_RANGE=${{ secrets.LIVEKIT_UDP_RANGE }}
             
             # 6. Mail (Password Reset)
             MAIL_HOST=${{ secrets.MAIL_HOST }}

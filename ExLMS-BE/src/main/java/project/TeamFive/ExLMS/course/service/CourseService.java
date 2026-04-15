@@ -19,6 +19,11 @@ import project.TeamFive.ExLMS.course.repository.CourseRepository;
 import project.TeamFive.ExLMS.course.repository.GroupCourseRepository;
 import project.TeamFive.ExLMS.group.repository.GroupMemberRepository;
 import project.TeamFive.ExLMS.group.repository.StudyGroupRepository;
+import project.TeamFive.ExLMS.course.repository.CourseChapterRepository;
+import project.TeamFive.ExLMS.course.repository.CourseLessonRepository;
+import project.TeamFive.ExLMS.course.entity.CourseChapter;
+import project.TeamFive.ExLMS.course.entity.CourseLesson;
+import project.TeamFive.ExLMS.course.dto.request.FullCourseRequest;
 import project.TeamFive.ExLMS.notification.service.NotificationService;
 
 import java.time.LocalDateTime;
@@ -34,6 +39,8 @@ public class CourseService {
     private final GroupCourseRepository groupCourseRepository;
     private final StudyGroupRepository studyGroupRepository;
     private final GroupMemberRepository groupMemberRepository;
+    private final CourseChapterRepository chapterRepository;
+    private final CourseLessonRepository lessonRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final NotificationService notificationService;
 
@@ -81,7 +88,7 @@ public class CourseService {
 
         String thumbnailKey = request.getThumbnailKey();
         if (thumbnailKey == null || thumbnailKey.trim().isEmpty()) {
-            thumbnailKey = "DefaultCourseImg.png";
+            thumbnailKey = "Assets/DefaultCourseImg.png";
         }
 
         Course template = Course.builder()
@@ -232,8 +239,8 @@ public class CourseService {
 
     @Transactional(readOnly = true)
     public CourseResponse getTemplateById(UUID id) {
-        Course course = courseRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy bản mẫu khóa học!"));
+        Course course = courseRepository.findByIdAndDeletedAtIsNull(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bản mẫu khóa học hoặc đã bị xóa!"));
         return mapTemplateToResponse(course);
     }
 
@@ -274,7 +281,7 @@ public class CourseService {
     public CourseResponse createTemplate(CourseRequest request, User user) {
         String thumbnailKey = request.getThumbnailKey();
         if (thumbnailKey == null || thumbnailKey.trim().isEmpty()) {
-            thumbnailKey = "DefaultCourseImg.png";
+            thumbnailKey = "Assets/DefaultCourseImg.png";
         }
 
         Course template = Course.builder()
@@ -316,6 +323,76 @@ public class CourseService {
         template.softDelete();
         courseRepository.save(template);
         return "Đã xóa bản mẫu thành công!";
+    }
+
+    @Transactional
+    public CourseResponse saveFullCourse(UUID id, FullCourseRequest request, User user) {
+        // Try to find as deployment first
+        java.util.Optional<GroupCourse> deploymentOpt = groupCourseRepository.findById(id);
+        Course course;
+        if (deploymentOpt.isPresent()) {
+            course = deploymentOpt.get().getCourse();
+            // Check permissions for the deployment's group
+            requireInstructorRole(deploymentOpt.get().getGroup(), user);
+        } else {
+            course = courseRepository.findByIdAndDeletedAtIsNull(id)
+                .orElseThrow(() -> new RuntimeException("Course/Deployment not found or deleted"));
+            if (!course.getCreatedBy().getId().equals(user.getId()) && !"ADMIN".equals(user.getRole().name())) {
+                throw new RuntimeException("Bạn không có quyền quản lý bản mẫu này!");
+            }
+        }
+
+        // 1. Update Course Info
+        if (request.getInfo() != null) {
+            CourseRequest info = request.getInfo();
+            if (info.getTitle() != null) course.setTitle(info.getTitle());
+            if (info.getDescription() != null) course.setDescription(info.getDescription());
+            if (info.getThumbnailKey() != null) course.setThumbnailKey(info.getThumbnailKey());
+            courseRepository.save(course);
+        }
+
+        // 2. Handle Chapters
+        if (request.getChapters() != null) {
+            for (FullCourseRequest.ChapterFullRequest cr : request.getChapters()) {
+                CourseChapter chapter;
+                if (cr.getId() != null) {
+                    chapter = chapterRepository.findById(cr.getId()).orElse(null);
+                    if (chapter == null || chapter.getDeletedAt() != null) continue;
+                } else {
+                    chapter = new CourseChapter();
+                    chapter.setCourse(course);
+                }
+                chapter.setTitle(cr.getTitle());
+                chapter.setDescription(cr.getDescription());
+                chapter.setOrderIndex(cr.getOrderIndex());
+                chapter.setLocked(cr.isLocked());
+                chapter = chapterRepository.save(chapter);
+
+                // 3. Handle Lessons
+                if (cr.getLessons() != null) {
+                    for (FullCourseRequest.LessonFullRequest lr : cr.getLessons()) {
+                        CourseLesson lesson;
+                        if (lr.getId() != null) {
+                            lesson = lessonRepository.findById(lr.getId()).orElse(null);
+                            if (lesson == null || lesson.getDeletedAt() != null) continue;
+                        } else {
+                            lesson = new CourseLesson();
+                            lesson.setChapter(chapter);
+                            lesson.setContentType(CourseLesson.ContentType.DOCUMENT);
+                        }
+                        lesson.setTitle(lr.getTitle());
+                        lesson.setContent(lr.getContent());
+                        lesson.setResourceKey(lr.getResourceKey());
+                        lesson.setDurationSeconds(lr.getDurationSeconds() != null ? lr.getDurationSeconds() : 0);
+                        lesson.setOrderIndex(lr.getOrderIndex());
+                        lessonRepository.save(lesson);
+                    }
+                }
+            }
+        }
+
+        // Return updated course
+        return mapTemplateToResponse(course);
     }
 
     private CourseResponse mapTemplateToResponse(Course template) {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useModal } from '../../context/ModalContext'
 import {
   Box, Typography, Paper, Button, Divider, CircularProgress, Alert,
   List, ListItem, ListItemText, ListItemIcon, Chip, Grid, alpha, useTheme
@@ -16,6 +17,7 @@ import * as quizService from '../../services/quizService'
 const QuizResult = () => {
   const { t } = useTranslation()
   const theme = useTheme()
+  const { showSuccess, showError } = useModal()
   const { groupId, courseId, attemptId } = useParams()
   const navigate = useNavigate()
   const [result, setResult] = useState(null)
@@ -27,7 +29,7 @@ const QuizResult = () => {
         const data = await quizService.getAttemptResult(attemptId)
         setResult(data)
       } catch (e) {
-        alert('Không thể tải kết quả bài làm.')
+        await showError(t('common.error'), 'Không thể tải kết quả bài làm.')
       } finally {
         setLoading(false)
       }

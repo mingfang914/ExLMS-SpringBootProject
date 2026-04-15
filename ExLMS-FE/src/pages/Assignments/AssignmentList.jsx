@@ -19,12 +19,14 @@ import { format } from 'date-fns';
 import { vi, enUS } from 'date-fns/locale';
 import { useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
+import { useModal } from '../../context/ModalContext';
 
 const AssignmentList = ({ courseId, isInstructor: isInstructorProp }) => {
   const { t, i18n } = useTranslation();
   const { groupId } = useParams();
   const navigate = useNavigate();
   const { user } = useSelector(state => state.auth);
+  const { showSuccess, showError, showConfirm } = useModal();
 
   const [assignments, setAssignments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -66,13 +68,18 @@ const AssignmentList = ({ courseId, isInstructor: isInstructorProp }) => {
   }, [groupId, courseId, isInstructorProp, user?.id]);
 
   const handleDelete = async (id) => {
-    if (window.confirm(t('common.confirm_delete'))) {
+    const confirmed = await showConfirm(
+      t('common.confirm_delete'),
+      t('assignments.messages.delete_confirm'),
+      'error'
+    );
+    if (confirmed) {
       try {
         await assignmentService.deleteAssignment(id);
         setAssignments(assignments.filter(a => a.id !== id));
-        alert(t('common.success'));
+        await showSuccess(t('common.success'));
       } catch (err) {
-        alert(t('common.error'));
+        await showError(t('common.error'), err.response?.data?.message || t('common.error'));
       }
     }
   };

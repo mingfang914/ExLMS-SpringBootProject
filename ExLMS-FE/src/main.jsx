@@ -10,6 +10,7 @@ import { GoogleOAuthProvider } from '@react-oauth/google'
 import App from './App'
 import store from './store'
 import { ThemeModeProvider, useThemeMode } from './context/ThemeContext'
+import { ModalProvider } from './context/ModalContext'
 import { buildTheme } from './theme'
 import './index.css'
 import './i18n'
@@ -70,13 +71,15 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
         <ThemeModeProvider>
-          {googleClientId ? (
-            <GoogleOAuthProvider clientId={googleClientId}>
+          <ModalProvider>
+            {googleClientId ? (
+              <GoogleOAuthProvider clientId={googleClientId}>
+                <ThemedApp />
+              </GoogleOAuthProvider>
+            ) : (
               <ThemedApp />
-            </GoogleOAuthProvider>
-          ) : (
-            <ThemedApp />
-          )}
+            )}
+          </ModalProvider>
         </ThemeModeProvider>
       </QueryClientProvider>
     </Provider>

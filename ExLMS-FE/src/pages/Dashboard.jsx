@@ -84,32 +84,7 @@ const Icons = {
   )
 }
 
-const NEWS_SLIDES = [
-  {
-    id: 1,
-    title: "Tối ưu hóa thời gian học tập với ExLMS",
-    desc: "Khám phá cách sử dụng bộ công cụ Calendar và Task Management để nhân đôi hiệu suất học tập mỗi ngày.",
-    color: "linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)",
-    tag: "Education",
-    icon: Icons.education
-  },
-  {
-    id: 2,
-    title: "7 bí quyết để học nhóm hiệu quả",
-    desc: "Xây dựng văn hóa cộng tác trong nhóm học tập chính là chìa khóa để giải quyết những dự án phức tạp một cách nhanh chóng.",
-    color: "linear-gradient(135deg, #0891B2 0%, #06B6D4 100%)",
-    tag: "Tips",
-    icon: Icons.groups
-  },
-  {
-    id: 3,
-    title: "Xu hướng Hybrid Learning năm 2024",
-    desc: "Cùng điểm qua những công nghệ giáo dục đang làm thay đổi cách thức chúng ta tiếp cận tri thức trong kỷ nguyên số.",
-    color: "linear-gradient(135deg, #059669 0%, #10B981 100%)",
-    tag: "Trends",
-    icon: Icons.courses
-  }
-]
+// Removed static NEWS_SLIDES to move inside component for translation
 
 const containerArr = {
   hidden: { opacity: 0 },
@@ -175,7 +150,7 @@ const CustomTooltip = ({ active, payload, label }) => {
       <Box sx={{ bgcolor: 'var(--color-surface-3)', border: '1px solid var(--color-border)', borderRadius: '10px', p: 1.5, boxShadow: '0 10px 30px rgba(0,0,0,0.4)' }}>
         <Typography sx={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', mb: 0.5 }}>{label}</Typography>
         <Typography sx={{ fontSize: '1rem', fontWeight: 800, color: 'var(--color-primary-lt)' }}>
-          {payload[0].value} Hoạt động
+          {payload[0].value} {payload[0].value > 1 ? 'Activities' : 'Activity'}
         </Typography>
       </Box>
     )
@@ -183,17 +158,18 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null
 }
 
-const NewsCarousel = () => {
+const NewsCarousel = ({ slides }) => {
   const [index, setIndex] = useState(0)
+  const { t } = useTranslation()
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setIndex((prev) => (prev + 1) % NEWS_SLIDES.length)
+      setIndex((prev) => (prev + 1) % slides.length)
     }, 6000)
     return () => clearInterval(timer)
-  }, [])
+  }, [slides.length])
 
-  const slide = NEWS_SLIDES[index]
+  const slide = slides[index]
 
   return (
     <Card 
@@ -236,14 +212,14 @@ const NewsCarousel = () => {
       <Box sx={{ position: 'absolute', bottom: 16, right: 16, display: 'flex', gap: 1 }}>
         <IconButton
            size="small"
-           onClick={() => setIndex((prev) => (prev - 1 + NEWS_SLIDES.length) % NEWS_SLIDES.length)}
+           onClick={() => setIndex((prev) => (prev - 1 + slides.length) % slides.length)}
            sx={{ bgcolor: 'rgba(255,255,255,0.1)', color: 'white', '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' } }}
         >
            {Icons.chevronLeft}
         </IconButton>
         <IconButton
            size="small"
-           onClick={() => setIndex((prev) => (prev + 1) % NEWS_SLIDES.length)}
+           onClick={() => setIndex((prev) => (prev + 1) % slides.length)}
            sx={{ bgcolor: 'rgba(255,255,255,0.1)', color: 'white', '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' } }}
         >
            {Icons.chevronRight}
@@ -262,6 +238,33 @@ const Dashboard = () => {
   const { user } = useSelector((state) => state.auth)
   const [loading, setLoading] = useState(true)
   const [statsData, setStatsData] = useState(null)
+
+  const slides = [
+    {
+      id: 1,
+      title: t('dashboard.news.slide1_title'),
+      desc: t('dashboard.news.slide1_desc'),
+      color: "linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)",
+      tag: "Education",
+      icon: Icons.education
+    },
+    {
+      id: 2,
+      title: t('dashboard.news.slide2_title'),
+      desc: t('dashboard.news.slide2_desc'),
+      color: "linear-gradient(135deg, #0891B2 0%, #06B6D4 100%)",
+      tag: "Tips",
+      icon: Icons.groups
+    },
+    {
+      id: 3,
+      title: t('dashboard.news.slide3_title'),
+      desc: t('dashboard.news.slide3_desc'),
+      color: "linear-gradient(135deg, #059669 0%, #10B981 100%)",
+      tag: "Trends",
+      icon: Icons.courses
+    }
+  ]
 
   useEffect(() => {
     const fetchData = async () => {
@@ -308,7 +311,7 @@ const Dashboard = () => {
 
       {/* ── Education Highlights Carousel ────────────────────────── */}
       <motion.div variants={itemArr} style={{ marginBottom: '32px' }}>
-         <NewsCarousel />
+         <NewsCarousel slides={slides} />
       </motion.div>
 
       {/* ── Top Stats ─────────────────────────────────────────────── */}
@@ -339,8 +342,8 @@ const Dashboard = () => {
                   <>
                     {!hasWeeklyData && (
                       <Box sx={{ position: 'absolute', inset: 0, zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', bgcolor: alpha(theme.palette.background.paper, 0.4), backdropFilter: 'blur(2px)', borderRadius: '12px' }}>
-                         <Typography sx={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', fontWeight: 600 }}>Chưa có hoạt động trong 7 ngày qua</Typography>
-                         <Typography sx={{ color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>Hãy bắt đầu bằng việc làm bài tập hoặc tham gia thảo luận!</Typography>
+                         <Typography sx={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', fontWeight: 600 }}>{t('dashboard.no_activity_7d')}</Typography>
+                         <Typography sx={{ color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>{t('dashboard.start_learning_hint')}</Typography>
                       </Box>
                     )}
                     <ResponsiveContainer width="100%" height="100%">
@@ -374,7 +377,7 @@ const Dashboard = () => {
                 <Box sx={{ mb: 4, textAlign: 'center' }}>
                   <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', mb: 1 }}>{t('dashboard.achievement', { score: statsData?.totalAchievement || 0 })}</Typography>
                   <Typography sx={{ fontSize: '3rem', fontWeight: 900, color: 'var(--color-primary-lt)' }}>{Math.round(statsData?.averageCompletion || 0)}%</Typography>
-                  <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', mt: -1 }}>Tiến độ trung bình</Typography>
+                  <Typography sx={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', mt: -1 }}>{t('dashboard.average_progress')}</Typography>
                 </Box>
                 <Box sx={{ px: 2 }}>
                   <LinearProgress 
@@ -426,7 +429,7 @@ const Dashboard = () => {
                       </AnimatePresence>
                     ) : (
                       <Box sx={{ py: 6, textAlign: 'center' }}>
-                         <Typography sx={{ color: 'var(--color-text-muted)', fontStyle: 'italic' }}>Chưa có hoạt động nào được ghi nhận.</Typography>
+                         <Typography sx={{ color: 'var(--color-text-muted)', fontStyle: 'italic' }}>{t('dashboard.no_recent_activity')}</Typography>
                       </Box>
                     )}
                   </Box>
@@ -446,7 +449,7 @@ const Dashboard = () => {
                    <>
                     {!hasCategoryData && (
                       <Box sx={{ position: 'absolute', inset: 0, zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', p: 3 }}>
-                         <Typography sx={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Bạn chưa tham gia nhóm nào để thống kê lĩnh vực.</Typography>
+                         <Typography sx={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>{t('dashboard.no_groups_for_stats')}</Typography>
                       </Box>
                     )}
                     <ResponsiveContainer width="100%" height="100%">

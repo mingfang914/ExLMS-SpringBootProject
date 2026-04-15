@@ -4,9 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import project.TeamFive.ExLMS.quiz.entity.Quiz;
 import project.TeamFive.ExLMS.quiz.entity.GroupQuiz;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -16,8 +14,8 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class QuizResponseDTO {
-    private UUID id;             // This is the deployment ID (GroupQuiz ID)
-    private UUID templateId;     // This is the template ID (Quiz ID)
+    private UUID id; // This is the deployment ID (GroupQuiz ID)
+    private UUID templateId; // This is the template ID (Quiz ID)
     private String title;
     private String description;
     private String coverImageUrl;
@@ -25,14 +23,14 @@ public class QuizResponseDTO {
     private int maxAttempts;
     private int passingScore;
     private int questionCount;
-    
+
     // Deployment specific
     private LocalDateTime openAt;
     private LocalDateTime closeAt;
     private boolean shuffleQuestions;
     private GroupQuiz.ResultVisibility resultVisibility;
     private GroupQuiz.GroupQuizStatus status;
-    
+
     private List<QuestionResponse> questions;
     private boolean hasAttempts;
     private int userAttemptCount;

@@ -15,7 +15,11 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') });
 dotenv.config(); // fallback to local .env
 
 const PORT = process.env.COLLAB_SERVICE_PORT || process.env.PORT || '1234';
-const CORE_BACKEND_URL = process.env.CORE_BACKEND_INTERNAL_URL || process.env.CORE_BACKEND_URL || 'http://lms-backend:8081/api/v1';
+
+// Sử dụng biến môi trường từ Docker Compose hoặc .env
+const CORE_BACKEND_URL = process.env.CORE_BACKEND_INTERNAL_URL || 'http://lms-backend:8081/api/v1';
+
+console.log(`[System] Backend URL set to: ${CORE_BACKEND_URL}`);
 const REDIS_HOST = process.env.REDIS_HOST || 'localhost';
 const REDIS_PORT = parseInt(process.env.REDIS_PORT || '6379');
 

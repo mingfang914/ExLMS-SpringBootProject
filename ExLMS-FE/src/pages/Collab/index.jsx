@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { 
-  Box, Container, Typography, Paper, Grid, 
+import {
+  Box, Container, Typography, Paper, Grid,
   Button, Chip, Divider, IconButton, TextField,
   Dialog, DialogTitle, DialogContent, DialogActions,
   CircularProgress, Stack
 } from '@mui/material';
-import { 
-  ArrowLeft, Plus, Calendar, Clock, Lock, 
+import {
+  ArrowLeft, Plus, Calendar, Clock, Lock,
   Globe, Layout, Trash2, Edit3, CheckCircle, MoreVertical
 } from 'lucide-react';
 import collabService from '../../services/collabService';
@@ -17,12 +17,15 @@ import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
+import { useModal } from '../../context/ModalContext';
 
-const GroupCollab = () => {
-  const { groupId } = useParams();
+const GroupCollab = ({ groupId: propGroupId }) => {
+  const { groupId: paramsGroupId, collabId } = useParams();
+  const groupId = propGroupId || paramsGroupId;
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
-  
+  const { showSuccess, showError, showConfirm } = useModal();
+
   const [collabs, setCollabs] = useState([]);
   const [activeCollab, setActiveCollab] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -58,19 +61,8 @@ const GroupCollab = () => {
       onConnect: () => {
         client.subscribe('/topic/resource-status', (msg) => {
           const payload = JSON.parse(msg.body);
-          if (payload.type === 'STATUS_CHANGED' && payload.data.type === 'COLLAB') {
-            // Update local state if it's a collab status change
-            setCollabs(current => current.map(c => 
-              c.id === payload.data.id ? { ...c, status: payload.data.status } : c
-            ));
-            
-            // If active collab is closed, update it
-            setActiveCollab(current => {
-              if (current && current.id === payload.data.id) {
-                return { ...current, status: payload.data.status };
-              }
-              return current;
-            });
+          if (payload.type === 'STATUS_CHANGED' && (payload.data.type === 'COLLAB' || payload.data.type === 'Bài tập nhóm')) {
+            fetchData();
           }
         });
       }
@@ -79,6 +71,16 @@ const GroupCollab = () => {
 
     return () => client.deactivate();
   }, [groupId]);
+
+  // Handle URL changes
+  useEffect(() => {
+    if (collabId && collabs.length > 0) {
+      const active = collabs.find(c => c.id === collabId);
+      if (active) setActiveCollab(active);
+    } else if (!collabId) {
+      setActiveCollab(null);
+    }
+  }, [collabId, collabs]);
 
   const handleCreateOrUpdate = async () => {
     try {
@@ -90,18 +92,19 @@ const GroupCollab = () => {
       setOpenDialog(false);
       resetForm();
       fetchData();
+      await showSuccess(t('common.success'), editingId ? 'Cập nhật thành công!' : 'Tạo phiên làm việc mới thành công!');
     } catch (err) {
-      alert(err.response?.data?.message || 'Có lỗi xảy ra');
+      await showError(t('common.error'), err.response?.data?.message || 'Có lỗi xảy ra');
     }
   };
 
   const resetForm = () => {
-    setFormData({ 
-        title: '', 
-        description: '', 
-        startAt: format(new Date(), "yyyy-MM-dd'T'HH:mm"), 
-        endAt: '',
-        status: 'DRAFT'
+    setFormData({
+      title: '',
+      description: '',
+      startAt: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
+      endAt: '',
+      status: 'DRAFT'
     });
     setEditingId(null);
   };
@@ -117,6 +120,24 @@ const GroupCollab = () => {
       status: collab.status
     });
     setOpenDialog(true);
+  };
+
+  const handleDelete = async (id, e) => {
+    e.stopPropagation();
+    const confirmed = await showConfirm(
+      t('common.confirm_delete'),
+      'Bạn có chắc chắn muốn xóa phiên làm việc này?',
+      'error'
+    );
+    if (confirmed) {
+      try {
+        await collabService.deleteCollab(id);
+        fetchData();
+        await showSuccess(t('common.success'), 'Xóa phiên làm việc thành công!');
+      } catch (err) {
+        await showError(t('common.error'), err.response?.data?.message || 'Không thể xóa phiên làm việc');
+      }
+    }
   };
 
   const getStatusColor = (status) => {
@@ -137,34 +158,34 @@ const GroupCollab = () => {
   }
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
+    <Box sx={{ p: 3 }}>
       {activeCollab ? (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
           <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Button 
-                variant="outlined" 
-                startIcon={<ArrowLeft size={18} />} 
-                onClick={() => setActiveCollab(null)}
+            <Button
+              variant="outlined"
+              startIcon={<ArrowLeft size={18} />}
+              onClick={() => navigate(`/groups/${groupId}?tab=5`)}
             >
-              Quay lại danh sách
+              Quay lại nhóm
             </Button>
             <Box>
-                <Typography variant="h4">{activeCollab.title}</Typography>
-                <Typography variant="body2" color="text.secondary">{activeCollab.description}</Typography>
+              <Typography variant="h4">{activeCollab.title}</Typography>
+              <Typography variant="body2" color="text.secondary">{activeCollab.description}</Typography>
             </Box>
-            <Chip 
-              label={activeCollab.status} 
-              color={getStatusColor(activeCollab.status)} 
-              variant="outlined" 
+            <Chip
+              label={activeCollab.status}
+              color={getStatusColor(activeCollab.status)}
+              variant="outlined"
               sx={{ ml: 'auto' }}
             />
           </Box>
 
           <Box sx={{ height: 'calc(100vh - 250px)' }}>
-            <CollabEditor 
-              collabId={activeCollab.id} 
-              user={user} 
-              providerUrl={import.meta.env.VITE_COLLAB_SERVICE_URL || 'ws://localhost:1234'} 
+            <CollabEditor
+              collabId={activeCollab.id}
+              user={user}
+              providerUrl={import.meta.env.VITE_COLLAB_SERVICE_URL || 'ws://localhost:1234'}
               isReadOnly={activeCollab.status === 'CLOSED'}
             />
           </Box>
@@ -177,8 +198,8 @@ const GroupCollab = () => {
               <Typography variant="body1" color="text.secondary">Cùng nhau soạn thảo và chia sẻ ý tưởng thời gian thực</Typography>
             </Box>
             {user.role !== 'STUDENT' && (
-              <Button 
-                variant="contained" 
+              <Button
+                variant="contained"
                 startIcon={<Plus size={20} />}
                 onClick={() => setOpenDialog(true)}
               >
@@ -190,20 +211,22 @@ const GroupCollab = () => {
           <Grid container spacing={3}>
             {collabs.map((c) => (
               <Grid item xs={12} md={6} lg={4} key={c.id}>
-                <Paper 
+                <Paper
                   elevation={0}
                   className="premium-card"
-                  sx={{ 
-                    p: 0, 
-                    borderRadius: 4, 
+                  sx={{
+                    p: 0,
+                    borderRadius: 4,
                     cursor: 'pointer',
                     position: 'relative',
                     overflow: 'hidden',
+                    border: '1px solid rgba(255,255,255,0.05)',
                     '&:hover': {
-                        transform: 'translateY(-5px)',
+                      transform: 'translateY(-5px)',
+                      borderColor: 'primary.main'
                     }
                   }}
-                  onClick={() => setActiveCollab(c)}
+                  onClick={() => navigate(`/groups/${groupId}/collabs/${c.id}`)}
                 >
                   <Box className="card-status-indicator" sx={{ bgcolor: getStatusColor(c.status) + '.main' }} />
                   <Box sx={{
@@ -214,44 +237,50 @@ const GroupCollab = () => {
                   }} />
                   <Stack spacing={2} sx={{ p: 3 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                        <Typography variant="h6" fontWeight="bold">{c.title}</Typography>
-                        <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
-                            <Chip size="small" label={c.status} color={getStatusColor(c.status)} />
-                            {user.role !== 'STUDENT' && c.status !== 'CLOSED' && (
-                                <IconButton size="small" onClick={(e) => handleEdit(c, e)}>
-
-                                    <Edit3 size={14} />
-                                </IconButton>
+                      <Typography variant="h6" fontWeight="bold">{c.title}</Typography>
+                      <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
+                        <Chip size="small" label={c.status} color={getStatusColor(c.status)} />
+                        {user.role !== 'STUDENT' && (
+                          <Box sx={{ display: 'flex', gap: 0.5 }}>
+                            {c.status !== 'CLOSED' && (
+                              <IconButton size="small" onClick={(e) => handleEdit(c, e)} sx={{ bgcolor: 'rgba(99, 102, 241, 0.1)', color: '#6366F1' }}>
+                                <Edit3 size={14} />
+                              </IconButton>
                             )}
-                        </Box>
+                            <IconButton size="small" onClick={(e) => handleDelete(c.id, e)} sx={{ bgcolor: 'rgba(239, 68, 68, 0.1)', color: '#EF4444' }}>
+                              <Trash2 size={14} />
+                            </IconButton>
+                          </Box>
+                        )}
+                      </Box>
                     </Box>
-                    <Typography variant="body2" color="text.secondary" className="text-truncate-2">
-                        {c.description || 'Không có mô tả'}
+                    <Typography variant="body2" color="text.secondary" className="text-truncate-2" sx={{ minHeight: 40 }}>
+                      {c.description || 'Không có mô tả'}
                     </Typography>
-                    
+
                     <Divider />
-                    
+
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}>
-                        <Calendar size={16} />
-                        <Typography variant="caption">
-                            Bắt đầu: {format(new Date(c.startAt), 'dd/MM/yyyy HH:mm')}
-                        </Typography>
+                      <Calendar size={16} />
+                      <Typography variant="caption">
+                        Bắt đầu: {format(new Date(c.startAt), 'dd/MM/yyyy HH:mm')}
+                      </Typography>
                     </Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}>
-                        <Clock size={16} />
-                        <Typography variant="caption">
-                            {c.endAt ? `Kết thúc: ${format(new Date(c.endAt), 'dd/MM/yyyy HH:mm')}` : 'Không hạn thời gian'}
-                        </Typography>
+                      <Clock size={16} />
+                      <Typography variant="caption">
+                        {c.endAt ? `Kết thúc: ${format(new Date(c.endAt), 'dd/MM/yyyy HH:mm')}` : 'Không hạn thời gian'}
+                      </Typography>
                     </Box>
                   </Stack>
                 </Paper>
               </Grid>
             ))}
             {collabs.length === 0 && (
-                <Box sx={{ textAlign: 'center', width: '100%', py: 10 }}>
-                    <Layout size={60} strokeWidth={1} style={{ opacity: 0.3, marginBottom: 16 }} />
-                    <Typography color="text.secondary">Chưa có phiên làm việc nhóm nào được tạo</Typography>
-                </Box>
+              <Box sx={{ textAlign: 'center', width: '100%', py: 10 }}>
+                <Layout size={60} strokeWidth={1} style={{ opacity: 0.3, marginBottom: 16 }} />
+                <Typography color="text.secondary">Chưa có phiên làm việc nhóm nào được tạo</Typography>
+              </Box>
             )}
           </Grid>
         </>
@@ -282,8 +311,8 @@ const GroupCollab = () => {
               fullWidth
               disabled={!!editingId}
               InputLabelProps={{ shrink: true }}
-              inputProps={{ 
-                min: format(new Date(), "yyyy-MM-dd'T'HH:mm") 
+              inputProps={{
+                min: format(new Date(), "yyyy-MM-dd'T'HH:mm")
               }}
               value={formData.startAt}
               onChange={(e) => setFormData({ ...formData, startAt: e.target.value })}
@@ -293,24 +322,23 @@ const GroupCollab = () => {
               type="datetime-local"
               fullWidth
               InputLabelProps={{ shrink: true }}
-              inputProps={{ 
-                min: formData.startAt || format(new Date(), "yyyy-MM-dd'T'HH:mm") 
+              inputProps={{
+                min: formData.startAt || format(new Date(), "yyyy-MM-dd'T'HH:mm")
               }}
               value={formData.endAt}
               onChange={(e) => setFormData({ ...formData, endAt: e.target.value })}
             />
-            
+
             <TextField
-                select
-                label="Trạng thái"
-                fullWidth
-                SelectProps={{ native: true }}
-                value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+              select
+              label="Trạng thái"
+              fullWidth
+              SelectProps={{ native: true }}
+              value={formData.status}
+              onChange={(e) => setFormData({ ...formData, status: e.target.value })}
             >
-                <option value="DRAFT">Draft</option>
-                <option value="PUBLISHED">Published</option>
-                {editingId && <option value="CLOSED">Closed (Manual)</option>}
+              <option value="DRAFT">Draft</option>
+              <option value="PUBLISHED">Published</option>
             </TextField>
           </Stack>
         </DialogContent>
@@ -321,7 +349,7 @@ const GroupCollab = () => {
           </Button>
         </DialogActions>
       </Dialog>
-    </Container>
+    </Box>
   );
 };
 

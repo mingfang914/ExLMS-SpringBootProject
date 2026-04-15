@@ -115,6 +115,15 @@ const QuizPlayer = () => {
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'var(--color-bg)', p: { xs: 2, md: 4 } }}>
+      <Box sx={{ maxWidth: 1200, mx: 'auto', mb: 3 }}>
+        <Button 
+          startIcon={<BackIcon />} 
+          onClick={() => navigate(`/groups/${groupId}/courses/${courseId}/view`)}
+          sx={{ fontWeight: 700, color: 'var(--color-text-sec)', borderRadius: '12px' }}
+        >
+          Quay lại khóa học
+        </Button>
+      </Box>
       <Box sx={{ maxWidth: 1200, mx: 'auto', display: 'grid', gridTemplateColumns: { md: '1fr 340px' }, gap: 4 }}>
         
         {/* Main Quiz Area */}

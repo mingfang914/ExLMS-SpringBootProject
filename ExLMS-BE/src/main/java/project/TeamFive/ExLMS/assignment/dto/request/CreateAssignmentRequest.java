@@ -19,7 +19,7 @@ public class CreateAssignmentRequest {
     private String description;
     private UUID groupId;
     private UUID courseId; // For matching Chapter if needed
-    private String coverImageUrl;
+    private String coverImageKey;
     
     @JsonProperty("maxScore")
     private Integer maxScore;

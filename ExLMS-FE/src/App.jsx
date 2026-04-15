@@ -99,6 +99,7 @@ function App() {
           <Route path="/groups/:groupId/courses/:courseId/quiz/:quizId/attempts/latest" element={<QuizLatestAttempt />} />
           <Route path="/groups/:groupId/courses/:id" element={<CourseDetail />} />
           <Route path="/groups/:groupId/meetings/:id" element={<MeetingDetail />} />
+          <Route path="/groups/:groupId/collabs/:collabId" element={<GroupCollab />} />
           <Route path="/groups/:groupId/collabs" element={<GroupCollab />} />
           <Route path="/groups/:groupId/assignments" element={<AssignmentList />} />
           <Route path="/groups/:groupId/assignments/:id" element={<AssignmentDetail />} />

@@ -34,7 +34,7 @@ public class MeetingResponseDTO {
         dto.setTitle(meeting.getTitle());
         dto.setDescription(meeting.getDescription());
         dto.setGroupId(meeting.getGroup().getId());
-        dto.setCoverImageUrl(meeting.getCoverImageUrl() != null ? meeting.getCoverImageUrl() : "/api/files/download/Assets/MeetingDefaultCover.png");
+        dto.setCoverImageUrl(meeting.getCoverImageKey() != null ? "/api/files/download/" + meeting.getCoverImageKey() : "/api/files/download/Assets/MeetingDefaultCover.png");
         dto.setPlatform(meeting.getPlatform());
         dto.setJoinUrl(meeting.getJoinUrl());
         dto.setStartAt(meeting.getStartAt());

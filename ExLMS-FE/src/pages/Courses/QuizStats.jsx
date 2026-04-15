@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useModal } from '../../context/ModalContext'
 import { alpha } from '@mui/material/styles'
 import {
   Box, Typography, Paper, Grid, Card, CardContent, Divider,
@@ -20,6 +21,7 @@ import { format } from 'date-fns'
 
 const QuizStats = () => {
   const { t } = useTranslation()
+  const { showSuccess, showError } = useModal()
   const { groupId, courseId, quizId } = useParams()
   const [stats, setStats] = useState(null)
   const [quiz, setQuiz] = useState(null)
@@ -59,7 +61,7 @@ const QuizStats = () => {
       const quizData = await quizService.getQuiz(quizId)
       setQuiz(quizData)
     } catch (err) {
-      alert('Không thể thay đổi trạng thái công bố kết quả')
+      await showError(t('common.error'), 'Không thể thay đổi trạng thái công bố kết quả')
     }
   }
 

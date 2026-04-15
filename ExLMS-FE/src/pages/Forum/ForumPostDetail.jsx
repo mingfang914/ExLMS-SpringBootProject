@@ -34,9 +34,11 @@ import forumService from '../../services/forumService'
 import { formatDistanceToNow } from 'date-fns'
 import { vi, enUS } from 'date-fns/locale'
 import { useTranslation } from 'react-i18next'
+import { useModal } from '../../context/ModalContext'
 
 const ForumPostDetail = () => {
   const { t, i18n } = useTranslation()
+  const { showConfirm, showSuccess, showError } = useModal()
   const { id } = useParams()
   const navigate = useNavigate()
   const { user } = useSelector((state) => state.auth)
@@ -243,12 +245,18 @@ const ForumPostDetail = () => {
                     <MenuItem 
                       onClick={async () => {
                         handleCloseMenu();
-                        if (window.confirm(t('forum.confirm_delete'))) {
+                        const confirmed = await showConfirm(
+                          t('common.confirm_delete'),
+                          t('forum.confirm_delete'),
+                          'error'
+                        );
+                        if (confirmed) {
                           try {
                             await forumService.deletePost(post.id)
+                            await showSuccess(t('common.success'), t('forum.delete_post_success') || 'Xóa bài viết thành công!')
                             navigate('/forum')
                           } catch (err) {
-                            console.error('Failed to delete post')
+                            await showError(t('common.error'), t('forum.errors.delete_failed') || 'Không thể xóa bài viết')
                           }
                         }
                       }}

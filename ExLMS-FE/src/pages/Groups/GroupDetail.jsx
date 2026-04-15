@@ -45,7 +45,10 @@ import {
   Insights as TipsIcon,
   Logout as LeaveIcon
 } from '@mui/icons-material'
+import { Clock } from 'lucide-react'
 import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { useModal } from '../../context/ModalContext'
 import groupService from '../../services/groupService'
 import courseService from '../../services/courseService'
 import assignmentService from '../../services/assignmentService'
@@ -53,15 +56,32 @@ import * as quizService from '../../services/quizService'
 import meetingService from '../../services/meetingService'
 import { format } from 'date-fns'
 import { vi, enUS } from 'date-fns/locale'
-import { useTranslation } from 'react-i18next'
 
 import GroupMembers from './components/GroupMembers'
 import GroupFeed from './components/GroupFeed'
 import InventoryDeploymentModal from '../Inventory/InventoryDeploymentModal'
 import DeploymentEditModal from './components/DeploymentEditModal'
+import GroupCollab from '../Collab/index'
+
+const DashedPanel = ({ children, sx = {} }) => (
+  <Box 
+    sx={{ 
+      p: 4, 
+      borderRadius: '24px', 
+      border: '1px dashed #6366F1', 
+      background: 'rgba(99, 102, 241, 0.05)', 
+      minHeight: '400px',
+      position: 'relative',
+      ...sx 
+    }}
+  >
+    {children}
+  </Box>
+)
 
 const GroupDetail = () => {
   const { t, i18n } = useTranslation()
+  const { showConfirm, showSuccess, showError } = useModal()
   const { id } = useParams()
   const [group, setGroup] = useState(null)
   const [courses, setCourses] = useState([])
@@ -182,39 +202,50 @@ const GroupDetail = () => {
 
 
   const handleDeleteResource = async (type, resId) => {
-    if (!window.confirm(t('common.confirm_delete'))) return
+    const confirmed = await showConfirm(
+      t('common.confirm_delete'),
+      t('common.confirm_delete_msg') || 'Bạn có chắc chắn muốn xóa học liệu này?',
+      'error'
+    );
+    if (!confirmed) return
     try {
       if (type === 'course') await courseService.deleteCourse(id, resId)
       else if (type === 'assignment') await assignmentService.deleteDeployment(resId)
       else if (type === 'quiz') await quizService.deleteQuiz(resId)
       
       refreshData()
-      alert(t('common.success'))
+      await showSuccess(t('common.success'))
     } catch (err) {
-      alert(err.response?.data?.message || t('common.error'))
+      await showError(t('common.error'), err.response?.data?.message || t('common.error'))
     }
   }
 
   const handleJoinGroup = async () => {
     try {
       const response = await groupService.createJoinRequest(id, t('groups.messages.join_default'))
-      alert(response || t('groups.messages.join_sent'))
+      await showSuccess(t('common.success'), response || t('groups.messages.join_sent'))
       // Tải lại thông tin nhóm nếu nhóm được duyệt tự động (Auto-Join)
       const groupData = await groupService.getGroupById(id)
       setGroup(groupData)
     } catch (err) {
-      alert(err.response?.data?.message || t('groups.errors.join_failed'))
+      await showError(t('common.error'), err.response?.data?.message || t('groups.errors.join_failed'))
     }
   }
 
   const handleLeaveGroup = async () => {
-    if (!window.confirm('Bạn có chắc chắn muốn rời khỏi nhóm học tập này?')) return
+    const confirmed = await showConfirm(
+      t('group_detail.tabs.leave'),
+      t('group_detail.messages.leave_confirm'),
+      'warning'
+    )
+    if (!confirmed) return
+
     try {
       await groupService.leaveGroup(id)
-      alert('Đã rời khỏi nhóm thành công!')
+      await showSuccess(t('common.success'), t('group_detail.messages.leave_success'))
       navigate('/groups')
     } catch (err) {
-      alert(err.response?.data?.message || 'Không thể rời nhóm lúc này!')
+      showError(t('common.error'), err.response?.data?.message || t('group_detail.messages.leave_failed'))
     }
   }
 
@@ -224,24 +255,29 @@ const GroupDetail = () => {
       await groupService.updateGroup(id, editGroupData)
       setGroup({ ...group, ...editGroupData })
       setManageDialogOpen(false)
-      alert(t('group_detail.messages.update_success'))
+      await showSuccess(t('common.success'), t('group_detail.messages.update_success'))
     } catch (err) {
-      alert(err.response?.data?.message || t('group_detail.errors.update_failed'))
+      await showError(t('common.error'), err.response?.data?.message || t('group_detail.errors.update_failed'))
     }
   }
 
   const handleDeleteGroup = async () => {
     if (deleteConfirmText !== group.name) {
-      alert(t('group_detail.danger_zone.desc') + group.name)
+      await showError(t('common.error'), t('group_detail.danger_zone.desc') + group.name)
       return
     }
-    if (window.confirm(t('common.confirm_delete'))) {
+    const confirmed = await showConfirm(
+      t('common.confirm_delete'),
+      t('group_detail.danger_zone.desc_full'),
+      'error'
+    );
+    if (confirmed) {
       try {
         await groupService.deleteGroup(id)
-        alert(t('common.success'))
+        await showSuccess(t('common.success'))
         navigate('/groups')
       } catch (err) {
-        alert(err.response?.data?.message || t('common.error'))
+        await showError(t('common.error'), err.response?.data?.message || t('common.error'))
       }
     }
   }
@@ -254,20 +290,25 @@ const GroupDetail = () => {
       setMeetings(freshMeetings)
       setScheduleDialogOpen(false)
       setNewMeetingData({ title: '', description: '', startAt: '', endAt: '', status: 'PUBLISHED' })
-      alert(t('group_detail.meetings.schedule_success'))
+      await showSuccess(t('common.success'), t('group_detail.meetings.schedule_success'))
     } catch (err) {
-      alert(t('group_detail.meetings.schedule_failed'))
+      await showError(t('common.error'), t('group_detail.meetings.schedule_failed'))
     }
   }
 
   const handleDeleteMeeting = async (meetingId) => {
-    if (window.confirm(t('group_detail.meetings.delete_confirm'))) {
+    const confirmed = await showConfirm(
+      t('common.confirm_delete'),
+      t('group_detail.meetings.delete_confirm'),
+      'warning'
+    );
+    if (confirmed) {
       try {
         await meetingService.deleteMeeting(meetingId)
         setMeetings(meetings.filter(m => m.id !== meetingId))
-        alert(t('group_detail.meetings.delete_success'))
+        await showSuccess(t('common.success'), t('group_detail.meetings.delete_success'))
       } catch (err) {
-        alert(err.response?.data?.message || t('group_detail.meetings.delete_failed'))
+        await showError(t('common.error'), err.response?.data?.message || t('group_detail.meetings.delete_failed'))
       }
     }
   }
@@ -294,9 +335,9 @@ const GroupDetail = () => {
       const freshMeetings = await meetingService.getMeetingsByGroup(id)
       setMeetings(freshMeetings)
       setEditMeetingDialogOpen(false)
-      alert(t('group_detail.meetings.update_success'))
+      await showSuccess(t('common.success'), t('group_detail.meetings.update_success'))
     } catch (err) {
-      alert(err.response?.data?.message || t('group_detail.meetings.update_failed'))
+      await showError(t('common.error'), err.response?.data?.message || t('group_detail.meetings.update_failed'))
     }
   }
 
@@ -341,18 +382,37 @@ const GroupDetail = () => {
           </Box>
         </Box>
         
-        <Box sx={{ p: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 3 }}>
-          <Tabs value={activeTab} onChange={(e, val) => setActiveTab(val)}>
-            <Tab icon={<InfoIcon />} iconPosition="start" label={t('group_detail.tabs.overview')} />
-            {group.isJoined && <Tab icon={<CourseIcon />} iconPosition="start" label={t('group_detail.tabs.courses')} />}
-            {group.isJoined && <Tab icon={<AssignmentIcon />} iconPosition="start" label={t('group_detail.tabs.assignments')} />}
-            {group.isJoined && <Tab icon={<QuizIcon />} iconPosition="start" label="Kiểm tra" />}
-            {group.isJoined && <Tab icon={<MeetingIcon />} iconPosition="start" label={t('group_detail.tabs.meetings')} />}
-            {group.isJoined && <Tab icon={<ShareIcon />} iconPosition="start" label="Làm việc nhóm" />}
-            {group.isJoined && <Tab icon={<ForumIcon />} iconPosition="start" label={t('group_detail.tabs.feed')} />}
-            {group.isJoined && <Tab icon={<PeopleIcon />} iconPosition="start" label={t('group_detail.tabs.members')} />}
+        <Box 
+          sx={{ 
+            p: 1, 
+            display: 'flex', 
+            flexDirection: { xs: 'column', md: 'row' },
+            justifyContent: 'space-between', 
+            alignItems: { xs: 'stretch', md: 'center' }, 
+            px: { xs: 1, md: 3 },
+            gap: 2
+          }}
+        >
+          <Tabs 
+            value={activeTab} 
+            onChange={(e, val) => setActiveTab(val)}
+            variant="scrollable"
+            scrollButtons="auto"
+            allowScrollButtonsMobile
+            sx={{
+              '& .MuiTabs-flexContainer': { gap: { xs: 0, md: 1 } }
+            }}
+          >
+            <Tab icon={<InfoIcon />} iconPosition="start" label={t('group_detail.tabs.overview')} sx={{ minHeight: 64 }} />
+            {group.isJoined && <Tab icon={<CourseIcon />} iconPosition="start" label={t('group_detail.tabs.courses')} sx={{ minHeight: 64 }} />}
+            {group.isJoined && <Tab icon={<AssignmentIcon />} iconPosition="start" label={t('group_detail.tabs.assignments')} sx={{ minHeight: 64 }} />}
+            {group.isJoined && <Tab icon={<QuizIcon />} iconPosition="start" label={t('group_detail.tabs.quizzes')} sx={{ minHeight: 64 }} />}
+            {group.isJoined && <Tab icon={<MeetingIcon />} iconPosition="start" label={t('group_detail.tabs.meetings')} sx={{ minHeight: 64 }} />}
+            {group.isJoined && <Tab icon={<ShareIcon />} iconPosition="start" label={t('group_detail.tabs.collab')} sx={{ minHeight: 64 }} />}
+            {group.isJoined && <Tab icon={<ForumIcon />} iconPosition="start" label={t('group_detail.tabs.feed')} sx={{ minHeight: 64 }} />}
+            {group.isJoined && <Tab icon={<PeopleIcon />} iconPosition="start" label={t('group_detail.tabs.members')} sx={{ minHeight: 64 }} />}
           </Tabs>
-          <Box sx={{ display: 'flex', gap: 1 }}>
+          <Box sx={{ display: 'flex', gap: 1, justifyContent: { xs: 'flex-end', md: 'flex-start' }, px: { xs: 1, md: 0 }, pb: { xs: 1, md: 0 } }}>
             {!group.isJoined ? (
               <Button variant="contained" color="secondary" onClick={handleJoinGroup}>
                 {t('group_card.join')}
@@ -377,7 +437,7 @@ const GroupDetail = () => {
                     onClick={handleLeaveGroup}
                     sx={{ borderRadius: '12px', fontWeight: 700 }}
                   >
-                    Rời nhóm
+                    {t('group_detail.tabs.leave')}
                   </Button>
                 )}
               </>
@@ -389,39 +449,41 @@ const GroupDetail = () => {
       {/* Tab Content */}
       <Box>
         {activeTab === 0 && (
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={8}>
-              <Paper sx={{ p: 3, mb: 3 }}>
-                <Typography variant="h6" gutterBottom>{t('group_detail.details')}</Typography>
-                <Typography variant="body1" paragraph>
-                  {group.description || t('group_card.no_desc')}
-                </Typography>
-              </Paper>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Paper sx={{ p: 3 }}>
-                <Typography variant="h6" gutterBottom>{t('group_detail.owner')}</Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
-                  <Avatar sx={{ mr: 2 }}>{group.ownerName.charAt(0)}</Avatar>
-                  <Box>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>{group.ownerName}</Typography>
-                    <Typography variant="body2" color="text.secondary">{t('group_detail.founder')}</Typography>
+          <DashedPanel>
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={8}>
+                <Paper sx={{ p: 3, mb: 3 }}>
+                  <Typography variant="h6" gutterBottom>{t('group_detail.details')}</Typography>
+                  <Typography variant="body1" paragraph>
+                    {group.description || t('group_card.no_desc')}
+                  </Typography>
+                </Paper>
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <Paper sx={{ p: 3 }}>
+                  <Typography variant="h6" gutterBottom>{t('group_detail.owner')}</Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+                    <Avatar sx={{ mr: 2 }}>{group.ownerName.charAt(0)}</Avatar>
+                    <Box>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>{group.ownerName}</Typography>
+                      <Typography variant="body2" color="text.secondary">{t('group_detail.founder')}</Typography>
+                    </Box>
                   </Box>
-                </Box>
-                <Divider sx={{ my: 3 }} />
-                <Typography variant="subtitle2" gutterBottom>{t('group_detail.details')}</Typography>
-                <Box sx={{ mt: 1 }}>
-                  <Typography variant="body2" color="text.secondary"><strong>{t('group_detail.visibility')}:</strong> {group.visibility}</Typography>
-                  <Typography variant="body2" color="text.secondary"><strong>{t('group_detail.created')}:</strong> {t('group_detail.recently')}</Typography>
-                  <Typography variant="body2" color="text.secondary"><strong>{t('group_detail.language')}:</strong> {i18n.language === 'vi' ? t('common.language_vi') : t('common.language_en')}</Typography>
-                </Box>
-              </Paper>
+                  <Divider sx={{ my: 3 }} />
+                  <Typography variant="subtitle2" gutterBottom>{t('group_detail.details')}</Typography>
+                  <Box sx={{ mt: 1 }}>
+                    <Typography variant="body2" color="text.secondary"><strong>{t('group_detail.visibility')}:</strong> {group.visibility}</Typography>
+                    <Typography variant="body2" color="text.secondary"><strong>{t('group_detail.created')}:</strong> {t('group_detail.recently')}</Typography>
+                    <Typography variant="body2" color="text.secondary"><strong>{t('group_detail.language')}:</strong> {i18n.language === 'vi' ? t('common.language_vi') : t('common.language_en')}</Typography>
+                  </Box>
+                </Paper>
+              </Grid>
             </Grid>
-          </Grid>
+          </DashedPanel>
         )}
 
         {activeTab === 1 && (
-          <Box>
+          <DashedPanel>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
               <Typography variant="h5">{t('group_detail.tabs.courses')} in {group.name}</Typography>
               {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
@@ -432,15 +494,15 @@ const GroupDetail = () => {
                     onClick={() => setDeployModal({ open: true, type: 'course' })}
                     sx={{ borderRadius: '12px', fontWeight: 700, background: 'linear-gradient(135deg, #6366F1, #4F46E5)' }}
                   >
-                    Kết nối từ kho đồ
+                    {t('group_detail.actions.connect_inventory')}
                   </Button>
                 </Box>
               )}
             </Box>
             {courses.length === 0 ? (
-              <Paper sx={{ p: 5, textAlign: 'center' }}>
+              <Box sx={{ py: 10, textAlign: 'center' }}>
                 <Typography color="text.secondary">{t('groups.no_groups')}</Typography>
-              </Paper>
+              </Box>
             ) : (
               <Grid container spacing={3}>
                   {courses.map(course => {
@@ -463,15 +525,15 @@ const GroupDetail = () => {
                         </Typography>
                         <Stack spacing={1}>
                           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <Typography variant="caption" color="text.secondary">Trạng thái</Typography>
+                            <Typography variant="caption" color="text.secondary">{t('group_detail.resource_card.status')}</Typography>
                             <Chip label={course.status} size="small" color={course.status === 'PUBLISHED' ? 'success' : 'default'} />
                           </Box>
                           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <Typography variant="caption" color="text.secondary">Ngày tạo</Typography>
+                            <Typography variant="caption" color="text.secondary">{t('group_detail.resource_card.created_at')}</Typography>
                             <Typography variant="caption" fontWeight={700}>{course.startDate ? format(new Date(course.startDate), 'dd/MM/yyyy') : '---'}</Typography>
                           </Box>
                           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <Typography variant="caption" color="text.secondary">Ngày kết thúc</Typography>
+                            <Typography variant="caption" color="text.secondary">{t('course_editor.end_date_label')}</Typography>
                             <Typography variant="caption" fontWeight={700}>{course.endDate ? format(new Date(course.endDate), 'dd/MM/yyyy') : '---'}</Typography>
                           </Box>
                         </Stack>
@@ -513,11 +575,11 @@ const GroupDetail = () => {
               })}
             </Grid>
             )}
-          </Box>
+          </DashedPanel>
         )}
         
         {activeTab === 2 && (
-          <Box>
+          <DashedPanel>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
               <Typography variant="h5">{t('group_detail.tabs.assignments')}</Typography>
               <Box sx={{ display: 'flex', gap: 1 }}>
@@ -529,7 +591,7 @@ const GroupDetail = () => {
                       onClick={() => setDeployModal({ open: true, type: 'assignment' })}
                       sx={{ borderRadius: '12px', fontWeight: 700, background: 'linear-gradient(135deg, #FCD34D, #F59E0B)', color: '#000' }}
                     >
-                      Kết nối từ kho đồ
+                      {t('group_detail.actions.connect_inventory')}
                     </Button>
                   </>
                 )}
@@ -544,115 +606,109 @@ const GroupDetail = () => {
             </Box>
             
             {assignments.length === 0 ? (
-              <Paper sx={{ p: 5, textAlign: 'center' }}>
+              <Box sx={{ py: 10, textAlign: 'center' }}>
                 <Typography color="text.secondary">{t('assignments.no_assignments_student')}</Typography>
-              </Paper>
+              </Box>
             ) : (
-              <Grid container spacing={2}>
-                {Array.isArray(assignments) && assignments.slice(0, 6).map((asgn) => (
-                  <Grid item xs={12} key={asgn.id}>
-                    <Card 
-                      variant="outlined"
-                      sx={{ 
-                        '&:hover': { boxShadow: 4, borderColor: 'primary.main' },
-                        transition: 'all 0.2s',
-                        borderRadius: 4,
-                        background: 'rgba(255,255,255,0.02)',
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        display: 'flex',
-                        overflow: 'hidden'
-                      }}
-                    >
-                      <CardMedia
-                        component="img"
-                        sx={{ width: 160, objectFit: 'cover', display: { xs: 'none', sm: 'block' } }}
-                        image={asgn.coverImageUrl || '/api/files/download/Assets/AssignmentDefaultCover.jpg'}
-                      />
-                      <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flex: 1, py: '20px !important' }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
-                          <Avatar sx={{ bgcolor: 'rgba(252, 211, 77, 0.1)', color: '#FCD34D', width: 48, height: 48, borderRadius: 2, display: { sm: 'none' } }}>
-                            <AssignmentIcon />
-                          </Avatar>
-                          <Box sx={{ flex: 1 }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                              <Typography variant="subtitle1" fontWeight="bold">{asgn.title}</Typography>
-                              <Chip label={asgn.status} size="small" variant="outlined" sx={{ height: 20, fontSize: '0.7rem' }} />
+              <Grid container spacing={3}>
+                {assignments.map((asgn) => {
+                  const isClosed = asgn.status === 'CLOSED';
+                  return (
+                    <Grid item xs={12} sm={6} md={4} key={asgn.id}>
+                      <Card 
+                        sx={{ 
+                          height: '100%',
+                          display: 'flex', 
+                          flexDirection: 'column',
+                          borderRadius: '24px',
+                          overflow: 'hidden',
+                          background: 'rgba(255,255,255,0.02)',
+                          border: '1px solid',
+                          borderColor: isClosed ? 'rgba(255,255,255,0.05)' : 'rgba(99, 102, 241, 0.2)',
+                          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                          '&:hover': { 
+                            boxShadow: '0 12px 24px rgba(0,0,0,0.3)', 
+                            borderColor: '#6366F1',
+                            transform: 'translateY(-4px)'
+                          }
+                        }}
+                      >
+                        <CardMedia
+                          component="img"
+                          height="160"
+                          image={asgn.coverImageUrl || '/api/files/download/Assets/AssignmentDefaultCover.jpg'}
+                          sx={{ objectFit: 'cover' }}
+                        />
+                        <CardContent sx={{ p: 3, flexGrow: 1 }}>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                            <Typography variant="h6" sx={{ fontWeight: 800, lineHeight: 1.2 }}>{asgn.title}</Typography>
+                            <Chip 
+                               label={isClosed ? t('course_editor.status_ended') : asgn.status} 
+                               size="small" 
+                               color={isClosed ? 'default' : 'primary'} 
+                               variant="outlined"
+                            />
+                          </Box>
+
+                          <Stack spacing={1.5} sx={{ mb: 3 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}>
+                              <AddIcon sx={{ fontSize: 16 }} />
+                              <Typography variant="caption">{t('group_detail.resource_card.assigned_at')}: {asgn.assignedAt ? format(new Date(asgn.assignedAt), 'HH:mm dd/MM') : '---'}</Typography>
                             </Box>
-                            <Grid container spacing={2} sx={{ mt: 0.5 }}>
-                              <Grid item>
-                                <Typography variant="caption" color="textSecondary" sx={{ display: 'flex', alignItems: 'center' }}>
-                                  Giao: {asgn.assignedAt ? format(new Date(asgn.assignedAt), 'HH:mm dd/MM') : '---'}
-                                </Typography>
-                              </Grid>
-                              <Grid item>
-                                <Typography variant="caption" color="error" sx={{ display: 'flex', alignItems: 'center', fontWeight: 700 }}>
-                                  Hạn: {asgn.dueAt ? format(new Date(asgn.dueAt), 'HH:mm dd/MM') : '---'}
-                                </Typography>
-                              </Grid>
-                              <Grid item>
-                                <Typography variant="caption" color="textSecondary">
-                                  Nộp muộn: <span style={{ color: asgn.allowLate ? '#10B981' : '#EF4444', fontWeight: 700 }}>{asgn.allowLate ? `Có (-${asgn.latePenaltyPercent}%)` : 'Không'}</span>
-                                </Typography>
-                              </Grid>
-                              <Grid item>
-                                <Typography variant="caption" color="textSecondary">
-                                  {asgn.submissionType} • {asgn.maxScore} pts
-                                </Typography>
-                              </Grid>
-                            </Grid>
-                          </Box>
-                        </Box>
-                        <Box sx={{ display: 'flex', gap: 1, ml: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
-                          <Button 
-                            variant="contained" 
-                            component={RouterLink} 
-                            to={`/groups/${id}/assignments/${asgn.id}`}
-                            disabled={String(asgn.status).toUpperCase() === 'CLOSED' && !asgn.allowLate && group.currentUserRole === 'MEMBER'}
-                            sx={{ borderRadius: '12px', bgcolor: 'rgba(252, 211, 77, 0.1)', color: '#FCD34D', '&:hover': { bgcolor: 'rgba(252, 211, 77, 0.2)' } }}
-                          >
-                            {String(asgn.status).toUpperCase() === 'CLOSED' ? (asgn.allowLate ? 'Nộp muộn' : t('common.closed')) : t('group_detail.actions.details')}
-                          </Button>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: isClosed ? 'error.main' : 'warning.main' }}>
+                              <Clock sx={{ fontSize: 16 }} />
+                              <Typography variant="caption" fontWeight="bold">{t('group_detail.resource_card.due_at')}: {asgn.dueAt ? format(new Date(asgn.dueAt), 'HH:mm dd/MM') : '---'}</Typography>
+                            </Box>
+                          </Stack>
+
                           <Box sx={{ display: 'flex', gap: 1 }}>
-                            {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && String(asgn.status).toUpperCase() !== 'CLOSED' && (
-                              <IconButton 
-                                size="small" 
-                                color="primary"
-                                onClick={() => setEditDeployModal({ open: true, type: 'assignment', resource: asgn })}
-                                sx={{ bgcolor: 'rgba(99, 102, 241, 0.1)', '&:hover': { bgcolor: 'rgba(99, 102, 241, 0.2)' } }}
-                              >
-                                <EditIcon fontSize="small" />
-                              </IconButton>
-                            )}
-                            {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && asgn.status !== 'CLOSED' && (
-                              <IconButton 
-                                size="small" 
-                                color="error"
-                                onClick={() => handleDeleteResource('assignment', asgn.id)}
-                                sx={{ bgcolor: 'rgba(239, 68, 68, 0.1)', '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.2)' } }}
-                              >
-                                <DeleteIcon fontSize="small" />
-                              </IconButton>
+                            <Button 
+                              variant="contained" 
+                              fullWidth
+                              component={RouterLink}
+                              to={`/groups/${id}/assignments/${asgn.id}`}
+                              sx={{ 
+                                borderRadius: '12px', 
+                                fontWeight: 700,
+                                textTransform: 'none',
+                                background: isClosed ? 'rgba(255,255,255,0.1)' : 'linear-gradient(135deg, #6366F1, #4F46E5)',
+                                color: isClosed ? 'text.secondary' : 'white'
+                              }}
+                            >
+                              {isClosed ? t('group_detail.resource_card.view_quiz') : t('group_detail.actions.details')}
+                            </Button>
+                            {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
+                              <Box sx={{ display: 'flex', gap: 0.5 }}>
+                                <IconButton 
+                                  size="small" 
+                                  onClick={() => setEditDeployModal({ open: true, type: 'assignment', resource: asgn })}
+                                  sx={{ bgcolor: 'rgba(99, 102, 241, 0.1)', color: '#6366F1' }}
+                                >
+                                  <EditIcon fontSize="small" />
+                                </IconButton>
+                                <IconButton 
+                                  size="small" 
+                                  color="error"
+                                  onClick={() => handleDeleteResource('assignment', asgn.id)}
+                                  sx={{ bgcolor: 'rgba(239, 68, 68, 0.1)' }}
+                                >
+                                  <DeleteIcon fontSize="small" />
+                                </IconButton>
+                              </Box>
                             )}
                           </Box>
-                        </Box>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                ))}
-                {assignments.length > 6 && (
-                  <Grid item xs={12} sx={{ textAlign: 'center', mt: 1 }}>
-                    <Button component={RouterLink} to={`/groups/${id}/assignments`}>
-                      {t('group_detail.actions.see_all_assignments', { count: assignments.length })}
-                    </Button>
-                  </Grid>
-                )}
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  );
+                })}
               </Grid>
             )}
-          </Box>
+          </DashedPanel>
         )}
 
         {activeTab === 3 && (
-          <Box>
+          <DashedPanel>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
               <Typography variant="h5">Kiểm tra & Trắc nghiệm</Typography>
               <Box sx={{ display: 'flex', gap: 1 }}>
@@ -664,7 +720,7 @@ const GroupDetail = () => {
                       onClick={() => setDeployModal({ open: true, type: 'quiz' })}
                       sx={{ borderRadius: '12px', fontWeight: 700, background: 'linear-gradient(135deg, #10B981, #059669)', color: '#FFF' }}
                     >
-                      Kết nối từ kho đồ
+                      {t('group_detail.actions.connect_inventory')}
                     </Button>
                   </>
                 )}
@@ -672,9 +728,9 @@ const GroupDetail = () => {
             </Box>
 
             {quizzes.length === 0 ? (
-              <Paper sx={{ p: 5, textAlign: 'center', borderRadius: '24px', background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.1)' }}>
-                <Typography color="text.secondary">Chưa có bài kiểm tra nào được tổ chức trong nhóm này.</Typography>
-              </Paper>
+              <Box sx={{ py: 10, textAlign: 'center' }}>
+                <Typography color="text.secondary">{t('group_detail.resource_card.no_quizzes')}</Typography>
+              </Box>
             ) : (
               <Grid container spacing={3}>
                 {quizzes.map(quiz => (
@@ -699,25 +755,31 @@ const GroupDetail = () => {
                         
                         <Grid container spacing={1} sx={{ mb: 3 }}>
                           <Grid item xs={6}>
-                            <Typography variant="caption" color="text.secondary" display="block">Thời lượng</Typography>
-                            <Typography variant="body2" fontWeight={700}>{quiz.timeLimitSec / 60} phút</Typography>
+                            <Typography variant="caption" color="text.secondary" display="block">{t('group_detail.resource_card.duration')}</Typography>
+                            <Typography variant="body2" fontWeight={700}>{quiz.timeLimitSec / 60} {t('group_detail.resource_card.minutes')}</Typography>
                           </Grid>
                           <Grid item xs={6}>
-                            <Typography variant="caption" color="text.secondary" display="block">Số câu hỏi</Typography>
-                            <Typography variant="body2" fontWeight={700}>{quiz.questionCount || 0} câu</Typography>
+                            <Typography variant="caption" color="text.secondary" display="block">{t('group_detail.resource_card.questions_count')}</Typography>
+                            <Typography variant="body2" fontWeight={700}>{quiz.questionCount || 0} {t('group_detail.resource_card.questions')}</Typography>
                           </Grid>
                           <Grid item xs={6}>
-                            <Typography variant="caption" color="text.secondary" display="block">Lượt làm bài</Typography>
-                            <Typography variant="body2" fontWeight={700}>Tối đa {quiz.maxAttempts}</Typography>
+                            <Typography variant="caption" color="text.secondary" display="block">{t('group_detail.resource_card.max_attempts')}</Typography>
+                            <Typography variant="body2" fontWeight={700}>{t('group_detail.resource_card.limit')} {quiz.maxAttempts}</Typography>
                           </Grid>
                           <Grid item xs={6}>
-                            <Typography variant="caption" color="text.secondary" display="block">Điểm đạt</Typography>
+                            <Typography variant="caption" color="text.secondary" display="block">{t('group_detail.resource_card.passing_score')}</Typography>
                             <Typography variant="body2" fontWeight={700}>{quiz.passingScore}/100</Typography>
                           </Grid>
                           {quiz.openAt && (
-                            <Grid item xs={12}>
-                              <Typography variant="caption" color="text.secondary" display="block">Thời gian mở</Typography>
-                              <Typography variant="body2" fontWeight={700}>{format(new Date(quiz.openAt), 'HH:mm dd/MM/yyyy')}</Typography>
+                            <Grid item xs={6}>
+                              <Typography variant="caption" color="text.secondary" display="block">{t('group_detail.resource_card.open_at')}</Typography>
+                              <Typography variant="body2" fontWeight={700}>{format(new Date(quiz.openAt), 'HH:mm dd/MM')}</Typography>
+                            </Grid>
+                          )}
+                          {quiz.closeAt && (
+                            <Grid item xs={6}>
+                              <Typography variant="caption" color="text.secondary" display="block">{t('group_detail.resource_card.close_at')}</Typography>
+                              <Typography variant="body2" fontWeight={700} color="error">{format(new Date(quiz.closeAt), 'HH:mm dd/MM')}</Typography>
                             </Grid>
                           )}
                         </Grid>
@@ -733,10 +795,10 @@ const GroupDetail = () => {
                                   : `/groups/${id}/courses/placeholder-quiz/quiz/${quiz.id}/attempts/latest`) // Sẽ tạo route/logic cho học sinh sau
                               : `/groups/${id}/courses/placeholder-quiz/quiz/${quiz.id}/take`
                             } 
-                            disabled={quiz.status === 'CLOSED' && (group.currentUserRole === 'MEMBER' || !group.currentUserRole) && quiz.userAttemptCount === 0}
-                            sx={{ borderRadius: '12px', fontWeight: 700, background: 'rgba(16, 185, 129, 0.2)', color: '#10B981', '&:hover': { background: '#10B981', color: '#FFF' } }}
+                            disabled={quiz.status === 'DRAFT' && group.currentUserRole === 'MEMBER'}
+                            sx={{ borderRadius: '12px', fontWeight: 700, background: quiz.status === 'CLOSED' ? 'rgba(0,0,0,0.1)' : 'rgba(16, 185, 129, 0.2)', color: quiz.status === 'CLOSED' ? 'text.secondary' : '#10B981', '&:hover': { background: '#10B981', color: '#FFF' } }}
                           >
-                            {quiz.status === 'CLOSED' ? 'Xem' : 'Bắt đầu làm bài'}
+                            {quiz.status === 'CLOSED' ? t('group_detail.resource_card.view_quiz') : t('group_detail.resource_card.start_quiz')}
                           </Button>
                           {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
                             <>
@@ -767,7 +829,7 @@ const GroupDetail = () => {
                                   onClick={() => handleDeleteResource('quiz', quiz.id)}
                                   sx={{ bgcolor: 'rgba(239, 68, 68, 0.1)', '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.2)' } }}
                                 >
-                                  <DeleteIcon fontSize="small" />
+                          <DeleteIcon fontSize="small" />
                                 </IconButton>
                               )}
                             </>
@@ -779,11 +841,11 @@ const GroupDetail = () => {
                 ))}
               </Grid>
             )}
-          </Box>
+          </DashedPanel>
         )}
 
         {activeTab === 4 && (
-          <Box>
+          <DashedPanel>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
               <Typography variant="h5">{t('group_detail.tabs.meetings')}</Typography>
               {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
@@ -799,9 +861,9 @@ const GroupDetail = () => {
             <Grid container spacing={3}>
               {meetings.length === 0 ? (
                 <Grid item xs={12}>
-                  <Paper sx={{ p: 5, textAlign: 'center' }}>
+                  <Box sx={{ py: 10, textAlign: 'center' }}>
                     <Typography color="text.secondary">{t('group_detail.meetings.no_meetings')}</Typography>
-                  </Paper>
+                  </Box>
                 </Grid>
               ) : (
                 meetings.map((meeting) => {
@@ -809,119 +871,106 @@ const GroupDetail = () => {
                   const endTime = meeting.endAt ? new Date(meeting.endAt) : new Date(startTime.getTime() + (meeting.durationMinutes || 60) * 60000);
                   const now = new Date();
                   const isLive = meeting.status === 'PUBLISHED' && now >= startTime && now <= endTime;
+                  const isClosed = meeting.status === 'CLOSED' || now > endTime;
 
                   return (
-                    <Grid item xs={12} md={6} key={meeting.id}>
-                      <Paper 
+                    <Grid item xs={12} sm={6} md={6} key={meeting.id}>
+                      <Card 
                         sx={{ 
                           display: 'flex', 
-                          flexDirection: 'column', 
-                          borderRadius: '16px',
+                          borderRadius: '24px',
                           overflow: 'hidden',
-                          '&:hover': { boxShadow: 4, borderColor: 'primary.main' },
+                          background: 'rgba(255,255,255,0.02)',
                           border: '1px solid',
-                          borderColor: isLive ? 'error.main' : 'divider'
+                          borderColor: isLive ? 'error.main' : 'rgba(255,255,255,0.05)',
+                          transition: 'all 0.3s',
+                          '&:hover': { 
+                            boxShadow: '0 12px 24px rgba(0,0,0,0.2)',
+                            borderColor: isLive ? 'error.main' : 'primary.main'
+                          }
                         }}
                       >
                         <CardMedia
                           component="img"
-                          height="120"
+                          sx={{ width: 140, objectFit: 'cover' }}
                           image={meeting.coverImageUrl || '/api/files/download/Assets/MeetingDefaultCover.png'}
-                          sx={{ objectFit: 'cover' }}
                         />
-                        <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <Box>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                              <Typography variant="h6" sx={{ fontWeight: 'bold' }}>{meeting.title}</Typography>
-                              {isLive && <Chip label="LIVE" color="error" size="small" />}
-                              {meeting.status === 'DRAFT' && <Chip label="DRAFT" variant="outlined" size="small" />}
+                        <CardContent sx={{ flex: 1, p: 3 }}>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                            <Box>
+                              <Typography variant="h6" fontWeight={800} sx={{ lineHeight: 1.2 }}>{meeting.title}</Typography>
+                              <Box sx={{ display: 'flex', gap: 1, mt: 0.5 }}>
+                                {isLive && <Chip label="LIVE" color="error" size="small" sx={{ fontWeight: 900, height: 20 }} />}
+                                <Chip label={meeting.status} size="small" variant="outlined" sx={{ height: 20, fontSize: '0.65rem' }} />
+                              </Box>
                             </Box>
-                            <Typography variant="body2" color="text.secondary">
-                              {format(new Date(meeting.startAt), 'HH:mm dd/MM/yyyy')}
-                            </Typography>
-                          </Box>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                             {(group.currentUserRole === 'OWNER' || group.currentUserRole === 'EDITOR') && (
-                              <Box sx={{ display: 'flex', mr: 1 }}>
-                                {meeting.status !== 'CLOSED' && (
-                                  <Tooltip title={t('common.edit')}>
-                                    <IconButton size="small" onClick={() => handleOpenEditMeeting(meeting)}>
-                                      <EditIcon fontSize="small" />
-                                    </IconButton>
-                                  </Tooltip>
-                                )}
-                                <Tooltip title={t('common.delete')}>
-                                  <IconButton size="small" color="error" onClick={() => handleDeleteMeeting(meeting.id)}>
-                                    <DeleteIcon fontSize="small" />
-                                  </IconButton>
-                                </Tooltip>
+                              <Box sx={{ display: 'flex' }}>
+                                <IconButton size="small" onClick={() => handleOpenEditMeeting(meeting)}>
+                                  <EditIcon sx={{ fontSize: 16 }} />
+                                </IconButton>
+                                <IconButton size="small" color="error" onClick={() => handleDeleteMeeting(meeting.id)}>
+                                  <DeleteIcon sx={{ fontSize: 16 }} />
+                                </IconButton>
                               </Box>
                             )}
-                            <Button
-                              variant="contained"
-                              component={RouterLink}
-                              to={`/groups/${id}/meetings/${meeting.id}`}
-                              disabled={meeting.status === 'DRAFT' && group.currentUserRole === 'MEMBER'}
-                              color={isLive ? 'error' : 'primary'}
-                            >
-                              {meeting.status === 'CLOSED' ? t('group_detail.meetings.view_report') : t('group_detail.meetings.join')}
-                            </Button>
                           </Box>
-                        </Box>
-                      </Paper>
+
+                          <Stack spacing={0.5} sx={{ mb: 2 }}>
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                              <Clock size={12} /> Bắt đầu: {format(startTime, 'HH:mm dd/MM')}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                              <Clock size={12} /> Kết thúc: {format(endTime, 'HH:mm dd/MM')}
+                            </Typography>
+                          </Stack>
+
+                          <Button
+                            variant="contained"
+                            fullWidth
+                            component={RouterLink}
+                            to={`/groups/${id}/meetings/${meeting.id}`}
+                            disabled={meeting.status === 'DRAFT' && group.currentUserRole === 'MEMBER'}
+                            sx={{ 
+                              borderRadius: '12px', 
+                              fontWeight: 700,
+                              background: isLive ? 'error.main' : (isClosed ? 'rgba(255,255,255,0.1)' : 'primary.main')
+                            }}
+                          >
+                            {isClosed ? 'Xem báo cáo' : (isLive ? 'Tham gia ngay' : 'Vào phòng')}
+                          </Button>
+                        </CardContent>
+                      </Card>
                     </Grid>
                   );
                 })
               )}
             </Grid>
-          </Box>
+          </DashedPanel>
         )}
 
         {activeTab === 5 && (
-          <Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-              <Typography variant="h5">Collaboration Spaces</Typography>
-              <Button 
-                variant="contained" 
-                component={RouterLink}
-                to={`/groups/${id}/collabs`}
-                startIcon={<ShareIcon />}
-              >
-                Vào không gian làm việc
-              </Button>
-            </Box>
-            <Paper sx={{ p: 10, textAlign: 'center', borderRadius: 4, background: 'rgba(99, 102, 241, 0.05)', border: '1px dashed #6366F1' }}>
-                <ShareIcon sx={{ fontSize: 60, color: '#6366F1', mb: 2, opacity: 0.7 }} />
-                <Typography variant="h6" fontWeight="bold">Soạn thảo tài liệu thời gian thực</Typography>
-                <Typography color="text.secondary" sx={{ mb: 3 }}>
-                    Cùng nhau tạo ghi chú, lên kế hoạch và thảo luận trực tiếp trên cùng một tài liệu Tiptap.
-                </Typography>
-                <Button 
-                    variant="contained" 
-                    component={RouterLink}
-                    to={`/groups/${id}/collabs`}
-                    size="large"
-                >
-                    Khám phá ngay
-                </Button>
-            </Paper>
-          </Box>
+          <DashedPanel sx={{ p: 0 }}>
+            <GroupCollab groupId={id} />
+          </DashedPanel>
         )}
 
         {activeTab === 6 && (
-          <GroupFeed 
-            groupId={id} 
-            currentUserRole={group.currentUserRole}
-            groupCourses={courses}
-            groupAssignments={assignments}
-            groupMeetings={meetings}
-          />
+          <DashedPanel>
+            <GroupFeed 
+              groupId={id} 
+              currentUserRole={group.currentUserRole}
+              groupCourses={courses}
+              groupAssignments={assignments}
+              groupMeetings={meetings}
+            />
+          </DashedPanel>
         )}
 
         {activeTab === 7 && (
-          <Paper sx={{ p: 3 }}>
+          <DashedPanel>
             <GroupMembers groupId={id} groupRole={group.currentUserRole} />
-          </Paper>
+          </DashedPanel>
         )}
       </Box>
 
@@ -931,9 +980,9 @@ const GroupDetail = () => {
         onClose={() => setDeployModal({ ...deployModal, open: false })}
         type={deployModal.type}
         groupId={id}
-        onDeploySuccess={() => {
+        onDeploySuccess={async () => {
           refreshData();
-          alert('Học liệu đã được kết nối thành công!');
+          await showSuccess(t('common.success'), 'Học liệu đã được kết nối thành công!');
         }}
       />
 
@@ -942,9 +991,9 @@ const GroupDetail = () => {
         onClose={() => setEditDeployModal({ ...editDeployModal, open: false })}
         type={editDeployModal.type}
         resource={editDeployModal.resource}
-        onUpdateSuccess={() => {
+        onUpdateSuccess={async () => {
           refreshData();
-          alert('Cập nhật thiết đặt thành công!');
+          await showSuccess(t('common.success'), 'Cập nhật thiết đặt thành công!');
         }}
       />
 
@@ -963,7 +1012,10 @@ const GroupDetail = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setShareDialogOpen(false)}>{t('common.close')}</Button>
-          <Button variant="contained" onClick={() => { navigator.clipboard.writeText(group.inviteCode); alert(t('common.success')); }}>
+          <Button variant="contained" onClick={async () => { 
+            navigator.clipboard.writeText(group.inviteCode); 
+            await showSuccess(t('common.success'), t('group_detail.invite_code_copied') || 'Đã sao chép mã mời!'); 
+          }}>
             {t('common.copy')}
           </Button>
         </DialogActions>
@@ -1034,9 +1086,8 @@ const GroupDetail = () => {
               value={newMeetingData.status}
               onChange={(e) => setNewMeetingData({...newMeetingData, status: e.target.value})}
             >
-              <MenuItem value="DRAFT">Dành cho chủ nhóm (DRAFT)</MenuItem>
-              <MenuItem value="PUBLISHED">Công khai (PUBLISHED)</MenuItem>
-              <MenuItem value="CLOSED">Kết thúc (CLOSED)</MenuItem>
+              <MenuItem value="DRAFT">{t('group_detail.meetings.status_draft')}</MenuItem>
+              <MenuItem value="PUBLISHED">{t('group_detail.meetings.status_published')}</MenuItem>
             </TextField>
             <Button type="submit" variant="contained" fullWidth sx={{ mt: 3 }}>
               {t('common.create')}
@@ -1079,9 +1130,8 @@ const GroupDetail = () => {
               value={editMeetingData.status}
               onChange={(e) => setEditMeetingData({...editMeetingData, status: e.target.value})}
             >
-              <MenuItem value="DRAFT">Dành cho chủ nhóm (DRAFT)</MenuItem>
-              <MenuItem value="PUBLISHED">Công khai (PUBLISHED)</MenuItem>
-              <MenuItem value="CLOSED">Kết thúc (CLOSED)</MenuItem>
+              <MenuItem value="DRAFT">{t('group_detail.meetings.status_draft')}</MenuItem>
+              <MenuItem value="PUBLISHED">{t('group_detail.meetings.status_published')}</MenuItem>
             </TextField>
             <Button type="submit" variant="contained" fullWidth sx={{ mt: 3 }}>
               {t('common.save_changes')}

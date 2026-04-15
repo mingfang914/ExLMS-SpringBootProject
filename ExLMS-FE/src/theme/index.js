@@ -416,10 +416,26 @@ export const buildTheme = (mode = 'dark') => {
       MuiAlert: {
         styleOverrides: {
           root: { borderRadius: 8, border: '1px solid' },
-          standardError:   { backgroundColor: alpha(t.error,   0.1), borderColor: alpha(t.error,   0.25), color: '#FCA5A5' },
-          standardSuccess: { backgroundColor: alpha(t.success, 0.1), borderColor: alpha(t.success, 0.25), color: '#86EFAC' },
-          standardWarning: { backgroundColor: alpha(t.warning, 0.1), borderColor: alpha(t.warning, 0.25), color: '#FDE68A' },
-          standardInfo:    { backgroundColor: alpha(t.accent,  0.1), borderColor: alpha(t.accent,  0.25), color: '#67E8F9' },
+          standardError: {
+            backgroundColor: alpha(t.error, 0.1),
+            borderColor: alpha(t.error, 0.25),
+            color: mode === 'dark' ? '#FCA5A5' : '#B91C1C'
+          },
+          standardSuccess: {
+            backgroundColor: alpha(t.success, 0.1),
+            borderColor: alpha(t.success, 0.25),
+            color: mode === 'dark' ? '#86EFAC' : '#047857'
+          },
+          standardWarning: {
+            backgroundColor: alpha(t.warning, 0.1),
+            borderColor: alpha(t.warning, 0.25),
+            color: mode === 'dark' ? '#FDE68A' : '#B45309'
+          },
+          standardInfo: {
+            backgroundColor: alpha(t.accent, 0.1),
+            borderColor: alpha(t.accent, 0.25),
+            color: mode === 'dark' ? '#67E8F9' : '#0369A1'
+          },
         },
       },
 

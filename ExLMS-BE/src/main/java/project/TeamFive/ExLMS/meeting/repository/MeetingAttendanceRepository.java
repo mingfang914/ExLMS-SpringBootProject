@@ -12,4 +12,5 @@ import java.util.UUID;
 public interface MeetingAttendanceRepository extends JpaRepository<MeetingAttendance, UUID> {
     List<MeetingAttendance> findByMeeting_Id(UUID meetingId);
     Optional<MeetingAttendance> findByMeeting_IdAndUser_Id(UUID meetingId, UUID userId);
+    Optional<MeetingAttendance> findTopByMeeting_IdAndUser_IdOrderByCreatedAtDesc(UUID meetingId, UUID userId);
 }

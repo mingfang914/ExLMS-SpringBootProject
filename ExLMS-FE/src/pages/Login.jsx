@@ -19,6 +19,7 @@ import { motion } from 'framer-motion'
 import ThemeToggle from '../components/Common/ThemeToggle'
 import LanguageToggle from '../components/Common/LanguageToggle'
 import { useTranslation } from 'react-i18next'
+import { useModal } from '../context/ModalContext'
 
 // ── Google Login Button Component ──────────────────────────────────
 const GoogleLoginButton = ({ disabled, onError, onSuccess }) => {
@@ -71,7 +72,7 @@ const GoogleLoginButton = ({ disabled, onError, onSuccess }) => {
         '&:hover': { borderColor: 'rgba(66,133,244,0.5)', bgcolor: 'rgba(66,133,244,0.06)', color: '#F0F6FC' }
       }}
     >
-      Đăng nhập với Google
+      {t('auth.signin_with_google')}
     </Button>
   )
 }
@@ -128,6 +129,7 @@ const Login = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const { t } = useTranslation()
+  const { showError } = useModal()
   const dispatch = useDispatch()
   const navigate = useNavigate()
 
@@ -146,9 +148,8 @@ const Login = () => {
       } catch (_) { }
       navigate('/')
     } catch (err) {
-      const message = err.response?.data?.message || t('auth.login_failed') || 'Đăng nhập thất bại'
-      setError(message)
-      dispatch(loginFailure(message))
+      showError(t('common.error'), err.response?.data?.message || t('auth.login_error'))
+      dispatch(loginFailure(err.response?.data?.message))
     } finally {
       setIsSubmitting(false)
     }
@@ -156,7 +157,7 @@ const Login = () => {
 
   const onGoogleSuccess = async (codeResponse) => {
     setError(null)
-    dispatch(setLoading(true)) // Now correctly uses the Redux action
+    dispatch(setLoading(true))
     try {
       const redirectUri = window.location.origin
       const data = await authService.loginWithGoogle(codeResponse.code, redirectUri)
@@ -167,16 +168,15 @@ const Login = () => {
       } catch (_) { }
       navigate('/')
     } catch (err) {
-      const message = err.response?.data?.message || 'Đăng nhập Google thất bại. Vui lòng thử lại.'
-      setError(message)
-      dispatch(loginFailure(message))
+      showError(t('common.error'), t('auth.google_login_failed'))
+      dispatch(loginFailure(err.response?.data?.message))
     } finally {
       dispatch(setLoading(false))
     }
   }
 
   const onGoogleError = (error) => {
-    setError('Đã xảy ra lỗi khi kết nối với Google. Vui lòng thử lại.')
+    showError(t('common.error'), t('auth.google_login_failed'))
     console.error('Google OAuth2 error:', error)
   }
 
@@ -301,7 +301,7 @@ const Login = () => {
 
           <motion.div custom={5} variants={fadeUp} initial="hidden" animate="visible">
             <Divider sx={{ borderColor: 'var(--color-border)', my: 1.5 }}>
-              <Typography sx={{ px: 1.5, fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Social login</Typography>
+              <Typography sx={{ px: 1.5, fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{t('auth.social_login')}</Typography>
             </Divider>
 
             <GoogleLoginButton

@@ -174,6 +174,14 @@ const courseService = {
   markLessonComplete: async (chapterId, lessonId) => {
     const response = await api.post(`/v1/chapters/${chapterId}/lessons/${lessonId}/complete`)
     return response.data
+  },
+
+  fullSave: async (groupId, id, data) => {
+    const url = groupId 
+      ? `/v1/groups/${groupId}/courses/${id}/full-save`
+      : `/v1/inventory/courses/${id}/full-save`
+    const response = await api.post(url, data)
+    return response.data
   }
 }
 

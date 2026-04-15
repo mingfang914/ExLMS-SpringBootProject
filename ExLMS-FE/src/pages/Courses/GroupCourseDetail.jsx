@@ -280,6 +280,13 @@ const GroupCourseDetail = () => {
         borderRight: '1px solid var(--glass-border)',
       }}>
         <Box sx={{ p: 3, borderBottom: '1px solid var(--color-border)' }}>
+          <Button 
+            startIcon={<BackIcon />} 
+            onClick={() => navigate(`/groups/${groupId}`)}
+            sx={{ mb: 2, color: 'var(--color-text-sec)', fontSize: '0.75rem', fontWeight: 700 }}
+          >
+            Quay lại nhóm
+          </Button>
           <Typography variant="h5" fontWeight={900} sx={{ mb: 2, fontFamily: 'var(--font-heading)' }}>{course.title}</Typography>
           {enrollment ? (
             <Box>

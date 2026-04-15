@@ -4,7 +4,6 @@ import {
   Typography,
   TextField,
   Button,
-  Alert,
   CircularProgress,
   InputAdornment,
   IconButton,
@@ -14,6 +13,8 @@ import authService from '../services/authService'
 import { motion } from 'framer-motion'
 import ThemeToggle from '../components/Common/ThemeToggle'
 import LanguageToggle from '../components/Common/LanguageToggle'
+import { useTranslation } from 'react-i18next'
+import { useModal } from '../context/ModalContext'
 
 const LockIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -46,37 +47,36 @@ const fadeUp = {
 
 const ResetPassword = () => {
   const [searchParams] = useSearchParams()
+  const { showSuccess, showError } = useModal()
   const token = searchParams.get('token')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPwd, setShowPwd] = useState(false)
-  const [error, setError] = useState(null)
-  const [success, setSuccess] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const navigate = useNavigate()
+  const { t } = useTranslation()
 
   useEffect(() => {
     if (!token) {
-      setError('Mã khôi phục không hợp lệ. Vui lòng kiểm tra lại email của bạn.')
+      showError(t('common.error'), t('auth.invalid_token'))
     }
-  }, [token])
+  }, [token, t, showError])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (newPassword !== confirmPassword) {
-      setError('Mật khẩu xác nhận không khớp.')
+      showError(t('common.error'), t('auth.passwords_not_match'))
       return
     }
     
-    setError(null)
     setIsSubmitting(true)
 
     try {
-      const message = await authService.resetPassword(token, newPassword)
-      setSuccess(message || 'Đặt lại mật khẩu thành công! Chuyển hướng về trang đăng nhập...')
-      setTimeout(() => navigate('/login'), 3000)
+      await authService.resetPassword(token, newPassword)
+      showSuccess(t('common.success'), t('auth.reset_password_success'))
+      navigate('/login')
     } catch (err) {
-      setError(err.response?.data?.message || 'Có lỗi xảy ra khi đặt lại mật khẩu.')
+      showError(t('common.error'), err.response?.data?.message || t('auth.reset_password_error'))
     } finally {
       setIsSubmitting(false)
     }
@@ -118,18 +118,15 @@ const ResetPassword = () => {
           </motion.div>
 
           <motion.div custom={1} variants={fadeUp} initial="hidden" animate="visible">
-            <Typography sx={{ fontWeight: 800, fontSize: '1.625rem', color: '#F0F6FC', mb: 0.5 }}>Đặt lại mật khẩu</Typography>
-            <Typography sx={{ fontSize: '0.875rem', color: '#8B949E', mb: 3 }}>Tạo mật khẩu mới cho tài khoản của bạn.</Typography>
+            <Typography sx={{ fontWeight: 800, fontSize: '1.625rem', color: '#F0F6FC', mb: 0.5 }}>{t('auth.reset_title')}</Typography>
+            <Typography sx={{ fontSize: '0.875rem', color: '#8B949E', mb: 3 }}>{t('auth.reset_subtitle')}</Typography>
           </motion.div>
 
-          {error && <Alert severity="error" sx={{ mb: 2.5, bgcolor: 'rgba(239,68,68,0.1)', color: '#FCA5A5', borderRadius: '10px' }}>{error}</Alert>}
-          {success && <Alert severity="success" sx={{ mb: 2.5, bgcolor: 'rgba(16,185,129,0.1)', color: '#6EE7B7', borderRadius: '10px' }}>{success}</Alert>}
-
-          {(!success && !!token) && (
+          {!!token && (
             <Box component="form" onSubmit={handleSubmit}>
               <motion.div custom={2} variants={fadeUp} initial="hidden" animate="visible">
                 <Box sx={{ mb: 2 }}>
-                  <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600, color: '#8B949E', mb: 0.75 }}>Mật khẩu mới</Typography>
+                  <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600, color: '#8B949E', mb: 0.75 }}>{t('auth.new_password')}</Typography>
                   <TextField 
                     fullWidth required type={showPwd ? 'text' : 'password'} placeholder="••••••••" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} 
                     InputProps={{ 
@@ -140,7 +137,7 @@ const ResetPassword = () => {
                   />
                 </Box>
                 <Box sx={{ mb: 3 }}>
-                  <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600, color: '#8B949E', mb: 0.75 }}>Xác nhận mật khẩu</Typography>
+                  <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600, color: '#8B949E', mb: 0.75 }}>{t('auth.confirm_password')}</Typography>
                   <TextField 
                     fullWidth required type={showPwd ? 'text' : 'password'} placeholder="••••••••" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} 
                     InputProps={{ startAdornment: <InputAdornment position="start" sx={{ color: '#6E7681' }}><LockIcon /></InputAdornment> }} 
@@ -151,7 +148,7 @@ const ResetPassword = () => {
                   type="submit" fullWidth variant="contained" disabled={isSubmitting} 
                   sx={{ height: 48, borderRadius: '10px', fontWeight: 700, background: 'linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)' }}
                 >
-                  {isSubmitting ? <CircularProgress size={20} color="inherit" /> : 'Đặt lại mật khẩu'}
+                  {isSubmitting ? <CircularProgress size={20} color="inherit" /> : t('auth.reset_title')}
                 </Button>
               </motion.div>
             </Box>

@@ -15,11 +15,13 @@ public class CollabRequestDTO {
 
     private String description;
 
-    private String coverImageUrl;
+    private String coverImageKey;
 
     @NotNull(message = "Thời gian bắt đầu là bắt buộc")
     @FutureOrPresent(message = "Thời gian bắt đầu phải từ thời điểm hiện tại trở đi")
     private LocalDateTime startAt;
 
     private LocalDateTime endAt;
+    
+    private project.TeamFive.ExLMS.collab.entity.GroupCollab.CollabStatus status;
 }

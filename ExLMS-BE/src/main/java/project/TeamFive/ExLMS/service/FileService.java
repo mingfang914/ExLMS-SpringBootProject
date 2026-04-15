@@ -3,6 +3,7 @@ package project.TeamFive.ExLMS.service;
 import io.minio.GetPresignedObjectUrlArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
+import io.minio.SetBucketPolicyArgs;
 import io.minio.http.Method;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,13 +47,36 @@ public class FileService {
                 minioClient.makeBucket(io.minio.MakeBucketArgs.builder().bucket(name).build());
                 log.info("Bucket created successfully: {}", name);
             }
+            setBucketPublicPolicy(name);
         } catch (Exception e) {
             log.error("Error initializing Minio bucket {}: {}", name, e.getMessage());
         }
     }
 
+    private void setBucketPublicPolicy(String name) {
+        try {
+            String policy = "{\n" +
+                    "  \"Version\": \"2012-10-17\",\n" +
+                    "  \"Statement\": [\n" +
+                    "    {\n" +
+                    "      \"Action\": [\"s3:GetBucketLocation\", \"s3:GetObject\"],\n" +
+                    "      \"Effect\": \"Allow\",\n" +
+                    "      \"Principal\": \"*\",\n" +
+                    "      \"Resource\": [\"arn:aws:s3:::" + name + "\", \"arn:aws:s3:::" + name + "/*\"]\n" +
+                    "    }\n" +
+                    "  ]\n" +
+                    "}";
+            minioClient.setBucketPolicy(
+                    SetBucketPolicyArgs.builder().bucket(name).config(policy).build());
+            log.info("Public read policy set for bucket: {}", name);
+        } catch (Exception e) {
+            log.error("Failed to set bucket policy for {}: {}", name, e.getMessage());
+        }
+    }
+
     public String uploadFile(MultipartFile file) {
-        // CHAR(36) DB Limit - use only the 36-char UUID, MinIO will map the MIME type under the hood
+        // CHAR(36) DB Limit - use only the 36-char UUID, MinIO will map the MIME type
+        // under the hood
         String objectKey = UUID.randomUUID().toString();
         try {
             minioClient.putObject(
@@ -61,8 +85,7 @@ public class FileService {
                             .object(objectKey)
                             .stream(file.getInputStream(), file.getSize(), -1)
                             .contentType(file.getContentType())
-                            .build()
-            );
+                            .build());
             return objectKey;
         } catch (Exception e) {
             throw new RuntimeException("Error uploading file to MinIO: " + e.getMessage());
@@ -70,7 +93,8 @@ public class FileService {
     }
 
     public void deleteFile(String objectKey) {
-        if (objectKey == null || objectKey.isEmpty()) return;
+        if (objectKey == null || objectKey.isEmpty())
+            return;
         try {
             minioClient.removeObject(io.minio.RemoveObjectArgs.builder().bucket(bucketName).object(objectKey).build());
         } catch (Exception e) {
@@ -85,7 +109,6 @@ public class FileService {
         return uploadFile(newFile);
     }
 
-
     public String getPresignedUrl(String objectKey) {
         return getPresignedUrl(bucketName, objectKey, null);
     }
@@ -95,7 +118,8 @@ public class FileService {
     }
 
     public String getPresignedUrl(String bucket, String objectKey, String filename) {
-        if (objectKey == null) return null;
+        if (objectKey == null)
+            return null;
         try {
             GetPresignedObjectUrlArgs.Builder builder = GetPresignedObjectUrlArgs.builder()
                     .method(Method.GET)
@@ -106,13 +130,14 @@ public class FileService {
             String disposition = "inline";
             if (filename != null && !filename.isEmpty()) {
                 disposition = "inline; filename=\"" + filename + "\"";
-                // Or use specific param for download if needed, 
+                // Or use specific param for download if needed,
                 // but generally we want users to view first.
             }
             builder.extraQueryParams(Map.of("response-content-disposition", disposition));
 
             String url = minioClient.getPresignedObjectUrl(builder.build());
-            if (url != null && minioPublicUrl != null && !minioPublicUrl.isEmpty() && !minioUrl.equals(minioPublicUrl)) {
+            if (url != null && minioPublicUrl != null && !minioPublicUrl.isEmpty()
+                    && !minioUrl.equals(minioPublicUrl)) {
                 return url.replace(minioUrl, minioPublicUrl);
             }
             return url;
@@ -121,9 +146,40 @@ public class FileService {
         }
     }
 
+    public String getBucketName() {
+        return bucketName;
+    }
+
+    public String getResourceBucket() {
+        return resourceBucket;
+    }
+
+    public java.util.List<String> listObjects(String bucket) {
+        java.util.List<String> objects = new java.util.ArrayList<>();
+        try {
+            Iterable<io.minio.Result<io.minio.messages.Item>> results = minioClient.listObjects(
+                    io.minio.ListObjectsArgs.builder().bucket(bucket).build());
+            for (io.minio.Result<io.minio.messages.Item> result : results) {
+                objects.add(result.get().objectName());
+            }
+        } catch (Exception e) {
+            log.error("Error listing objects in bucket {}: {}", bucket, e.getMessage());
+        }
+        return objects;
+    }
+
+    public void removeObject(String bucket, String objectKey) {
+        try {
+            minioClient.removeObject(io.minio.RemoveObjectArgs.builder().bucket(bucket).object(objectKey).build());
+        } catch (Exception e) {
+            log.error("Error removing object {} from bucket {}: {}", objectKey, bucket, e.getMessage());
+        }
+    }
+
     // --- CKEditor Resource Methods ---
     public String uploadResource(MultipartFile file) {
         String objectKey = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+        log.info("[FileService] Uploading resource to bucket {}: {}", resourceBucket, objectKey);
         try {
             minioClient.putObject(
                     PutObjectArgs.builder()
@@ -131,10 +187,11 @@ public class FileService {
                             .object(objectKey)
                             .stream(file.getInputStream(), file.getSize(), -1)
                             .contentType(file.getContentType())
-                            .build()
-            );
+                            .build());
+            log.info("[FileService] Resource upload successful: {}", objectKey);
             return objectKey;
         } catch (Exception e) {
+            log.error("[FileService] Error uploading resource: {}", e.getMessage());
             throw new RuntimeException("Error uploading resource: " + e.getMessage());
         }
     }
@@ -145,8 +202,7 @@ public class FileService {
                     io.minio.GetObjectArgs.builder()
                             .bucket(resourceBucket)
                             .object(objectKey)
-                            .build()
-            );
+                            .build());
         } catch (Exception e) {
             throw new RuntimeException("Error retrieving resource: " + e.getMessage());
         }
@@ -158,8 +214,7 @@ public class FileService {
                     io.minio.GetObjectArgs.builder()
                             .bucket(bucketName)
                             .object(objectKey)
-                            .build()
-            );
+                            .build());
         } catch (Exception e) {
             throw new RuntimeException("Error retrieving file: " + e.getMessage());
         }

@@ -17,7 +17,7 @@ import project.TeamFive.ExLMS.group.entity.GroupMember;
 import project.TeamFive.ExLMS.group.repository.GroupMemberRepository;
 import project.TeamFive.ExLMS.group.repository.StudyGroupRepository;
 import project.TeamFive.ExLMS.user.entity.User;
-
+import project.TeamFive.ExLMS.notification.service.NotificationService;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -31,9 +31,11 @@ public class CollabService {
     private final CollabParticipantRepository participantRepository;
     private final StudyGroupRepository groupRepository;
     private final GroupMemberRepository groupMemberRepository;
+    private final NotificationService notificationService;
 
     private void requireInstructorRole(StudyGroup group, User user) {
-        if (user.getRole().name().equals("ADMIN")) return;
+        if (user.getRole().name().equals("ADMIN"))
+            return;
         GroupMember member = groupMemberRepository.findByGroupAndUser(group, user)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "Không phải thành viên nhóm"));
         if (!member.getRole().equals("OWNER") && !member.getRole().equals("EDITOR")) {
@@ -42,7 +44,8 @@ public class CollabService {
     }
 
     private void requireMemberRole(StudyGroup group, User user) {
-        if (user.getRole().name().equals("ADMIN")) return;
+        if (user.getRole().name().equals("ADMIN"))
+            return;
         if (!groupMemberRepository.existsByGroupAndUser(group, user)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Không phải thành viên nhóm");
         }
@@ -58,14 +61,20 @@ public class CollabService {
                 .group(group)
                 .title(dto.getTitle())
                 .description(dto.getDescription())
-                .coverImageUrl(dto.getCoverImageUrl() != null ? dto.getCoverImageUrl() : "http://localhost:9000/exlms-files/Assets/CollabDefaultCover.png")
+                .coverImageKey(
+                        dto.getCoverImageKey() != null ? dto.getCoverImageKey() : "Assets/CollabDefaultCover.png")
                 .startAt(dto.getStartAt())
                 .endAt(dto.getEndAt())
-                .status(GroupCollab.CollabStatus.DRAFT)
+                .status(dto.getStatus() != null ? dto.getStatus() : GroupCollab.CollabStatus.DRAFT)
                 .documentData("{}") // Initialize with empty object or Yjs structure if needed
                 .build();
 
-        return CollabResponseDTO.fromEntity(collabRepository.save(collab));
+        collab = collabRepository.save(collab);
+        if (collab.getStatus() == GroupCollab.CollabStatus.PUBLISHED) {
+            notificationService.notifyGroupPublishedItem(group, "Bài tập nhóm", collab.getTitle(), "PUBLISHED",
+                    collab.getId(), "/collab");
+        }
+        return CollabResponseDTO.fromEntity(collab);
     }
 
     @Transactional
@@ -82,7 +91,18 @@ public class CollabService {
         collab.setDescription(dto.getDescription());
         collab.setEndAt(dto.getEndAt());
 
-        return CollabResponseDTO.fromEntity(collabRepository.save(collab));
+        GroupCollab.CollabStatus oldStatus = collab.getStatus();
+        if (dto.getStatus() != null) {
+            collab.setStatus(dto.getStatus());
+        }
+
+        collab = collabRepository.save(collab);
+        if (oldStatus != GroupCollab.CollabStatus.PUBLISHED
+                && collab.getStatus() == GroupCollab.CollabStatus.PUBLISHED) {
+            notificationService.notifyGroupPublishedItem(collab.getGroup(), "Bài tập nhóm", collab.getTitle(),
+                    "PUBLISHED", collab.getId(), "/collab");
+        }
+        return CollabResponseDTO.fromEntity(collab);
     }
 
     @Transactional
@@ -91,8 +111,15 @@ public class CollabService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy Collab"));
         requireInstructorRole(collab.getGroup(), user);
 
+        GroupCollab.CollabStatus oldStatus = collab.getStatus();
         collab.setStatus(status);
-        return CollabResponseDTO.fromEntity(collabRepository.save(collab));
+        collab = collabRepository.save(collab);
+
+        if (oldStatus != GroupCollab.CollabStatus.PUBLISHED && status == GroupCollab.CollabStatus.PUBLISHED) {
+            notificationService.notifyGroupPublishedItem(collab.getGroup(), "Bài tập nhóm", collab.getTitle(),
+                    "PUBLISHED", collab.getId(), "/collab");
+        }
+        return CollabResponseDTO.fromEntity(collab);
     }
 
     @Transactional(readOnly = true)
@@ -140,7 +167,8 @@ public class CollabService {
         requireInstructorRole(collab.getGroup(), user);
 
         if (collab.getStatus() == GroupCollab.CollabStatus.CLOSED) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Không thể xóa phiên Collab đã kết thúc để bảo quản dữ liệu");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Không thể xóa phiên Collab đã kết thúc để bảo quản dữ liệu");
         }
 
         collabRepository.delete(collab);
@@ -150,7 +178,7 @@ public class CollabService {
     public void trackParticipant(UUID collabId, User user) {
         GroupCollab collab = collabRepository.findById(collabId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy Collab"));
-        
+
         participantRepository.findByCollabIdAndUserId(collabId, user.getId()).ifPresentOrElse(
                 participant -> {
                     participant.setLastActiveAt(LocalDateTime.now());
@@ -162,8 +190,7 @@ public class CollabService {
                             .user(user)
                             .build();
                     participantRepository.save(participant);
-                }
-        );
+                });
     }
 
     // INTERNAL API FOR HOCUSPOCUS SERVER

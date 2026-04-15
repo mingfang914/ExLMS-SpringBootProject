@@ -22,14 +22,18 @@ public class CkeUploadController {
     @PostMapping("/upload")
     public ResponseEntity<Map<String, Object>> uploadImage(@RequestParam("upload") MultipartFile file) {
         try {
+            System.out.println("[CKEditor] Uploading file: " + file.getOriginalFilename() + " size: " + file.getSize());
             String objectKey = fileService.uploadResource(file);
             // Construct the URL that pointing back to our proxy endpoint
             String url = "/api/cke/resources/" + objectKey;
 
+            System.out.println("[CKEditor] Upload successful, url: " + url);
             return ResponseEntity.ok(Map.of(
                     "url", url,
                     "uploaded", true));
         } catch (Exception e) {
+            System.err.println("[CKEditor] Upload failed: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.badRequest().body(Map.of(
                     "uploaded", false,
                     "error", Map.of("message", e.getMessage())));

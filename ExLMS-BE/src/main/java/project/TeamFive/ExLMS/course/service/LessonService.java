@@ -52,7 +52,7 @@ public class LessonService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy chương học!"));
         requireInstructorRole(chapter, currentUser);
 
-        int nextOrder = lessonRepository.findByChapter_IdOrderByOrderIndexAsc(chapterId).size();
+        int nextOrder = lessonRepository.findByChapter_IdAndDeletedAtIsNullOrderByOrderIndexAsc(chapterId).size();
 
         CourseLesson lesson = CourseLesson.builder()
                 .chapter(chapter)
@@ -68,7 +68,7 @@ public class LessonService {
 
     @Transactional(readOnly = true)
     public List<LessonResponse> getLessonsByChapter(UUID chapterId) {
-        return lessonRepository.findByChapter_IdOrderByOrderIndexAsc(chapterId)
+        return lessonRepository.findByChapter_IdAndDeletedAtIsNullOrderByOrderIndexAsc(chapterId)
                 .stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
@@ -141,9 +141,9 @@ public class LessonService {
             long completedCount = progressRepository.countByEnrollment_IdAndCompletedTrue(enrollment.getId());
 
             // Get total lessons in course template
-            var allChapters = chapterRepository.findByCourse_IdOrderByOrderIndexAsc(template.getId());
+            var allChapters = chapterRepository.findByCourse_IdAndDeletedAtIsNullOrderByOrderIndexAsc(template.getId());
             long totalLessons = allChapters.stream()
-                    .mapToLong(c -> lessonRepository.findByChapter_IdOrderByOrderIndexAsc(c.getId()).size())
+                    .mapToLong(c -> lessonRepository.findByChapter_IdAndDeletedAtIsNullOrderByOrderIndexAsc(c.getId()).size())
                     .sum();
 
             int percent = totalLessons > 0 ? (int) (completedCount * 100 / totalLessons) : 0;

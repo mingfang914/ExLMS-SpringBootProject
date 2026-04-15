@@ -1,8 +1,7 @@
 port: 7800
 rtc:
-  port_range_start: 50000
-  port_range_end: 60000
-  node_ip: 161.118.215.197
+  use_external_ip: true
+# rtc.port_range and rtc.node_ip are overridden by environment variables in docker-compose
 keys:
   livekitadmin: livekitadmin
 logging:

@@ -36,7 +36,7 @@ public class ChapterService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học!"));
         requireInstructorRole(course, currentUser);
 
-        int nextOrder = chapterRepository.findByCourse_IdOrderByOrderIndexAsc(courseId).size();
+        int nextOrder = chapterRepository.findByCourse_IdAndDeletedAtIsNullOrderByOrderIndexAsc(courseId).size();
 
         CourseChapter chapter = CourseChapter.builder()
                 .course(course)
@@ -49,7 +49,7 @@ public class ChapterService {
 
     @Transactional(readOnly = true)
     public List<ChapterResponse> getChaptersByCourse(UUID courseId) {
-        return chapterRepository.findByCourse_IdOrderByOrderIndexAsc(courseId)
+        return chapterRepository.findByCourse_IdAndDeletedAtIsNullOrderByOrderIndexAsc(courseId)
                 .stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
