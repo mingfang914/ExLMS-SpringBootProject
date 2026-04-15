@@ -125,11 +125,14 @@ services:
     volumes:
       - ./docker-init/livekit/livekit.yaml:/etc/livekit.yaml
     ports:
-      - "7800:7800" # Signaling/API
-      - "7801:7801" # WebRTC TCP
-      - "7880-7890:7880-7890/udp"
+      - "${LIVEKIT_PORT:-7800}:7800"
+      - "${LIVEKIT_TCP_PORT:-7801}:7801"
+      - "${LIVEKIT_UDP_RANGE:-7880-7890}:${LIVEKIT_UDP_RANGE:-7880-7890}/udp"
     environment:
-      - "LIVEKIT_KEYS=${LIVEKIT_API_KEY}: ${LIVEKIT_API_SECRET}"
+      - LIVEKIT_KEYS=${LIVEKIT_API_KEY}: ${LIVEKIT_API_SECRET}
+      - LIVEKIT_RTC_NODE_IP=${LIVEKIT_NODE_IP:-127.0.0.1}
+      - LIVEKIT_RTC_PORT_RANGE_START=${LIVEKIT_RTC_START:-7880}
+      - LIVEKIT_RTC_PORT_RANGE_END=${LIVEKIT_RTC_END:-7890}
 
 
   # 8. Collaboration Microservice (Hocuspocus)
