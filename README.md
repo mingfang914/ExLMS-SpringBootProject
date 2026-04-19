@@ -7,6 +7,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 **ExLMS** là một hệ thống quản lý học tập (LMS) hiện đại, tập trung vào trải nghiệm học tập cộng tác thời gian thực. Hệ thống cung cấp đầy đủ các công cụ cho giảng viên và sinh viên từ quản lý khóa học, bài tập, đến các buổi học trực tuyến và soạn thảo văn bản đồng thời.
+Giao diện thân thiện với 2 theme sáng hoặc tối, hệ thống ngôn ngữ Vi/En hỗ trợ song ngữ.
+
+<img width="1920" height="1080" alt="Screenshot 2026-04-19 202558" src="https://github.com/user-attachments/assets/a1717dc0-76f6-4fc8-9a9e-522bff8659c3" />
 
 ---
 
@@ -16,38 +19,40 @@
 
 - **Khóa học & Bài học**: Quản lý nội dung học tập theo chương hồi, hỗ trợ video, văn bản và các tài nguyên đính kèm.
 <img width="1920" height="1080" alt="Screenshot 2026-04-19 210353" src="https://github.com/user-attachments/assets/942bdde5-d2f8-4f44-9016-c3fef8f164ec" />
-
+---
 - **Quản lý nhóm (Groups)**: Tạo và tham gia các nhóm học tập chuyên biệt, quản lý thành viên và quyền hạn.
 <img width="1920" height="1080" alt="Screenshot 2026-04-19 212750" src="https://github.com/user-attachments/assets/1e32d99f-62e9-4203-9e71-8b301768b62d" />
-
+---
 ### 🎥 Cộng tác thời gian thực
 
 - **Lớp học trực tuyến (Meeting)**: Tích hợp LiveKit cho phép hội thoại video chất lượng cao, chia sẻ màn hình, đặt câu hỏi và bình chọn (polls) ngay trong buổi học.
 <img width="1920" height="1080" alt="Screenshot 2026-04-19 214037" src="https://github.com/user-attachments/assets/d638fde6-69d1-4edc-82be-ba42a7eebc70" />
-
+---
 - **Soạn thảo đồng thời (Collab)**: Soạn thảo văn bản Real-time (tương tự Google Docs) dựa trên công nghệ Hocuspocus và Tiptap.
 <img width="1920" height="1080" alt="Screenshot 2026-04-19 203301" src="https://github.com/user-attachments/assets/db9d1cf2-b0c7-4b95-b661-9a65a8556746" />
-
+---
 ### 📝 Kiểm tra & Đánh giá
 - **Hệ thống Bài tập (Assignments)**: Giao bài, nộp bài đa phương thức và chấm điểm trực tuyến.
 <img width="1920" height="1080" alt="Screenshot 2026-04-19 214641" src="https://github.com/user-attachments/assets/cf39abfd-cd0d-4992-a397-5c7844122276" />
+---
 <img width="1920" height="1080" alt="Screenshot 2026-04-19 210041" src="https://github.com/user-attachments/assets/c2f3b484-a474-4418-85d0-6204c875443b" />
-
+---
 - **Trắc nghiệm (Quizzes)**: Tạo ngân hàng câu hỏi, thiết lập thời gian làm bài và tự động chấm điểm.
 <img width="1920" height="1080" alt="Screenshot 2026-04-19 210419" src="https://github.com/user-attachments/assets/ebef487f-481b-4d40-824f-1779baadc8e9" />
+---
 <img width="1920" height="1080" alt="Screenshot 2026-04-19 210213" src="https://github.com/user-attachments/assets/3602633c-3779-44c0-96d5-42423bc46d9d" />
-
+---
 ### 💬 Tương tác & Thông báo
 - **Diễn đàn (Forum)**: Nơi trao đổi kiến thức, thảo luận giữa các thành viên.
 <img width="1920" height="1080" alt="Screenshot 2026-04-19 205431" src="https://github.com/user-attachments/assets/4b7ed2a7-6b31-4a3b-a007-4a4c8347c706" />
-
+---
 - **Lịch biểu (Calendar)**: Cập nhật các hoạt động mới nhất trong nhóm học tập.
 <img width="1920" height="1080" alt="Screenshot 2026-04-19 210449" src="https://github.com/user-attachments/assets/67986505-1c3f-4844-a78f-7563ac646d89" />
+---
 <img width="1920" height="1080" alt="Screenshot 2026-04-19 210456" src="https://github.com/user-attachments/assets/e8289aee-90f8-41b2-92be-5ccb03fa5ebb" />
-
+---
 - **Thông báo đa nền tảng**: Nhận thông báo tức thời qua WebSocket (Toast) và Email.
 <img width="1920" height="1080" alt="Screenshot 2026-04-19 210430" src="https://github.com/user-attachments/assets/9ea8ec04-8287-421c-ae72-a11813d06a30" />
-
 ---
 
 ## 🛠 Công nghệ sử dụng
