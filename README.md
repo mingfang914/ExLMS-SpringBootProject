@@ -60,11 +60,23 @@ Hệ thống được thiết kế để triển khai dễ dàng thông qua Dock
 - Đã có tài khoản Google Cloud để lấy `Client ID` & `Client Secret` (nếu dùng Login Google).
 
 ### 2. Cấu hình môi trường
-Sao chép file `.env.example` thành `.env` và cập nhật các thông số cần thiết:
+
+Hệ thống sử dụng các biến môi trường để cấu hình linh hoạt. Bạn cần tạo file `.env` dựa trên file mẫu:
+
 ```bash
 cp .env.example .env
 ```
-*Lưu ý: Đảm bảo kiểm tra các khóa bí mật (JWT Secret, LiveKit API Key) và thông tin SMTP Mail.*
+
+Sau đó, hãy mở file `.env` và cập nhật các thông số quan trọng như:
+*   **Database**: URL, username và password của MySQL.
+*   **Security**: `JWT_SECRET_KEY` (chuỗi bảo mật cho token).
+*   **MinIO**: Thông tin đăng nhập storage.
+*   **Google OAuth**: Client ID & Secret để đăng nhập bằng Google.
+*   **Mail**: Cấu hình SMTP (Gmail App Password) để gửi thông báo.
+*   **LiveKit**: API Key/Secret và Public IP cho hội thoại trực tuyến.
+
+> [!IMPORTANT]
+> Tuyệt đối không chia sẻ file `.env` thực tế của bạn lên các kho mã nguồn công khai (GitHub/GitLab). File này đã được đưa vào `.gitignore`.
 
 ### 3. Khởi chạy hệ thống
 Chạy lệnh sau để Docker tự động Build và khởi động tất cả các dịch vụ:
